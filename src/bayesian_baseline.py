@@ -1,5 +1,10 @@
 import os
-os.environ["PYTENSOR_FLAGS"] = "cxx="
+import pytensor
+# Force the C++ compiler to work outside the Windows App sandbox
+pytensor.config.compiledir = "C:/pytensor_cache"
+
+import pandas as pd
+import numpy as np
 
 import pandas as pd
 import numpy as np
