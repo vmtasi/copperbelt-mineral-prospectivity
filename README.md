@@ -27,7 +27,6 @@ Because the model required the coordinates of old mines to predict new ones, it 
 
 This feature was entirely **scrapped to preserve mathematical integrity**.
 
----
 
 ### Phase 2: Overfitting to Human Constructs
 
@@ -39,7 +38,6 @@ Tract boundaries are often **arbitrary, human-drawn polygons**.
 
 The model had learned a spatial rule in the south that was physically meaningless in the north, exposing that it was **overfit to local geography rather than universal geology**.
 
----
 
 ### Phase 3: The True Geological Proxy
 
@@ -62,7 +60,6 @@ Furthermore, **exact spatial coordinates were strictly removed** from the traini
 
 The result is a **stable, non-leaky model** capable of predicting copper mineralization in completely unseen geographic blocks based purely on the physical plumbing system of the earth.
 
----
 
 ## Methodology & Tech Stack
 
@@ -75,8 +72,6 @@ The result is a **stable, non-leaky model** capable of predicting copper mineral
 - lithological contact extraction
 - spatial block generation
 
----
-
 ### Probabilistic Modeling
 - **:contentReference[oaicite:1]{index=1}**
 - **:contentReference[oaicite:2]{index=2}**
@@ -84,7 +79,6 @@ The result is a **stable, non-leaky model** capable of predicting copper mineral
 - **NUTS (No-U-Turn Sampler)**
 - posterior predictive inference
 
----
 
 ### Validation Framework
 - **:contentReference[oaicite:3]{index=3}**
@@ -92,8 +86,6 @@ The result is a **stable, non-leaky model** capable of predicting copper mineral
 - strict geographic train-test separation
 - spatial block cross-validation
 - AUC / ROC evaluation
-
----
 
 ## Conclusion
 
