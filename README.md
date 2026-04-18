@@ -54,9 +54,9 @@ A lithological contact is the physical boundary where two distinct rock layers m
 
 To prevent the Bayesian MCMC sampler from becoming unstable when encountering unfamiliar rock types in frontier blocks, **L2 regularization** was introduced via tightened normal priors:
 
-\[
+$$
 \mathcal{N}(0,1)
-\]
+$$
 
 Furthermore, **exact spatial coordinates were strictly removed** from the training features to prevent the model from memorizing the map.
 
