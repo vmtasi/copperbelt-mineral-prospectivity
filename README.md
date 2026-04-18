@@ -64,7 +64,6 @@ The result is a **stable, non-leaky model** capable of predicting copper mineral
 ## Methodology & Tech Stack
 
 ### Spatial Data Engineering
-- **:contentReference[oaicite:0]{index=0}**
 - vector joins
 - polygon intersections
 - polygon-to-line conversion
@@ -73,15 +72,13 @@ The result is a **stable, non-leaky model** capable of predicting copper mineral
 - spatial block generation
 
 ### Probabilistic Modeling
-- **:contentReference[oaicite:1]{index=1}**
-- **:contentReference[oaicite:2]{index=2}**
+-
 - Bayesian Logistic Regression
 - **NUTS (No-U-Turn Sampler)**
 - posterior predictive inference
 
 
 ### Validation Framework
-- **:contentReference[oaicite:3]{index=3}**
 - KMeans spatial clustering
 - strict geographic train-test separation
 - spatial block cross-validation
