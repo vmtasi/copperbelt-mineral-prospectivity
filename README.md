@@ -7,21 +7,19 @@ Rather than relying on standard black-box algorithms and random cross-validation
 
 The core narrative of this project is the **rigorous evolution of its spatial features**, documenting the transition from naive geometric proximity to true geological proxies in order to eliminate data leakage and build a commercially viable exploration tool.
 
----
 
-## The Feature Engineering Journey
+## Feature Engineering
 
 Building a model capable of predicting mineral deposits in completely unexplored frontier zones requires systematically stripping away all hindsight bias.
 
 This pipeline evolved through **three distinct phases** to achieve true geological intelligence.
 
----
 
 ### Phase 1: The Proximal Bias Trap
 
 The initial iteration of the model utilized the **Euclidean distance from a grid cell to the nearest known copper deposit**.
 
-While this resulted in a high **Area Under the Curve (AUC)** on paper, it was a classic manifestation of **data leakage**.
+Creating a classic **data leakage**.
 
 In a true Greenfield exploration scenario, the locations of existing deposits are fundamentally unknown.
 
