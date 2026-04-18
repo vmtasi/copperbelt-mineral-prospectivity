@@ -89,7 +89,3 @@ The result is a **stable, non-leaky model** capable of predicting copper mineral
 This project demonstrates that in **geoscientific machine learning**, the **physical reality of a feature** and the **prevention of spatial data leakage** matter infinitely more than algorithmic complexity.
 
 A modest AUC achieved through **strict spatial blocking** and **pristine geological contact features** provides far more value for real-world drilling capital deployment than a near-perfect score driven by proximal bias.
-
-The central lesson is clear:
-
-> **geological truth beats statistical illusion**
