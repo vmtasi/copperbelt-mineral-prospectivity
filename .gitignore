@@ -1,0 +1,24 @@
+.venv/
+.env
+.pytensor_cache/
+pytensor_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+dist/
+build/
+.eggs/
+.ipynb_checkpoints/
+.vscode/
+.DS_Store
+outputs/
+figures/
+.pycharm*
+.idea/
+.venv/
+data/*.csv
+# If you want to track selected data, remove the above line and add exceptions
+# e.g. !data/README.md

@@ -17,7 +17,7 @@ def run_baseline():
     # Extract the coordinates of the KNOWN deposits from the TRAINING set only
     train_positives = train_df[train_df['deposit_present'] == 1][['centroid_x', 'centroid_y']].values
 
-    def get_honest_distances(target_coords, known_coords):
+    def get_distances(target_coords, known_coords):
         """Calculates distance to nearest deposit, masking exact 0.0 matches to avoid cheating."""
         dists = cdist(target_coords, known_coords, metric='euclidean')
         # Preventing the model from learning "distance = 0 means deposit"
@@ -28,10 +28,10 @@ def run_baseline():
     train_df = train_df.copy()
     test_df = test_df.copy()
     
-    train_df['honest_dist_to_deposit'] = get_honest_distances(
+    train_df['honest_dist_to_deposit'] = get_distances(
         train_df[['centroid_x', 'centroid_y']].values, train_positives
     )
-    test_df['honest_dist_to_deposit'] = get_honest_distances(
+    test_df['honest_dist_to_deposit'] = get_distances(
         test_df[['centroid_x', 'centroid_y']].values, train_positives
     )
 
