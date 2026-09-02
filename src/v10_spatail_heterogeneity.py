@@ -1,6 +1,8 @@
 import os
 import sys
 from pathlib import Path
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
 
 # --- THE BACKEND BYPASS ---
 os.environ["PYTENSOR_FLAGS"] = "mode=NUMBA"
@@ -21,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-def run_v10_inference():
+def run_v10_upgraded():
     print("--- 1. Loading Datasets ---")
     data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
     df = pd.read_csv(data_path)
@@ -34,7 +36,7 @@ def run_v10_inference():
     continuous_features = [dist_to_lith_col, dist_to_fault_col, gravity_col]
     df = df.dropna(subset=['centroid_x', 'centroid_y', lithology_col, 'domain'] + continuous_features).copy()
     
-    print("--- 2. Engineering Daly's Tectonic Domains ---")
+    print("--- 2. Engineering Daly's Tectonic Domains (Index Mapping) ---")
     def map_daly_domain(x):
         x_str = str(x).lower()
         if '3a' in x_str: return 'NRB_3a'
@@ -48,8 +50,12 @@ def run_v10_inference():
     df['daly_domain'] = df['domain'].apply(map_daly_domain)
     df = df[df['daly_domain'] != 'Unknown'].copy()
     
-    df = pd.get_dummies(df, columns=['daly_domain'], drop_first=False, dtype=float)
-    domain_cols = [c for c in df.columns if c.startswith('daly_domain_')]
+    # 1. IDENTIFIABILITY FIX: Transition from One-Hot to Integer Encoding
+    unique_domains = sorted(df['daly_domain'].unique())
+    domain_to_idx = {dom: i for i, dom in enumerate(unique_domains)}
+    df['domain_idx'] = df['daly_domain'].map(domain_to_idx)
+    n_domains = len(unique_domains)
+    domain_idx = df['domain_idx'].values
 
     print("--- 3. Constructing Correctly Scaled Polynomial Features ---")
     scaler_fault = StandardScaler().fit(df[[dist_to_fault_col]])
@@ -63,80 +69,61 @@ def run_v10_inference():
     df['fault_z_sq'] = df['fault_z'] ** 2
     df['lith_z_sq'] = df['lith_z'] ** 2
 
-    fault_lin_interactions = []
-    fault_sq_interactions = []
-    lith_lin_interactions = []
-    lith_sq_interactions = []
-
-    for d_col in domain_cols:
-        f_lin = f'fault_lin_x_{d_col}'
-        f_sq = f'fault_sq_x_{d_col}'
-        l_lin = f'lith_lin_x_{d_col}'
-        l_sq = f'lith_sq_x_{d_col}'
-        
-        df[f_lin] = df['fault_z'] * df[d_col]
-        df[f_sq] = df['fault_z_sq'] * df[d_col]
-        df[l_lin] = df['lith_z'] * df[d_col]
-        df[l_sq] = df['lith_z_sq'] * df[d_col]
-        
-        fault_lin_interactions.append(f_lin)
-        fault_sq_interactions.append(f_sq)
-        lith_lin_interactions.append(l_lin)
-        lith_sq_interactions.append(l_sq)
-
     df = pd.get_dummies(df, columns=[lithology_col], drop_first=True, dtype=float)
     rock_features = [col for col in df.columns if col.startswith(f'{lithology_col}_')]
     valid_rocks = [c for c in rock_features if df.loc[df[c] == 1, 'deposit_present'].sum() > 0]
-
-    valid_features = ['grav_z'] + domain_cols + fault_lin_interactions + fault_sq_interactions + lith_lin_interactions + lith_sq_interactions + valid_rocks
     
-    X_train = df[valid_features].values.astype(float)
+    X_rocks = df[valid_rocks].values.astype(float)
+    X_grav = df['grav_z'].values.astype(float)
+    X_fault_lin = df['fault_z'].values.astype(float)
+    X_fault_sq = df['fault_z_sq'].values.astype(float)
+    X_lith_lin = df['lith_z'].values.astype(float)
+    X_lith_sq = df['lith_z_sq'].values.astype(float)
+    
     y_train = df['deposit_present'].values.astype(np.int32)
     logit_base_rate = float(np.log(y_train.sum() / (len(y_train) - y_train.sum())))
 
-    print("\n--- 4. Executing V10 Inference Model (100% Data, Numba Backend) ---")
+    print(f"\n--- 4. Executing V10 Inference (Hierarchical Index Model) ---")
     with pm.Model() as prospectivity_model:
-        alpha = pm.Normal('alpha', mu=logit_base_rate, sigma=1, initval=logit_base_rate)
-        
-        mu_dom = pm.Normal('mu_dom', mu=0.0, sigma=1.0)
-        sigma_dom = pm.HalfNormal('sigma_dom', sigma=1.0)
-        
+        # Hierarchical Intercept
+        alpha_mu = pm.Normal('alpha_mu', mu=logit_base_rate, sigma=1.0)
+        alpha_sigma = pm.HalfNormal('alpha_sigma', sigma=1.0)
+        alpha_dom = pm.Normal('alpha_dom', mu=alpha_mu, sigma=alpha_sigma, shape=n_domains)
+
+        # Hierarchical Slopes for Faults (Linear and Quadratic)
         mu_f_lin = pm.Normal('mu_f_lin', mu=0.0, sigma=1.0)
         sigma_f_lin = pm.HalfNormal('sigma_f_lin', sigma=1.0)
+        beta_f_lin = pm.Normal('beta_f_lin', mu=mu_f_lin, sigma=sigma_f_lin, shape=n_domains)
+
         mu_f_sq = pm.Normal('mu_f_sq', mu=0.0, sigma=1.0)
         sigma_f_sq = pm.HalfNormal('sigma_f_sq', sigma=1.0)
+        beta_f_sq = pm.Normal('beta_f_sq', mu=mu_f_sq, sigma=sigma_f_sq, shape=n_domains)
 
+        # Hierarchical Slopes for Lithology
         mu_l_lin = pm.Normal('mu_l_lin', mu=0.0, sigma=1.0)
         sigma_l_lin = pm.HalfNormal('sigma_l_lin', sigma=1.0)
+        beta_l_lin = pm.Normal('beta_l_lin', mu=mu_l_lin, sigma=sigma_l_lin, shape=n_domains)
+
         mu_l_sq = pm.Normal('mu_l_sq', mu=0.0, sigma=1.0)
         sigma_l_sq = pm.HalfNormal('sigma_l_sq', sigma=1.0)
+        beta_l_sq = pm.Normal('beta_l_sq', mu=mu_l_sq, sigma=sigma_l_sq, shape=n_domains)
+
+        # Global Features
+        beta_grav = pm.Normal('beta_grav', mu=0.0, sigma=1.0)
+        beta_rocks = pm.Normal('beta_rocks', mu=0.0, sigma=1.0, shape=len(valid_rocks))
+
+        # Model Assembly
+        mu = (
+            alpha_dom[domain_idx] + 
+            beta_f_lin[domain_idx] * X_fault_lin + 
+            beta_f_sq[domain_idx] * X_fault_sq +
+            beta_l_lin[domain_idx] * X_lith_lin + 
+            beta_l_sq[domain_idx] * X_lith_sq +
+            beta_grav * X_grav + 
+            pm.math.dot(X_rocks, beta_rocks)
+        )
         
-        beta_coefficients = []
-        for feat_name in valid_features:
-            if feat_name in domain_cols:
-                offset = pm.Normal(f'offset_{feat_name}', mu=0.0, sigma=1.0)
-                b = pm.Deterministic(f'beta_{feat_name}', mu_dom + offset * sigma_dom)
-            elif feat_name in fault_lin_interactions:
-                offset = pm.Normal(f'offset_{feat_name}', mu=0.0, sigma=1.0)
-                b = pm.Deterministic(f'beta_{feat_name}', mu_f_lin + offset * sigma_f_lin)
-            elif feat_name in fault_sq_interactions:
-                offset = pm.Normal(f'offset_{feat_name}', mu=0.0, sigma=1.0)
-                b = pm.Deterministic(f'beta_{feat_name}', mu_f_sq + offset * sigma_f_sq)
-            elif feat_name in lith_lin_interactions:
-                offset = pm.Normal(f'offset_{feat_name}', mu=0.0, sigma=1.0)
-                b = pm.Deterministic(f'beta_{feat_name}', mu_l_lin + offset * sigma_l_lin)
-            elif feat_name in lith_sq_interactions:
-                offset = pm.Normal(f'offset_{feat_name}', mu=0.0, sigma=1.0)
-                b = pm.Deterministic(f'beta_{feat_name}', mu_l_sq + offset * sigma_l_sq)
-            else:
-                b = pm.Normal(f'beta_{feat_name}', mu=0.0, sigma=1.0)
-                
-            beta_coefficients.append(b)
-        
-        beta_vector = pm.math.stack(beta_coefficients)
-        mu = alpha + pm.math.dot(X_train, beta_vector)
         y_obs = pm.Bernoulli('y_obs', logit_p=mu, observed=y_train)
-        
         trace = pm.sample(draws=1500, tune=2000, chains=2, cores=1, target_accept=0.99, progressbar=True, random_seed=42)
 
     print("\n--- 5. Generating Geological Response Curves (0 - 50 km) ---")
@@ -152,21 +139,21 @@ def run_v10_inference():
     Z_fault = (m_array - mu_fault) / std_fault
     Z_fault_sq = Z_fault ** 2
 
-    alpha_samples = trace.posterior['alpha'].values.flatten()
-    
+    # Extract full posterior traces
+    alpha_samples = trace.posterior['alpha_dom'].values.reshape(-1, n_domains)
+    beta_f_lin_samples = trace.posterior['beta_f_lin'].values.reshape(-1, n_domains)
+    beta_f_sq_samples = trace.posterior['beta_f_sq'].values.reshape(-1, n_domains)
+    n_samples = alpha_samples.shape[0]
+
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10), sharex=True, sharey=True)
     axes = axes.flatten()
-    colors = plt.cm.tab10(np.linspace(0, 1, len(domain_cols)))
+    colors = plt.cm.tab10(np.linspace(0, 1, n_domains))
 
-    for idx, d_col in enumerate(domain_cols):
+    for idx, dom_name in enumerate(unique_domains):
         ax = axes[idx]
-        dom_name = d_col.replace('daly_domain_', '')
         
-        beta_dom = trace.posterior[f'beta_{d_col}'].values.flatten()
-        beta_f_lin = trace.posterior[f'beta_fault_lin_x_{d_col}'].values.flatten()
-        beta_f_sq = trace.posterior[f'beta_fault_sq_x_{d_col}'].values.flatten()
-        
-        logit_matrix = alpha_samples[:, None] + beta_dom[:, None] + np.outer(beta_f_lin, Z_fault) + np.outer(beta_f_sq, Z_fault_sq)
+        # Calculate Logit: Alpha_Dom + (Fault_Lin_Dom * Z) + (Fault_Sq_Dom * Z^2)
+        logit_matrix = alpha_samples[:, idx][:, None] + np.outer(beta_f_lin_samples[:, idx], Z_fault) + np.outer(beta_f_sq_samples[:, idx], Z_fault_sq)
         prob_matrix = 1 / (1 + np.exp(-logit_matrix)) 
         
         mean_curve = np.mean(prob_matrix, axis=0)
@@ -176,7 +163,7 @@ def run_v10_inference():
         ax.plot(km_axis, mean_curve, label='Posterior Mean', color=colors[idx], lw=3)
         ax.fill_between(km_axis, lower_band, upper_band, color=colors[idx], alpha=0.2, label='95% HDI')
         
-        ax.set_title(f'Tectonic Domain: {dom_name}', fontsize=12, fontweight='bold')
+        ax.set_title(f'{dom_name}', fontsize=12, fontweight='bold')
         ax.grid(True, linestyle='--', alpha=0.6)
         if idx >= 3: ax.set_xlabel('Distance to Fault (km)', fontsize=11)
         if idx % 3 == 0: ax.set_ylabel('Conditional Probability', fontsize=11)
@@ -184,25 +171,50 @@ def run_v10_inference():
         ax.set_xlim(0, 50)
         ax.legend(loc='upper right')
 
-    plt.suptitle('Posterior Fault Proximity Response by Daly (2025) Tectonic Domain\n(Predicted probability at mean values of other predictors)', fontsize=16, y=1.02)
+    plt.suptitle('Posterior Fault Proximity Response by Daly (2025) Tectonic Domain\n(Conditional fault-distance response with other covariates held fixed)', fontsize=14, y=1.02)
     plt.tight_layout()
-    
-    plot_path = output_dir / 'v10_fault_response_curves_fixed.png'
+    plot_path = output_dir / 'v10_fault_response_curves_hierarchical.png'
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-    print(f"\nCorrected response curves saved to: {plot_path}")
-
-    print("\n--- Effective Turning Points (D*) from Quadratic Curvature ---")
-    for d_col in domain_cols:
-        dom_name = d_col.replace('daly_domain_', '')
-        beta_f_lin_mean = np.mean(trace.posterior[f'beta_fault_lin_x_{d_col}'].values)
-        beta_f_sq_mean = np.mean(trace.posterior[f'beta_fault_sq_x_{d_col}'].values)
+    
+    print("\n--- 6. Bayesian D* (Turning Point) Analysis vs. Real Data ---")
+    for idx, dom_name in enumerate(unique_domains):
+        # 1. Get the actual maximum distance observed in the data for this domain
+        dom_mask = df['daly_domain'] == dom_name
+        max_dist_m = df.loc[dom_mask, dist_to_fault_col].max()
+        max_dist_km = max_dist_m / 1000.0
         
-        if beta_f_sq_mean > 0.05:  
-            z_star = -beta_f_lin_mean / (2 * beta_f_sq_mean)
-            d_star_km = (z_star * std_fault + mu_fault) / 1000.0
-            print(f"{dom_name.ljust(10)}: Peak marginal shift occurs at ~{d_star_km:.1f} km")
+        # 2. Calculate the posterior distribution of D* (Z* = -b1 / 2b2)
+        b1_trace = beta_f_lin_samples[:, idx]
+        b2_trace = beta_f_sq_samples[:, idx]
+        
+        # Filter for samples where b2 > 0 (where the curve actually has a minimum)
+        curvature_mask = b2_trace > 0.05
+        prob_curvature = np.mean(curvature_mask)
+        
+        if prob_curvature > 0.5:
+            # Calculate Z* only for traces with meaningful curvature
+            z_star_trace = -b1_trace[curvature_mask] / (2 * b2_trace[curvature_mask])
+            d_star_km_trace = ((z_star_trace * std_fault) + mu_fault) / 1000.0
+            
+            d_star_med = np.median(d_star_km_trace)
+            d_star_lower = np.percentile(d_star_km_trace, 2.5)
+            d_star_upper = np.percentile(d_star_km_trace, 97.5)
+            
+            # Probability that D* falls within the 0-50km window
+            p_in_bounds = np.mean((d_star_km_trace >= 0) & (d_star_km_trace <= 50))
+            
+            print(f"\n[{dom_name}] (Max Observed Data: {max_dist_km:.1f} km)")
+            print(f"  Curvature Probability (P(b2 > 0)): {prob_curvature:.2f}")
+            print(f"  Posterior D* Minimum : {d_star_med:.1f} km")
+            print(f"  95% HDI of D*        : [{d_star_lower:.1f}, {d_star_upper:.1f}] km")
+            print(f"  P(D* inside 0-50km)  : {p_in_bounds:.2f}")
+            
+            if d_star_med > max_dist_km:
+                print(f"  ⚠️ WARNING: Median D* ({d_star_med:.1f} km) is extrapolating beyond observed data ({max_dist_km:.1f} km).")
         else:
-            print(f"{dom_name.ljust(10)}: Predominantly monotonic / weak curvature")
+            print(f"\n[{dom_name}] (Max Observed Data: {max_dist_km:.1f} km)")
+            print(f"  Curvature Probability (P(b2 > 0)): {prob_curvature:.2f}")
+            print("  Result: Predominantly monotonic / weak curvature. No D* calculated.")
 
 if __name__ == "__main__":
-    run_v10_inference()
+    run_v10_upgraded()
