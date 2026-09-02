@@ -83,30 +83,35 @@ def run_v10_upgraded():
     y_train = df['deposit_present'].values.astype(np.int32)
     logit_base_rate = float(np.log(y_train.sum() / (len(y_train) - y_train.sum())))
 
-    print(f"\n--- 4. Executing V10 Inference (Hierarchical Index Model) ---")
+    print(f"\n--- 4. Executing V10 Inference (Non-Centered Hierarchical Model) ---")
     with pm.Model() as prospectivity_model:
-        # Hierarchical Intercept
+        # Hierarchical Intercept (Non-Centered)
         alpha_mu = pm.Normal('alpha_mu', mu=logit_base_rate, sigma=1.0)
         alpha_sigma = pm.HalfNormal('alpha_sigma', sigma=1.0)
-        alpha_dom = pm.Normal('alpha_dom', mu=alpha_mu, sigma=alpha_sigma, shape=n_domains)
+        alpha_offset = pm.Normal('alpha_offset', mu=0.0, sigma=1.0, shape=n_domains)
+        alpha_dom = pm.Deterministic('alpha_dom', alpha_mu + alpha_offset * alpha_sigma)
 
-        # Hierarchical Slopes for Faults (Linear and Quadratic)
+        # Hierarchical Slopes for Faults (Non-Centered)
         mu_f_lin = pm.Normal('mu_f_lin', mu=0.0, sigma=1.0)
         sigma_f_lin = pm.HalfNormal('sigma_f_lin', sigma=1.0)
-        beta_f_lin = pm.Normal('beta_f_lin', mu=mu_f_lin, sigma=sigma_f_lin, shape=n_domains)
+        offset_f_lin = pm.Normal('offset_f_lin', mu=0.0, sigma=1.0, shape=n_domains)
+        beta_f_lin = pm.Deterministic('beta_f_lin', mu_f_lin + offset_f_lin * sigma_f_lin)
 
         mu_f_sq = pm.Normal('mu_f_sq', mu=0.0, sigma=1.0)
         sigma_f_sq = pm.HalfNormal('sigma_f_sq', sigma=1.0)
-        beta_f_sq = pm.Normal('beta_f_sq', mu=mu_f_sq, sigma=sigma_f_sq, shape=n_domains)
+        offset_f_sq = pm.Normal('offset_f_sq', mu=0.0, sigma=1.0, shape=n_domains)
+        beta_f_sq = pm.Deterministic('beta_f_sq', mu_f_sq + offset_f_sq * sigma_f_sq)
 
-        # Hierarchical Slopes for Lithology
+        # Hierarchical Slopes for Lithology (Non-Centered)
         mu_l_lin = pm.Normal('mu_l_lin', mu=0.0, sigma=1.0)
         sigma_l_lin = pm.HalfNormal('sigma_l_lin', sigma=1.0)
-        beta_l_lin = pm.Normal('beta_l_lin', mu=mu_l_lin, sigma=sigma_l_lin, shape=n_domains)
+        offset_l_lin = pm.Normal('offset_l_lin', mu=0.0, sigma=1.0, shape=n_domains)
+        beta_l_lin = pm.Deterministic('beta_l_lin', mu_l_lin + offset_l_lin * sigma_l_lin)
 
         mu_l_sq = pm.Normal('mu_l_sq', mu=0.0, sigma=1.0)
         sigma_l_sq = pm.HalfNormal('sigma_l_sq', sigma=1.0)
-        beta_l_sq = pm.Normal('beta_l_sq', mu=mu_l_sq, sigma=sigma_l_sq, shape=n_domains)
+        offset_l_sq = pm.Normal('offset_l_sq', mu=0.0, sigma=1.0, shape=n_domains)
+        beta_l_sq = pm.Deterministic('beta_l_sq', mu_l_sq + offset_l_sq * sigma_l_sq)
 
         # Global Features
         beta_grav = pm.Normal('beta_grav', mu=0.0, sigma=1.0)
@@ -124,8 +129,8 @@ def run_v10_upgraded():
         )
         
         y_obs = pm.Bernoulli('y_obs', logit_p=mu, observed=y_train)
-        trace = pm.sample(draws=1500, tune=2000, chains=2, cores=1, target_accept=0.99, progressbar=True, random_seed=42)
-
+        trace = pm.sample(draws=1500, tune=2500, chains=2, cores=1, target_accept=0.99, progressbar=True, random_seed=42)
+        
     print("\n--- 5. Generating Geological Response Curves (0 - 50 km) ---")
     output_dir = ROOT / 'figures'
     os.makedirs(output_dir, exist_ok=True)
