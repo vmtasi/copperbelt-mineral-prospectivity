@@ -4,10 +4,7 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore', category=FutureWarning)
 
-# --- THE BACKEND BYPASS ---
-os.environ["PYTENSOR_FLAGS"] = "mode=NUMBA"
-import pytensor
-
+# Allow PyTensor to use the native C++ compiler now that Smart App Control is off
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -23,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-def run_v10_upgraded():
+def run_v10_final():
     print("--- 1. Loading Datasets ---")
     data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
     df = pd.read_csv(data_path)
@@ -50,7 +47,6 @@ def run_v10_upgraded():
     df['daly_domain'] = df['domain'].apply(map_daly_domain)
     df = df[df['daly_domain'] != 'Unknown'].copy()
     
-    # 1. IDENTIFIABILITY FIX: Transition from One-Hot to Integer Encoding
     unique_domains = sorted(df['daly_domain'].unique())
     domain_to_idx = {dom: i for i, dom in enumerate(unique_domains)}
     df['domain_idx'] = df['daly_domain'].map(domain_to_idx)
@@ -83,7 +79,7 @@ def run_v10_upgraded():
     y_train = df['deposit_present'].values.astype(np.int32)
     logit_base_rate = float(np.log(y_train.sum() / (len(y_train) - y_train.sum())))
 
-    print(f"\n--- 4. Executing V10 Inference (Non-Centered Hierarchical Model) ---")
+    print(f"\n--- 4. Executing V10 Inference (Native C++ Backend) ---")
     with pm.Model() as prospectivity_model:
         # Hierarchical Intercept (Non-Centered)
         alpha_mu = pm.Normal('alpha_mu', mu=logit_base_rate, sigma=1.0)
@@ -130,11 +126,51 @@ def run_v10_upgraded():
         
         y_obs = pm.Bernoulli('y_obs', logit_p=mu, observed=y_train)
         trace = pm.sample(draws=1500, tune=2500, chains=2, cores=1, target_accept=0.99, progressbar=True, random_seed=42)
-        
-    print("\n--- 5. Generating Geological Response Curves (0 - 50 km) ---")
+
     output_dir = ROOT / 'figures'
     os.makedirs(output_dir, exist_ok=True)
     
+    # ---------------------------------------------------------
+    # PERMANENT TRACE SAVE (Never lose the sampler output again)
+    # ---------------------------------------------------------
+    trace_path = output_dir / 'v10_trace.nc'
+    trace.to_netcdf(trace_path)
+    print(f"\n[+] Raw posterior trace saved permanently to: {trace_path}")
+
+    # ---------------------------------------------------------
+    # SUPERVISOR'S CSV EXTRACTION
+    # ---------------------------------------------------------
+    print("--- 5. Extracting Hierarchical Posterior CSV ---")
+    var_names = ['alpha_dom', 'beta_f_lin', 'beta_f_sq', 'beta_l_lin', 'beta_l_sq', 'beta_grav']
+    summary_df = az.summary(trace, var_names=var_names, hdi_prob=0.95)
+    
+    prob_negative = []
+    for idx_name in summary_df.index:
+        if '[' in idx_name:
+            var_name, idx_str = idx_name.split('[')
+            idx = int(idx_str.replace(']', ''))
+            samples = trace.posterior[var_name].values[:, :, idx].flatten()
+        else:
+            samples = trace.posterior[idx_name].values.flatten()
+        prob_negative.append(np.mean(samples < 0))
+        
+    summary_df['P(beta < 0)'] = prob_negative
+    
+    # Map raw PyMC indices to geological domains for readability
+    index_mapping = {}
+    for var in ['alpha_dom', 'beta_f_lin', 'beta_f_sq', 'beta_l_lin', 'beta_l_sq']:
+        for i, dom in enumerate(unique_domains):
+            index_mapping[f"{var}[{i}]"] = f"{var}_{dom}"
+            
+    summary_df = summary_df.rename(index=index_mapping)
+    csv_path = output_dir / 'v10_posterior_summary_hierarchical.csv'
+    summary_df.to_csv(csv_path)
+    print(f"[+] Matrix saved to: {csv_path}")
+
+    # ---------------------------------------------------------
+    # GEOLOGICAL RESPONSE CURVES (0 - 50 km)
+    # ---------------------------------------------------------
+    print("--- 6. Generating Geological Response Curves ---")
     m_array = np.linspace(0, 50000, 200)
     km_axis = m_array / 1000.0  
     
@@ -144,11 +180,9 @@ def run_v10_upgraded():
     Z_fault = (m_array - mu_fault) / std_fault
     Z_fault_sq = Z_fault ** 2
 
-    # Extract full posterior traces
     alpha_samples = trace.posterior['alpha_dom'].values.reshape(-1, n_domains)
     beta_f_lin_samples = trace.posterior['beta_f_lin'].values.reshape(-1, n_domains)
     beta_f_sq_samples = trace.posterior['beta_f_sq'].values.reshape(-1, n_domains)
-    n_samples = alpha_samples.shape[0]
 
     fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 10), sharex=True, sharey=True)
     axes = axes.flatten()
@@ -157,7 +191,6 @@ def run_v10_upgraded():
     for idx, dom_name in enumerate(unique_domains):
         ax = axes[idx]
         
-        # Calculate Logit: Alpha_Dom + (Fault_Lin_Dom * Z) + (Fault_Sq_Dom * Z^2)
         logit_matrix = alpha_samples[:, idx][:, None] + np.outer(beta_f_lin_samples[:, idx], Z_fault) + np.outer(beta_f_sq_samples[:, idx], Z_fault_sq)
         prob_matrix = 1 / (1 + np.exp(-logit_matrix)) 
         
@@ -181,31 +214,28 @@ def run_v10_upgraded():
     plot_path = output_dir / 'v10_fault_response_curves_hierarchical.png'
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     
-    print("\n--- 6. Bayesian D* (Turning Point) Analysis vs. Real Data ---")
+    # ---------------------------------------------------------
+    # D* OVERLAY ANALYSIS
+    # ---------------------------------------------------------
+    print("\n--- 7. Bayesian D* (Turning Point) Analysis vs. Real Data ---")
     for idx, dom_name in enumerate(unique_domains):
-        # 1. Get the actual maximum distance observed in the data for this domain
         dom_mask = df['daly_domain'] == dom_name
         max_dist_m = df.loc[dom_mask, dist_to_fault_col].max()
         max_dist_km = max_dist_m / 1000.0
         
-        # 2. Calculate the posterior distribution of D* (Z* = -b1 / 2b2)
         b1_trace = beta_f_lin_samples[:, idx]
         b2_trace = beta_f_sq_samples[:, idx]
         
-        # Filter for samples where b2 > 0 (where the curve actually has a minimum)
         curvature_mask = b2_trace > 0.05
         prob_curvature = np.mean(curvature_mask)
         
         if prob_curvature > 0.5:
-            # Calculate Z* only for traces with meaningful curvature
             z_star_trace = -b1_trace[curvature_mask] / (2 * b2_trace[curvature_mask])
             d_star_km_trace = ((z_star_trace * std_fault) + mu_fault) / 1000.0
             
             d_star_med = np.median(d_star_km_trace)
             d_star_lower = np.percentile(d_star_km_trace, 2.5)
             d_star_upper = np.percentile(d_star_km_trace, 97.5)
-            
-            # Probability that D* falls within the 0-50km window
             p_in_bounds = np.mean((d_star_km_trace >= 0) & (d_star_km_trace <= 50))
             
             print(f"\n[{dom_name}] (Max Observed Data: {max_dist_km:.1f} km)")
@@ -222,4 +252,4 @@ def run_v10_upgraded():
             print("  Result: Predominantly monotonic / weak curvature. No D* calculated.")
 
 if __name__ == "__main__":
-    run_v10_upgraded()
+    run_v10_final()
