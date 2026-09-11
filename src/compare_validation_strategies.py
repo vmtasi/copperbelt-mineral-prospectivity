@@ -7,7 +7,7 @@ from src.validation_strategies import (
     get_random_folds,
     validate_fold_counts,
 )
-from src.spatial_cv import run_spatial_cv
+from src.hierachical_spatial_cv import run_spatial_cv
 
 
 def compare_validation_strategies():

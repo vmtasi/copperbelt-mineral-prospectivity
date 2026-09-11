@@ -1,24 +1,41 @@
+# Python environment
 .venv/
+
+# Secrets / environment
 .env
-.pytensor_cache/
-pytensor_cache/
+
+# Python caches
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
 *.pdb
+.pytensor_cache/
+pytensor_cache/
+
+# Python packaging
 *.egg-info/
 dist/
 build/
 .eggs/
-.ipynb_checkpoints/
+
+# IDEs
 .vscode/
-.DS_Store
+.idea/
+.pycharm*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated project outputs
 outputs/
 figures/
-.pycharm*
-.idea/
-.venv/
+
+# Local MCP runtime
+.mcp/*.exe
+
+# OS
+.DS_Store
+
+# Large/raw research data
 data/*.csv
-# If you want to track selected data, remove the above line and add exceptions
-# e.g. !data/README.md
