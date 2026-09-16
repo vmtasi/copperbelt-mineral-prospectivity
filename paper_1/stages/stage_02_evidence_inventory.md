@@ -1,46 +1,41 @@
-# Stage 02: Evidence Inventory
-# Stage 2: Evidence Inventory (Revised)
+# Stage 02: Research Gap, Problem, Hypothesis, Aim and Objectives
 
-## Claim 1: Predictor relationships are spatially heterogeneous
-*   **Question:** Do geological predictors have the same predictive relationship with mineralization across tectonic domains?
-*   **Evidence:** Domain-specific Bayesian posterior coefficients from V11.
-*   **Analysis:** Comparison of posterior distributions for coefficients (e.g., $\beta_{fault,d}$, $\beta_{lith,d}$) across Daly domains.
-*   **Evidence Product:** Table 1 — Domain-specific posterior coefficients (Domain, Predictor, Posterior median, 95% HDI, Direction).
-*   **Code Reference:** `v11_spatial_cv.py`
-*   **Status:** Empirical result.
+## 2.1 Research gap
 
-## Claim 2: The spatial scale of predictor influence varies between regions
-*   **Question:** Does a geological predictor operate at the same spatial scale throughout the Copperbelt?
-*   **Evidence:** Posterior turning points ($D^*$). For example, NRB_3a shows an identifiable lithological response around ~28 km, while NRB_3b exhibits an extremely broad, unconstrained posterior distribution.
-*   **Evidence Product:** Table 2 — Domain-specific response scales (Domain, Predictor, Median $D^*$, 95% HDI, $P(D^* \leq D_{\max})$).
-*   **Code Reference:** `phase5_robust_response.py`
-*   **Status:** Empirical result.
+Existing prospectivity studies commonly evaluate whether geological predictors are associated with mineralization, but a general association does not resolve whether fault distance has a nonlinear response, where the stationary point of that response lies, how uncertain that point is, or whether it is supported by observations in the relevant geological setting. These questions are especially important in a long, heterogeneous belt where spatial separation can expose failures of geographic transferability that pooled or randomly partitioned metrics conceal.
 
-## Claim 3: Relative model performance is geographically dependent
-*   **Question:** Does the identity of the better-performing model remain constant across spatial regions?
-*   **Evidence:** Strict along-belt OOF predictions demonstrating a sign reversal in $\Delta AUC$ (e.g., $\Delta AUC_{F2} < 0$ favoring M5, but $\Delta AUC_{F3} > 0$ favoring V11).
-*   **Evidence Product:** Table/Figure 3 — Spatial OOF model comparison (ROC-AUC, PR-AUC, Brier score, $\Delta AUC$ by fold).
-*   **Code Reference:** `phase7_final_validation.py`
-*   **Status:** Empirical result.
+The specific gap addressed here is therefore the absence of a unified quantitative treatment of nonlinear fault-distance response, uncertainty in its algebraic turning point, empirical support for that turning point, spatially varying relationships and predictive validation under along-belt spatial separation. Daly's geological domains provide a geological framework for examining this evidence without assuming that all domains contain sufficient positive observations for independent discrimination estimates.
 
-## Claim 4: The performance reversal is robust to spatial dependence
-*   **Question:** Could the apparent reversal simply be an artifact of treating spatially correlated cells as independent observations?
-*   **Evidence:** Spatial block bootstrap tested across multiple spatial scales (10x10, 15x15, 20x20, 25x25 grids). The direction and magnitude of the regional performance differences persist regardless of block resolution.
-*   **Evidence Product:** Table/Figure 4 — Multi-scale spatial robustness (Block scale, $\Delta AUC$ bootstrap median, 95% CI, Bootstrap Proportion $\Delta AUC > 0$).
-*   **Code Reference:** `phase7_multiscale_robustness.py`
-*   **Status:** Empirical robustness result.
+## 2.2 Research problem
 
-## Claim 5: Pooled global metrics can conceal regional predictive failure
-*   **Question:** Does a strong global evaluation metric guarantee reliable prediction in all key subregions?
-*   **Evidence:** The pooled OOF evaluation for V11 yields a highly competitive AUC (~0.689). However, within Fold 4—which contains ~44% of the deposits—the model drops to ~0.561 AUC. This demonstrate a single performance metric can conceal substantial regional varation in predictive performance.
-*   **Evidence Product:** Figure 5 — Pooled versus regional performance (Visual contrast of Pooled Copperbelt AUC vs. Fold 4 AUC).
-*   **Code Reference:** `phase7_final_validation.py`
-*   **Status:** Empirical result.
+It is not sufficient to determine whether distance to a fault enters a predictive model. The scientific problem is to determine whether a nonlinear fault-distance component is identifiable and interpretable under spatially varying geological conditions, and whether the corresponding predictive behavior transfers to held-out parts of the Copperbelt. The problem includes separating a mathematical stationary point from an empirically supported response feature and separating model discrimination from a geological claim about a preferred distance.
 
-## Claim 6: Regional failure is not explained by missing predictor observations
-*   **Question:** Could the poor regional performance simply result from missing survey data?
-*   **Evidence:** The missingness audit indicates 100% complete cases for the modeling variables within the evaluated dataset.
-*   **Interpretive Explanation (For Discussion Section):** The absence of missing predictor observations suggests that the regional reduction in discrimination is not attributable to incomplete measurements. One possible explanation is that the selected regional-scale proxies contain insufficient transferable information in that region.
-*   **Evidence Product:** Table 6 — Spatial observation audit (Domain, cell counts, deposit counts, complete-case percentages).
-*   **Code Reference:** `phase6_missingness_audit.py`
-*   **Status:** Empirical diagnostic.
+## 2.3 Falsifiable hypothesis
+
+The primary hypothesis is that the relationship between mineralization probability and fault distance is spatially non-stationary and may contain a domain-dependent nonlinear component. If this hypothesis is supported, V11 should yield posterior evidence of differing fault-distance coefficients or response shapes across spatial/geological units, and its out-of-fold discrimination should vary across the four along-belt test regions rather than behaving as a uniformly transferable global relationship. If it is not supported, the posterior and spatial OOF results should be compatible with a substantially common response and comparatively uniform predictive behavior.
+
+This hypothesis does not predict that V11 must outperform M5 in every fold or Daly domain. A result in which V11 is competitive overall but its advantage varies spatially remains informative about transferability rather than constituting automatic confirmation of the geological hypothesis.
+
+## 2.4 Aim
+
+To evaluate whether nonlinear fault-distance relationships associated with Cu-Co mineralization are identifiable, empirically supported and geographically transferable across the Copperbelt when estimated with a partially pooled hierarchical Bayesian model and evaluated using along-belt spatial out-of-fold prediction.
+
+## 2.5 Objectives
+
+1. Estimate the linear and quadratic fault-distance response, together with the corresponding lithology-contact, gravity and lithological effects, using the existing V11 hierarchical Bayesian formulation.
+2. Quantify posterior uncertainty in the algebraic stationary point $D^*$ and distinguish curvature, turning-point existence, response classification and empirical support.
+3. Determine whether fitted coefficients and response behavior vary across spatial/geological units in a manner consistent with spatial non-stationarity, without treating hierarchical variation as proof of geological causation.
+4. Compare V11 with the compact M5 baseline using the existing four-fold along-belt spatial OOF predictions and fold-level and pooled predictive metrics.
+5. Describe how the frozen V11 OOF predictive discrimination is distributed across the six Daly domains, calculating domain-specific ROC-AUC only where both deposit-positive and non-deposit observations are present.
+
+## 2.6 Research questions
+
+1. Does the V11 posterior support a nonlinear fault-distance response, and what curvature does that response imply?
+2. What is the posterior distribution of the algebraic turning point $D^*$, and how often does it fall within the observed fault-distance support of the relevant modeling population or domain?
+3. Do the estimated relationships and response shapes vary across spatial/geological units along the Copperbelt?
+4. How does V11's out-of-fold predictive discrimination compare with M5 across the four held-out along-belt folds and in pooled OOF evaluation?
+5. Among Daly domains containing both classes, how does V11's frozen OOF discrimination compare with the M5 OOF baseline?
+
+## 2.7 Deliberate boundaries
+
+The study does not refit V11 separately within each Daly domain, use Leave-One-Daly-Domain-Out validation as its primary design, or create Fold-by-Domain validation cells. The domain-stratified analysis is a secondary stratification of the existing frozen four-fold V11 OOF predictions. Stage 4 will report the numerical results; this stage defines the questions and estimands without presuming their outcomes.

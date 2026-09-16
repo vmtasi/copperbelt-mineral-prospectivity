@@ -89,107 +89,103 @@ the intercept and selected predictor effects are allowed to vary across
 Daly tectonic domains.
 
 For domain \(d\), the model takes the general form:
+# Stage 03: Methodology, Study Design and Analytical Framework
+
+## 3.1 Study area and modeling data
+
+The study concerns the Central African Copperbelt tract represented by the project modeling grid. Each grid observation has centroid coordinates $(x_i,y_i)$ and a binary response $Y_i\in\{0,1\}$ indicating deposit presence. The analysis uses the complete-case modeling population after applying the same response, coordinate, domain, lithological-class and predictor availability requirements used by the V11 implementation.
+
+The predictor set is deliberately constrained to three geological or geophysical variables: distance to major faults ($D_{fault}$), distance to lithological contacts ($D_{lith}$), and Bouguer gravity anomaly ($X_{grav}$). The complete modeling frame contains 138 deposit-positive observations: 107 in NRB_3a and 31 in NRB_3b. CRZ, NKB, SRB and MMSB contain zero deposit-positive observations in this frame. These counts describe the available modeling data; they do not imply that the zero-positive domains lack geological importance.
+
+## 3.2 Daly-domain classification
+
+Daly's geological domains are used as a geological stratification of the Copperbelt tract. The six fixed labels are CRZ, NKB, SRB, MMSB, NRB_3a and NRB_3b. The classification is used to examine whether fitted behavior and already-generated predictive discrimination are consistent across geological settings.
+
+The domains are not treated as six independent predictive-validation datasets. In particular, a conventional ROC-AUC requires both deposit-positive and non-deposit observations. Consequently, domain-level ROC-AUC is estimable in the current modeling frame for NRB_3a and NRB_3b, while the four zero-positive domains cannot yield a conventional positive-versus-negative ROC-AUC. They are not considered failed validation domains; the estimand is undefined there under this data composition.
+
+## 3.3 Predictor preprocessing and spatial folds
+
+For each of four predefined along-belt spatial folds, one block $B_k$ is held out and the remaining observations form the training set:
 
 \[
-\operatorname{logit}(P(Y_i=1))
-=
-\alpha_d
-+
-\beta_{fault,d}X_{fault,i}
-+
-\beta_{fault^2,d}X_{fault,i}^{2}
-+
-\beta_{lith,d}X_{lith,i}
-+
-\beta_{lith^2,d}X_{lith,i}^{2}
-+
-\beta_{grav}X_{grav,i}
-+
-\text{lithological effects}.
+\mathcal{D}^{(k)}_{train}=\mathcal{D}\setminus B_k,\qquad
+\mathcal{D}^{(k)}_{test}=B_k.
 \]
 
-Domain-specific coefficients are hierarchically regularized around
-shared population-level distributions, allowing regional effects to
-differ while retaining partial pooling between domains.
+Each continuous predictor is standardized using parameters estimated only from $\mathcal{D}^{(k)}_{train}$. The held-out observations are transformed with those training parameters. Quadratic distance terms are constructed after standardization. This preserves the spatial separation between training and test observations and prevents test-fold information from entering preprocessing.
 
-The central methodological contrast is therefore between a formulation
-with globally shared predictive relationships and one that explicitly
-permits those relationships to vary across geological domains.
+The four-fold along-belt design is the primary validation framework. It evaluates geographic transferability rather than random-cell interpolation, where neighboring cells could place closely related geological environments in both training and test data.
 
-## 3.5 Out-of-Fold Prediction Strategy
+## 3.4 V11 hierarchical Bayesian model
 
-For each spatial fold \(k\), the models were fitted exclusively using
+V11 is a Bayesian hierarchical logistic-regression model. For observation $i$ in spatial/geological unit $d(i)$, its linear predictor has the form
 
 \[
-D_{train}^{(k)} = \mathcal{D}\setminus B_k
+\begin{aligned}
+\eta_i ={}& \alpha_{d(i)}
+ + \beta_{f, d(i)}z_{f,i}
+ + \beta_{f^2,d(i)}z_{f,i}^{2}\\
+&+ \beta_{l,d(i)}z_{l,i}
+ + \beta_{l^2,d(i)}z_{l,i}^{2}
+ + \beta_g z_{g,i}
+ + \mathbf{x}_{rock,i}^{\mathsf T}\boldsymbol{\beta}_{rock},
+\end{aligned}
 \]
 
-and predictions were generated for the withheld spatial block
+with
 
 \[
-D_{test}^{(k)} = B_k.
+P(Y_i=1\mid\eta_i)=\operatorname{logit}^{-1}(\eta_i).
 \]
 
-This procedure was repeated for all four folds. The resulting held-out
-predictions were then concatenated to form a complete OOF prediction
-set in which each observation was predicted by a model that had not
-been trained on that observation's spatial block.
+The intercept and distance coefficients are unit-specific but arise from shared population-level distributions through a non-centred hierarchical parameterization and partial pooling. This allows spatial/geological variation while retaining information shared across units. The hierarchy is a modeling representation of possible non-stationarity, not proof that every estimated difference is geological in origin. Posterior sampling provides uncertainty distributions for coefficients, curvature and predicted probabilities; V11 is not refit as part of the domain-stratified analysis.
 
-## 3.6 Evaluation Metrics
+The compact M5 baseline is a global logistic regression using Bouguer gravity, standardized lithology-contact distance and its quadratic term. It supplies the comparative predictive reference for the same four spatial test partitions.
 
-Three complementary metrics were used:
+## 3.5 Interpretation of curvature and $D^*$
 
-- **ROC-AUC:** measures ranking discrimination between mineralized and
-  non-mineralized observations.
-- **PR-AUC:** provides an additional discrimination measure under the
-  substantial class imbalance present in the dataset.
-- **Brier Score:** evaluates the accuracy of predicted probabilities.
-
-For direct model comparison, the primary contrast was
+For a distance-specific quadratic component,
 
 \[
-\Delta AUC =
-AUC_{V11}-AUC_{M5}.
+\eta(z)=\alpha+\beta_{lin}z+\beta_{sq}z^2,
 \]
 
-Because both models were evaluated on the same held-out observations
-within each spatial fold, this constitutes a paired spatial comparison
-of predictive performance.
-
-Both fold-level and pooled OOF metrics were examined. Fold-level
-evaluation was particularly important because pooling geographically
-distinct observations can conceal regional differences in predictive
-performance.
-
-## 3.7 Spatial Robustness Analysis
-
-Uncertainty in model-performance differences was additionally examined
-using spatially structured block bootstrap resampling.
-
-Rather than treating individual grid cells as independent bootstrap
-units, observations were grouped into spatial blocks and these blocks
-were resampled with replacement.
-
-The robustness analysis was repeated using four block-grid resolutions:
-
-- 10 × 10
-- 15 × 15
-- 20 × 20
-- 25 × 25
-
-For each scale, the distribution of
+the derivative and curvature are
 
 \[
-\Delta AUC=AUC_{V11}-AUC_{M5}
+\frac{d\eta}{dz}=\beta_{lin}+2\beta_{sq}z,
+\qquad
+\frac{d^2\eta}{dz^2}=2\beta_{sq}.
 \]
 
-was examined.
+When $\beta_{sq}\neq0$, the algebraic stationary point is
 
-The purpose of this analysis was to determine whether the observed
-direction and magnitude of model-performance differences were sensitive
-to the spatial scale used to define bootstrap blocks.
+\[
+z^*=-\frac{\beta_{lin}}{2\beta_{sq}},
+\qquad
+D^*=\mu_{train}+\sigma_{train}z^*.
+\]
 
-Particular attention was given to the observed reversal in relative
-model performance between spatial folds, rather than assuming that the
-globally superior model was uniformly superior throughout the study
-region.
+Here $D^*$ is the mathematical location implied by one posterior draw or a summary of those draws. Positive curvature is minimum-shaped and negative curvature is maximum-shaped. A finite $D^*$ does not by itself establish a meaningful turning point: draws near $\beta_{sq}=0$ can produce unstable values, and a stationary point outside the observed support is extrapolative for that modeling population. Accordingly, the analysis separates curvature sign, posterior uncertainty in $D^*$, response-curve shape, and the probability that $D^*$ lies within the inclusive observed distance support.
+
+## 3.6 Primary spatial OOF validation
+
+For each fold, V11 is estimated using only the three training blocks and generates predictions for the held-out block. The four held-out prediction sets are concatenated into frozen V11 spatial OOF predictions. Each observation therefore receives a prediction from a model that did not use its own spatial block for fitting. M5 is evaluated on the same four-fold partition using fold-specific training preprocessing.
+
+Predictive discrimination is summarized with ROC-AUC, with PR-AUC and Brier score providing complementary information under class imbalance. The direct comparison is
+
+\[
+\Delta AUC=AUC_{V11}-AUC_{M5}.
+\]
+
+Fold-level results are retained alongside pooled OOF results because pooled performance can conceal geographically varying transferability.
+
+## 3.7 Domain-stratified spatial OOF analysis
+
+After V11 fitting and OOF prediction are complete, the existing frozen V11 OOF artifact is aligned to the original Phase 7 modeling observations using the verified observation identity of the artifact. The retained predictions are then stratified by the six Daly domains. This analysis does not refit V11, does not fit a separate model within each domain, does not use Leave-One-Daly-Domain-Out validation, and does not create Fold-by-Domain validation cells.
+
+For each domain, the analysis reports cell counts, deposits, non-deposits, M5 OOF AUC, V11 OOF AUC, their difference and bootstrap 95% confidence intervals where both response classes are present. Thus domain-stratified performance describes how the existing spatially held-out predictions behave across geological settings; it is a secondary stratification of the primary four-fold spatial validation, not a replacement for it.
+
+## 3.8 Scope of the analytical framework
+
+The framework is designed to test a specific geological and predictive proposition: whether a nonlinear fault-distance response and its spatial variation are supported by the V11 posterior and by geographically separated prediction. It does not equate a large domain representation with universal Copperbelt generalization, and it does not convert an algebraic $D^*$ into a geological target without considering uncertainty, curvature classification and empirical support.
