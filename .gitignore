@@ -39,3 +39,5 @@ figures/
 
 # Large/raw research data
 data/*.csv
+
+.trash/
