@@ -155,37 +155,3 @@ the derivative and curvature are
 \[
 \frac{d\eta}{dz}=\beta_{lin}+2\beta_{sq}z,
 \qquad
-\frac{d^2\eta}{dz^2}=2\beta_{sq}.
-\]
-
-When $\beta_{sq}\neq0$, the algebraic stationary point is
-
-\[
-z^*=-\frac{\beta_{lin}}{2\beta_{sq}},
-\qquad
-D^*=\mu_{train}+\sigma_{train}z^*.
-\]
-
-Here $D^*$ is the mathematical location implied by one posterior draw or a summary of those draws. Positive curvature is minimum-shaped and negative curvature is maximum-shaped. A finite $D^*$ does not by itself establish a meaningful turning point: draws near $\beta_{sq}=0$ can produce unstable values, and a stationary point outside the observed support is extrapolative for that modeling population. Accordingly, the analysis separates curvature sign, posterior uncertainty in $D^*$, response-curve shape, and the probability that $D^*$ lies within the inclusive observed distance support.
-
-## 3.6 Primary spatial OOF validation
-
-For each fold, V11 is estimated using only the three training blocks and generates predictions for the held-out block. The four held-out prediction sets are concatenated into frozen V11 spatial OOF predictions. Each observation therefore receives a prediction from a model that did not use its own spatial block for fitting. M5 is evaluated on the same four-fold partition using fold-specific training preprocessing.
-
-Predictive discrimination is summarized with ROC-AUC, with PR-AUC and Brier score providing complementary information under class imbalance. The direct comparison is
-
-\[
-\Delta AUC=AUC_{V11}-AUC_{M5}.
-\]
-
-Fold-level results are retained alongside pooled OOF results because pooled performance can conceal geographically varying transferability.
-
-## 3.7 Domain-stratified spatial OOF analysis
-
-After V11 fitting and OOF prediction are complete, the existing frozen V11 OOF artifact is aligned to the original Phase 7 modeling observations using the verified observation identity of the artifact. The retained predictions are then stratified by the six Daly domains. This analysis does not refit V11, does not fit a separate model within each domain, does not use Leave-One-Daly-Domain-Out validation, and does not create Fold-by-Domain validation cells.
-
-For each domain, the analysis reports cell counts, deposits, non-deposits, M5 OOF AUC, V11 OOF AUC, their difference and bootstrap 95% confidence intervals where both response classes are present. Thus domain-stratified performance describes how the existing spatially held-out predictions behave across geological settings; it is a secondary stratification of the primary four-fold spatial validation, not a replacement for it.
-
-## 3.8 Scope of the analytical framework
-
-The framework is designed to test a specific geological and predictive proposition: whether a nonlinear fault-distance response and its spatial variation are supported by the V11 posterior and by geographically separated prediction. It does not equate a large domain representation with universal Copperbelt generalization, and it does not convert an algebraic $D^*$ into a geological target without considering uncertainty, curvature classification and empirical support.
