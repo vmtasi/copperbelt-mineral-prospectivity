@@ -98,6 +98,7 @@ WRITABLE_PREFIXES: tuple[str, ...] = (
     "tests/",
     "docs/",
     "figures/audit/",
+    "paper_1/stages/",
 )
 
 
