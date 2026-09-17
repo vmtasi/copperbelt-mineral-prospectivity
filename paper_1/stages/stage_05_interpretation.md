@@ -1,6 +1,6 @@
 # Stage 05: Interpretation
 
-## 5.1 Meaning of curvature and $D^*$
+## 5.1 What the posterior says about nonlinear fault-distance response
 
 The V11 results support treating distance response as a posterior distribution of possible curves rather than as a single deterministic distance effect. A positive quadratic coefficient corresponds to minimum-shaped curvature in the fitted linear predictor, while a negative coefficient corresponds to maximum-shaped curvature. The algebraic quantity $D^*$ identifies the stationary point implied by a particular coefficient draw. It does not, by itself, establish a geological target.
 
@@ -8,25 +8,31 @@ The distinction is important in these results. NRB_3a lithology-contact distance
 
 NRB_3a fault distance is generally minimum-like but less uniform: one fold has $P(\beta_{fault^2}>0)=0.464$, and the fold-median within-support probability ranges from $0.126$ to $0.938$. NRB_3b fault distance is weaker still, with posterior curvature sign probabilities that do not establish a common minimum or maximum and response curves that vary from boundary/monotone to interior extrema. NRB_3b lithology-contact distance is more often positive-curvature, but its within-support probability is only $0.381$–$0.584$ across folds. Thus curvature, finite stationary-point calculation, response classification and empirical support are separate evidential steps.
 
-## 5.2 Spatial non-stationarity
+## 5.2 What $D^*$ means and how empirical support changes its interpretation
+
+$D^*$ is the algebraic stationary point of the fitted standardized quadratic after transformation to physical distance. A finite draw-level value shows that the corresponding fitted quadratic has a stationary point; it does not show that the point is well identified. Near-zero quadratic coefficients can generate very wide $D^*$ distributions, as seen in the fault-distance results. A point inside the observed training support is less extrapolative than one outside it, but support is an empirical-range criterion rather than a causal or geological validation.
+
+The evidence therefore differs by response and setting. NRB_3a lithology has both concentrated $D^*$ values and high support probabilities. NRB_3a fault has generally minimum-shaped response curves but unstable fold-specific algebraic summaries. NRB_3b fault has weak curvature identification and changing response shapes. NRB_3b lithology suggests a minimum-shaped response on the support grid, but its algebraic support probabilities remain moderate. These are distinct levels of evidence and should not be collapsed into a single turning-point claim.
+
+## 5.3 Spatial non-stationarity
 
 The differing fold-level coefficients, curvature probabilities, support probabilities and response-curve extrema are consistent with spatially varying fitted relationships. The OOF results reinforce this pattern: V11 exceeded M5 in Fold 3 but underperformed M5 in Folds 1, 2 and 4. The pooled V11 advantage therefore does not describe a uniform local advantage.
 
 This is evidence that the modeled relationship and its transferability vary across the along-belt partitions. It is not proof that every coefficient difference is caused by a distinct geological mechanism. The hierarchical model supplies partial pooling and a way to estimate variation; geological causation requires evidence beyond coefficient variation alone.
 
-## 5.3 Predictive transferability
+## 5.4 Geographic transferability
 
 The fold-level results indicate that geographic transferability is conditional on the held-out region. V11 was strongest relative to M5 in Fold 3, where $\Delta AUC=+0.091$, and weakest in Fold 2, where $\Delta AUC=-0.136$. Fold 1 showed a smaller negative difference and Fold 4 was close to parity but slightly negative. The pooled difference of $+0.164$ therefore summarizes an average over heterogeneous regional behavior rather than a guarantee of superiority in each region.
 
 The multiscale spatial bootstrap retained the same sign pattern for the observed Fold 2 and Fold 3 differences. This supports the empirical stability of the reported regional contrast under the completed block-bootstrap analysis, while not converting predictive stability into coefficient or geological stability.
 
-## 5.4 Daly-domain interpretation
+## 5.5 Daly-domain stratification
 
 The domain-stratified results show a strong contrast between the two domains in which conventional ROC-AUC is estimable. In NRB_3a, V11 achieved AUC $0.661701$ compared with $0.535752$ for M5, a difference of $+0.125948$. In NRB_3b, V11 achieved $0.583815$ compared with $0.866897$ for M5, a difference of $-0.283082$.
 
 These results demonstrate that the frozen spatially held-out predictive behavior is not uniform across NRB_3a and NRB_3b. They do not represent independent domain refits, Leave-One-Daly-Domain-Out validation or Fold-by-Domain validation. CRZ, NKB, SRB and MMSB contain no positive observations in this modeling frame, so their ROC-AUC is undefined rather than poor.
 
-## 5.5 Relationship to Daly's hypothesis
+## 5.6 Relationship to Daly's hypothesis
 
 The results provide partial and qualified evidence relevant to Daly's geological proposition. The presence of nonlinear fitted responses, especially the well-supported minimum-shaped NRB_3a lithology-contact response, is consistent with the proposition that proximity relationships need not be monotonic. The variation in fault-distance curvature, response shape and spatial OOF discrimination is consistent with the proposition that relationships may not transfer uniformly along the Copperbelt.
 
