@@ -1,91 +1,34 @@
-# Copperbelt Mineral Prospectivity Mapping: A Bayesian Spatial Approach
+# Copperbelt Mineral Prospectivity Mapping
 
-## Project Overview
-This project builds a **physics-informed Machine Learning pipeline** to identify **Greenfield (unexplored) copper deposits** in the Central African Copperbelt.
+## Overview
 
-Rather than relying on standard black-box algorithms and random cross-validation—which notoriously inflate performance metrics in spatial data due to autocorrelation—this project utilizes **Bayesian Logistic Regression via Markov Chain Monte Carlo (MCMC)** paired with strict **Spatial Block Cross-Validation**.
+This project develops a spatially structured Bayesian framework for mineral-prospectivity mapping in the Central African Copperbelt. The completed Paper 1 analysis addresses a central challenge in spatial geoscientific machine learning: predictive relationships can appear stronger when spatial leakage or locally specific feature definitions are allowed to substitute for transferable geological information. The project therefore combines exogenous geological and geophysical predictors with geographically separated out-of-fold evaluation.
 
-The core narrative of this project is the **rigorous evolution of its spatial features**, documenting the transition from naive geometric proximity to true geological proxies in order to eliminate data leakage and build a commercially viable exploration tool.
+## Modeling Approach
 
+The final V11 model is a hierarchical Bayesian logistic regression with partial pooling across Daly geological domains. Its three principal continuous predictors are **distance to fault**, **distance to lithology contact**, and **Bouguer gravity**, together with retained lithological-class terms. The intercept, fault-distance linear and quadratic coefficients, and lithology-contact-distance linear and quadratic coefficients are domain-varying under hierarchical partial pooling. Bouguer gravity enters through a **global linear coefficient**. Distance predictors are standardized using the training data before their quadratic terms are constructed, and inference uses MCMC with the NUTS sampler.
 
-## Feature Engineering
+The two distance predictors therefore permit nonlinear fitted response shapes; Bouguer gravity does not have a quadratic term in V11 and consequently has no corresponding D*. This is a property of the model specification, not an indication that gravity is unimportant.
 
-Building a model capable of predicting mineral deposits in completely unexplored frontier zones requires systematically stripping away all hindsight bias.
+## Spatial and Nonlinear Analysis
 
-This pipeline evolved through **three distinct phases** to achieve true geological intelligence.
+The primary predictive validation is **four-fold along-belt spatial out-of-fold (OOF) validation**, using geographic separation to assess predictive transferability rather than relying on random cross-validation. The Daly-domain results are a secondary stratification of those frozen spatial OOF predictions, not a separate domain-refitting or independent domain-validation exercise.
 
+For the two quadratic distance predictors, D* is used as a mathematical diagnostic of an algebraic stationary point. For a standardized distance response, the stationary point follows from the fitted quadratic coefficients. Curvature, existence of a stationary point, its classification as a minimum or maximum, empirical predictor support, and posterior concentration are distinct quantities. An in-support D* is less extrapolative than one outside observed training support, but empirical support is not geological validation, and a finite D* does not by itself establish a geological optimum.
 
-### Phase 1: The Proximal Bias Trap
+## Development History
 
-The initial iteration of the model utilized the **Euclidean distance from a grid cell to the nearest known copper deposit**.
+The feature set evolved from an initial deposit-distance feature that introduced proximal bias, through a regional tract-boundary feature that showed poor spatial transferability, toward exogenous geological/geophysical predictors with exact spatial coordinates removed. This history documents how leakage and spatially arbitrary feature definitions were addressed during development; it is not the complete scientific identity of the final model.
 
-Creating a classic **data leakage**.
+## Key Findings
 
-In a true Greenfield exploration scenario, the locations of existing deposits are fundamentally unknown.
+- Mineral-prospectivity relationships vary spatially within the modeled Copperbelt framework.
+- Fault distance and lithology-contact distance exhibit nonlinear fitted relationships in relevant settings, with evidence varying across domains and spatial folds.
+- **NRB_3a lithology-contact distance provides particularly strong combined evidence for a supported interior nonlinear response**, while fault-distance nonlinear evidence is more heterogeneous.
+- Bouguer gravity remains an integral third predictor of the multivariate V11 model despite having no quadratic turning-point diagnostic.
+- Spatial OOF prediction shows heterogeneous geographic transferability rather than uniform predictive behavior across the study area.
+- The completed analysis provides qualified evidence consistent with aspects of Daly's proposition, but does not establish a causal geological mechanism or a universal geological distance.
 
-Because the model required the coordinates of old mines to predict new ones, it suffered from **proximal bias** and was therefore unviable for frontier discovery.
+## Scope
 
-This feature was entirely **scrapped to preserve mathematical integrity**.
-
-
-### Phase 2: Overfitting to Human Constructs
-
-To resolve the leakage, the model shifted to measuring the **distance to the edge of regional geological tracts**.
-
-However, when subjected to **K-Means Spatial Block Cross-Validation**—where the model was trained on the southern regions of the basin and forced to predict the unseen northern region—the performance collapsed to an **AUC of 0.14**.
-
-Tract boundaries are often **arbitrary, human-drawn polygons**.
-
-The model had learned a spatial rule in the south that was physically meaningless in the north, exposing that it was **overfit to local geography rather than universal geology**.
-
-
-### Phase 3: The True Geological Proxy
-
-The final, production-ready model relies entirely on **exogenous geological proxies**.
-
-Using **QGIS spatial engineering**, grid cells were mapped to continuous lithological polygons to extract:
-
-- the **primary host rock**
-- the **exact distance to the nearest lithological contact zone**
-
-A lithological contact is the physical boundary where two distinct rock layers meet and where fluid chemistry and mineralization pathways often change.
-
-To prevent the Bayesian MCMC sampler from becoming unstable when encountering unfamiliar rock types in frontier blocks, **L2 regularization** was introduced via tightened normal priors:
-
-$$
-\mathcal{N}(0,1)
-$$
-
-Furthermore, **exact spatial coordinates were strictly removed** from the training features to prevent the model from memorizing the map.
-
-The result is a **stable, non-leaky model** capable of predicting copper mineralization in completely unseen geographic blocks based purely on the physical plumbing system of the earth.
-
-
-## Methodology & Tech Stack
-
-### Spatial Data Engineering
-- vector joins
-- polygon intersections
-- polygon-to-line conversion
-- centroid / polygon-to-line nearest distance computation
-- lithological contact extraction
-- spatial block generation
-
-### Probabilistic Modeling
--
-- Bayesian Logistic Regression
-- **NUTS (No-U-Turn Sampler)**
-- posterior predictive inference
-
-
-### Validation Framework
-- KMeans spatial clustering
-- strict geographic train-test separation
-- spatial block cross-validation
-- AUC / ROC evaluation
-
-## Conclusion
-
-This project demonstrates that in **geoscientific machine learning**, the **physical reality of a feature** and the **prevention of spatial data leakage** matter infinitely more than algorithmic complexity.
-
-A modest AUC achieved through **strict spatial blocking** and **pristine geological contact features** provides far more value for real-world drilling capital deployment than a near-perfect score driven by proximal bias.
+The project should be interpreted as a spatially structured Bayesian prospectivity framework with geographically held-out evaluation and heterogeneous predictor relationships. Its results do not establish commercial drilling performance, universal transferability across the entire Copperbelt or every unexplored frontier zone, geological causation, or a universal distance relationship. Paper 1 contains the detailed methodology, results, interpretation, and discussion.
