@@ -1,6 +1,6 @@
 # Stage 04: Results
 
-## 4.1 V11 posterior evidence for nonlinear distance responses
+## 4.1 V11 posterior coefficient and nonlinear response results
 
 The V11 posterior contains domain-specific linear and quadratic terms for fault distance and lithology-contact distance. The fault-distance results varied across folds and Daly domains. For NRB_3a, the fold-specific median $\beta_{fault}$ values ranged from $-2.681$ to $-0.703$, while median $\beta_{fault^2}$ ranged from $-0.057$ to $1.601$. The posterior probability of positive fault curvature, $P(\beta_{fault^2}>0)$, ranged from $0.464$ to $0.996$ across the four folds; $P(\beta_{fault^2}>0.05)$ ranged from $0.433$ to $0.993$. Thus, three folds were predominantly positive-curvature, while Fold 2 was sign-uncertain under the posterior classification used in the diagnostic output.
 
@@ -10,7 +10,7 @@ The lithology-contact quadratic response was more consistent in NRB_3a than in N
 
 These probabilities describe posterior curvature sign. They are distinct from the existence of a finite algebraic stationary point and from whether that point lies within observed distance support.
 
-## 4.2 Algebraic stationary points and empirical support
+## 4.2 Posterior turning-point $D^*$ results
 
 For NRB_3a fault distance, the unfiltered fold-median $D^*$ values ranged from $-18.024$ to $46.619$ km. The probability that posterior draws of $D^*$ lay within the fold-specific empirical support ranged from $0.126$ to $0.938. The posterior-mean response-curve extrema ranged from $36.645$ to $43.349$ km and were classified as minima on the corresponding support grids, although the algebraic posterior was substantially less stable in Fold 2.
 
@@ -20,13 +20,21 @@ For NRB_3a lithology-contact distance, unfiltered fold-median $D^*$ values range
 
 The diagnostic outputs also report conditional $D^*$ distributions after the methodological filter $\beta_{sq}>0.05$. These are conditional posterior summaries, not unconditional $D^*$ distributions. The filter was not treated as a geological truth criterion.
 
-## 4.3 Spatial variation in fitted response behavior
+## 4.3 Empirical support and response-shape classification
+
+The fold-specific support intervals were calculated from training observations only and used inclusive lower and upper boundaries. Positive curvature corresponds to a minimum-shaped fitted component and negative curvature to a maximum-shaped component. The classification is distinct from the existence of a finite algebraic stationary point and from whether that point lies within observed support.
+
+The support and shape results did not always coincide with the algebraic summaries. NRB_3a fault posterior-mean curves were classified as minima in all folds, although Fold 2 had sign-uncertain curvature and only 0.126 of unfiltered $D^*$ draws within support. NRB_3b fault included a boundary/monotone response curve and a maximum-shaped curve among its fold-level outputs, alongside broad and sign-uncertain algebraic summaries. NRB_3a lithology was classified as a minimum across folds with high support probabilities, whereas NRB_3b lithology was classified as a minimum over the support grid despite lower curvature and support certainty.
+
+The diagnostic outputs also report conditional $D^*$ distributions after the methodological filter $\beta_{sq}>0.05$. These are conditional posterior summaries, not unconditional $D^*$ distributions. The filter was not treated as a geological truth criterion.
+
+## 4.4 Spatial variation/non-stationarity of fitted relationships
 
 The fold-level coefficient and response summaries show spatial variation in both coefficient values and response shape. NRB_3a fault curvature was minimum-dominant in Folds 1 and 4, sign-uncertain in Folds 2 and 3, and had markedly different $D^*$ support probabilities across folds. NRB_3b fault curvature remained sign-uncertain across folds and included a boundary/monotone posterior-mean curve. Lithology-contact responses were minimum-shaped in the posterior-mean curves across the reported NRB_3a and NRB_3b folds, but the posterior sign and support evidence was stronger for NRB_3a.
 
 The pairwise coefficient table is descriptive rather than a composite stability score. It reports posterior differences between folds and whether their intervals include zero.
 
-## 4.4 Four-fold along-belt spatial OOF performance
+## 4.5 Four-fold along-belt spatial OOF predictive performance
 
 The primary four-fold spatial OOF comparison produced the following results:
 
@@ -42,7 +50,7 @@ The fold-level V11 Brier scores were 0.019, 0.063, 0.074 and 0.118, respectively
 
 The spatial block bootstrap output retained this fold pattern across 10×10, 15×15, 20×20 and 25×25 block grids. For example, the observed Fold 2 difference was $-0.136$ and the observed Fold 3 difference was $+0.091$ at every reported block scale; pooled bootstrap median differences ranged from $0.163$ to $0.167$.
 
-## 4.5 Daly-domain-stratified OOF performance
+## 4.6 Daly-domain stratification of frozen OOF predictions
 
 The existing frozen four-fold V11 OOF predictions were aligned to 1,872 modeling observations: 1,872 artifact rows, 1,872 aligned rows, zero unmatched model rows, zero unmatched artifact rows, zero duplicated model rows, zero duplicated artifact rows and zero missing V11 predictions. The aligned predictions were then stratified by Daly domain; V11 was not refit by domain.
 
