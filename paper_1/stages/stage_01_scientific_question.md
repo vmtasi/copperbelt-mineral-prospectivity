@@ -1,45 +1,69 @@
 # Stage 01: Introduction, Background and Scientific Context
 
-## 1.1 Geological context
+## 1.1 Geological context and prospectivity mapping
 
-The Central African Copperbelt contains substantial Cu-Co mineralization distributed through a structurally and lithologically complex belt. Mineralization is not expected to be controlled by a single measurable property. The V11 framework therefore considers three principal continuous geological or geophysical predictors together: distance to major faults, distance to lithological contacts, and Bouguer gravity anomaly. Faults and lithological contacts can influence fluid pathways, permeability, host-rock architecture and mineralization sites, while regional gravity structure provides complementary geophysical information. These controls may operate differently along the belt because geological histories, structural configurations and deposit-bearing environments vary spatially.
+Mineral prospectivity mapping in complex metallogenic belts requires integrating multiple geological and geophysical indicators to estimate the spatial probability of undiscovered mineral deposits. The Central African Copperbelt is one of the world's premier sediment-hosted stratiform copper-cobalt provinces, extending over 400 kilometres across diverse structural and tectonic domains in Zambia and the Democratic Republic of the Congo. Mineralization in this belt is not governed by a single structural or lithological feature; rather, ore formation is widely recognized as the product of an interconnected earth system involving basin architecture, fluid pathways, host-rock reactivity, and regional crustal configuration.
 
-This setting makes the Copperbelt a useful natural laboratory for asking whether relationships learned in one part of the belt transfer to another. It also makes a spatially separated evaluation scientifically necessary: a model can perform well when neighboring cells are mixed between training and testing while failing to transfer to a distinct along-belt region.
+To reflect this multivariate system, this study evaluates three principal continuous geological and geophysical predictors alongside host-rock stratigraphy:
+1. **Distance to major faults ($D_{fault}$):** Structural discontinuities that served as primary conduits for hydrothermal basin fluids.
+2. **Distance to lithological contacts ($D_{lith}$):** Stratigraphic boundaries where chemical reactivity, redox contrasts, and fluid-mixing processes favored copper-cobalt precipitation.
+3. **Bouguer gravity anomaly ($X_{grav}$):** Regional gravity structure providing complementary information on basement architecture, sub-basin depocentres, and crustal density variations.
+4. **Host lithological classes:** Categorical rock-type indicators representing the immediate stratigraphic host environment.
 
-## 1.2 Geological predictors and nonlinear distance response
+Because geological histories, deformation intensity, and stratigraphic host settings vary markedly along the Copperbelt, the relationships between these predictors and mineralization are unlikely to remain uniform from one sector of the belt to another.
 
-Distance to a fault and distance to a lithological contact are geologically interpretable proximity variables, but neither relationship need be monotonic. Very large distances may indicate limited structural or lithological influence, whereas locations immediately adjacent to a feature need not always be the most favorable because mineralization can depend on interactions among faults, host lithology, alteration, fluid chemistry and local geometry. A nonlinear response is therefore a scientifically meaningful possibility rather than merely an algorithmic embellishment.
+## 1.2 Uncertainty and spatially separated predictive transfer
 
-The V11 analysis represents both distance predictors with linear and quadratic terms, allowing their fitted responses to bend and, when supported by the posterior, to contain a stationary point. Bouguer gravity enters as a linear standardized predictor and has no quadratic term in V11; consequently, it has no corresponding quadratic turning-point quantity $D^*$. The absence of $D^*$ for gravity is a property of the model specification, not evidence that gravity is unimportant.
+A fundamental challenge in mineral prospectivity modeling is spatial autocorrelation. Mineral deposits and geological features cluster in space, meaning that conventional random cross-validation—where randomly selected grid cells are held out—inevitably allows training and testing observations from the same local cluster to mingle. This produces severe data leakage and artificially inflated performance estimates that fail to indicate how well a model can predict prospectivity in genuinely unexplored frontier regions.
 
-For either distance predictor, the quadratic component can be written on the standardized scale as
+Evaluating prospectivity models therefore demands **spatially separated predictive validation**, in which entire contiguous geographical sectors are held out out-of-fold (OOF). A model that achieves high predictive accuracy when interpolating between known deposits may collapse entirely when required to extrapolate across distinct geological sectors. Spatially separated validation provides an honest, rigorous test of whether learned multivariate relationships transfer along the orogenic strike.
+
+Furthermore, geological data are inherently observational, incomplete, and subject to spatial sampling bias. An exploration model must therefore quantify predictive and parametric uncertainty in a principled manner, avoiding overconfident assertions regarding unobservable frontier ground.
+
+## 1.3 Spatial heterogeneity and hierarchical Bayesian inference
+
+The tension between regional geological differences and belt-wide commonalities presents a classic statistical trade-off. Fitting a single global model across the entire Copperbelt assumes that structural and lithological relationships are spatially stationary, potentially obscuring vital regional nuances. Conversely, fitting completely separate models within individual sub-basins discards shared geological knowledge and fails entirely in sectors where known mineral deposits are sparse or absent.
+
+This study resolves that tension by formulating a **hierarchical Bayesian prospectivity model with partial pooling across Daly's tectonic domains**. Daly's six recognized geological domains provide a natural geological stratification of the belt. Under this hierarchical architecture:
+- Base-rate log-odds intercepts vary by domain, accommodating regional baseline differences while sharing a belt-wide population distribution;
+- Proximity relationships for faults and lithological contacts are allowed to vary across domains, reflecting local structural style while shrinking toward population-level means;
+- Regional Bouguer gravity and valid lithological units provide global stabilizing constraints.
+
+The hierarchy serves as an uncertainty-aware statistical framework for evaluating spatially varying relationships; it does not, by itself, assume or prove geological causation.
+
+## 1.4 Distance response: representation and functional form
+
+Proximity to faults and contacts is a cornerstone of mineral exploration vectoring. However, how distance relationships should be mathematically represented remains an open question. Proximity is generally expected to correlate with increased prospectivity, but the exact response shape may not be strictly monotonic or uniform:
+- At very large distances, structural or lithological vectoring influence diminishes toward background levels.
+- At proximal distances, the response may be linear on the logit scale, follow a power-law or logarithmic decay, or exhibit localized curvature resulting from fault-damage zones, alteration haloes, or optimal fluid-mixing windows.
+
+To investigate whether distance responses exhibit curvature, earlier iterations of this project introduced quadratic distance terms on the standardized scale:
 
 \[
-\eta(z)=\alpha+\beta_{1}z+\beta_{2}z^2,
+\eta(z) = \alpha + \beta_{1} z + \beta_{2} z^2.
 \]
 
-with stationary point
+Where positive quadratic curvature ($\beta_{2} > 0$) is supported, an algebraic stationary point can be derived:
 
 \[
-z^*=-\frac{\beta_{1}}{2\beta_{2}},
-\qquad
-D^*=\mu_{train}+\sigma_{train}z^*.
+z^* = -\frac{\beta_{1}}{2\beta_{2}}, \qquad D^* = \mu_{train} + \sigma_{train} z^*.
 \]
 
-Here $D^*$ is the algebraic posterior turning point after back-transformation to physical distance. It is not automatically an optimal, preferred or universal geological distance. Its relevance depends separately on curvature uncertainty, whether a finite stationary point is supported, the classification implied by the curvature sign, the empirical distance range represented by the relevant training observations, posterior concentration, and the behavior of the posterior-mean response curve.
+Historically, $D^*$ was treated as a candidate "optimal" or "characteristic" distance. However, rigorous scientific inference requires testing whether this quadratic curvature and its derived stationary point represent genuine geological thresholds or are sensitive to mathematical representation choices (e.g., raw versus logarithmic distances, or polynomial versus linear functional forms). In this study, $D^*$ is treated strictly as a **derived mathematical diagnostic**, and its representation robustness is formally evaluated. Bouguer gravity enters as a linear predictor and consequently has no corresponding turning-point quantity; its lack of a $D^*$ reflects model structure, not an assertion of lesser geological importance.
 
-## 1.3 Spatial non-stationarity and hierarchical inference
+## 1.5 Central scientific objective and questions
 
-The three predictors may not have spatially stationary relationships with mineralization along the Copperbelt. A single global relationship can obscure regional variation, while fitting entirely separate models can discard information shared across the belt. V11 addresses this tension with a Bayesian hierarchical logistic-regression framework in which the intercept and the linear and quadratic coefficients for the two distance predictors vary by Daly geological unit while being estimated through shared population-level distributions and partial pooling. Bouguer gravity and the retained lithological-class coefficients are global in the implemented V11 specification.
+The central objective of this study is:
 
-The hierarchy provides a statistical framework for estimating spatially varying effects; it does not, by itself, prove geological heterogeneity. Evidence for non-stationarity must be evaluated from posterior coefficient behavior, response shape, spatially separated predictive performance and the consistency of those patterns across relevant geological settings.
+> **To establish an uncertainty-aware Bayesian mineral prospectivity mapping framework under spatially separated along-belt prediction, and to investigate whether geological and geophysical predictor relationships exhibit spatial heterogeneity across the distinct tectonic regimes of the Central African Copperbelt.**
 
-## 1.4 Scientific question
+Specifically, the study addresses five primary scientific questions:
+1. **Multivariate Predictor Association:** How do fault distance, lithology-contact distance, Bouguer gravity, and host stratigraphy jointly relate to copper-cobalt mineralization across the Copperbelt when modeled within a Bayesian framework?
+2. **Spatial Transferability:** How well do the learned multivariate prospectivity relationships transfer to held-out geographical sectors under honest four-fold along-belt spatial cross-validation?
+3. **Spatial Heterogeneity:** Do the relative contributions of structural, lithological, and geophysical predictors vary systematically across the along-belt folds and tectonic domains?
+4. **Distance Representation Robustness:** Are proximity associations and apparent quadratic curvatures robust to alternative mathematical representations (raw versus logarithmic scaling, linear versus quadratic functional forms)?
+5. **Diagnostic Status of $D^*$:** Does the derived stationary point $D^*$ constitute an identifiable, representation-robust geological quantity, or is it an unstable mathematical property of specific polynomial parameterizations?
 
-This study asks whether a multivariate hierarchical model combining fault distance, lithology-contact distance and Bouguer gravity can represent spatially varying mineral-prospectivity relationships, including nonlinear distance responses, and whether those relationships retain predictive discrimination when evaluated on spatially separated parts of the Copperbelt.
+## 1.6 Methodological boundaries
 
-A secondary question concerns the nonlinear distance components specifically: where supported, what do their posterior turning points and response shapes indicate, and how closely are those features represented within the empirical distance ranges of the relevant training populations? Daly domains provide a geological stratification for interpreting the already-generated spatial OOF predictions rather than six independent validation problems.
-
-## 1.5 Scope limitations
-
-This study does not assume that Daly's hypothesis is proven. It evaluates whether the combined fitted relationships among the three predictors, their spatial variation, nonlinear distance responses and spatially separated predictive behavior provide evidence consistent with or contrary to aspects of that proposition. It does not claim that one predictor alone controls mineralization, that one $D^*$ applies throughout the Copperbelt, that Bouguer gravity should have a turning point despite its linear V11 specification, or that the selected predictors exhaust the geological controls on mineralization. The results concern the defined modeling grid, predictor set, frozen V11 posterior and four-fold along-belt validation design.
+This study does not presume that Daly's tectonic hypothesis is fully proven. It evaluates whether empirical evidence from a multivariate hierarchical model is consistent with regional geological heterogeneity along the Copperbelt. The study does not claim that a single universal distance controls mineralization across the entire belt, nor does it present $D^*$ as a validated physical drilling target. All empirical findings are grounded in the defined modeling grid (1,872 cells, 138 deposit-positive observations), the implemented Bayesian hierarchical specification, and the four-fold along-belt validation framework.
