@@ -2,131 +2,195 @@
 
 ## 3.1 Study area and modeling data
 
-The study concerns the Central African Copperbelt tract represented by the project modeling grid. Each grid observation has centroid coordinates $(x_i,y_i)$ and a binary response $Y_i\in\{0,1\}$ indicating deposit presence. The analysis uses the complete-case modeling population after applying the same response, coordinate, Daly-domain, lithological-class and continuous-predictor availability requirements used by the V11 implementation.
+The study area encompasses the Central African Copperbelt tract represented by the project spatial modeling grid. Each grid observation corresponds to a discrete spatial cell with centroid coordinates $(x_i, y_i)$ and a binary indicator $Y_i \in \{0, 1\}$ denoting the presence or absence of a sediment-hosted stratiform copper-cobalt deposit. The analysis uses the complete-case modeling frame of 1,872 grid observations, matching the exact filtering and feature availability criteria established in the frozen V11 baseline.
 
-The three continuous predictors are distance to major faults ($D_{fault}$), distance to lithological contacts ($D_{lith}$), and Bouguer gravity anomaly ($X_{grav}$). The complete modeling frame contains 138 deposit-positive observations: 107 in NRB_3a and 31 in NRB_3b. CRZ, NKB, SRB and MMSB contain zero deposit-positive observations in this frame. These counts describe the available modeling data; they do not imply that the zero-positive domains lack geological importance.
+The modeling framework integrates three continuous geological and geophysical predictors alongside host-rock stratigraphy:
+1. **Distance to major faults ($D_{fault}$):** Euclidean distance in kilometres from cell centroids to regional-scale faults and structural lineaments.
+2. **Distance to lithological contacts ($D_{lith}$):** Euclidean distance in kilometres from cell centroids to mapped stratigraphic contacts.
+3. **Bouguer gravity anomaly ($X_{grav}$):** Regional Bouguer gravity values (in mGal) reflecting basement topography, sub-basin architecture, and crustal density variations.
+4. **Host lithological classes ($\mathbf{x}_{rock}$):** One-hot encoded categorical indicators representing mapped stratigraphic units.
 
-## 3.2 Daly-domain classification
+Within the 1,872-cell modeling frame, exactly 138 deposit-positive observations are documented. The deposit distribution is geographically concentrated across Daly's tectonic domains: 107 deposits occur in NRB_3a and 31 in NRB_3b. The remaining four domains (CRZ, NKB, SRB, and MMSB) contain zero deposit-positive occurrences in this modeling frame. These deposit counts reflect the spatial distribution of documented occurrences within the compiled tract; they do not imply that unmineralized domains lack tectonic significance.
 
-Daly's geological domains are used as a geological stratification of the Copperbelt tract. The six fixed labels are CRZ, NKB, SRB, MMSB, NRB_3a and NRB_3b. In V11, these domain labels determine the index used by the domain-varying intercept and distance coefficients.
+## 3.2 Daly-domain classification and hierarchical stratification
 
-The domains are not treated as six independent predictive-validation datasets. In particular, a conventional ROC-AUC requires both deposit-positive and non-deposit observations. Consequently, domain-level ROC-AUC is estimable in the current modeling frame for NRB_3a and NRB_3b, while the four zero-positive domains cannot yield a conventional positive-versus-negative ROC-AUC. They are not considered failed validation domains; the estimand is undefined there under this data composition.
+Daly's tectonic domains provide a six-class geological stratification of the Copperbelt:
+- **CRZ:** Congo River Zone
+- **NKB:** North Kundelungu Basin
+- **SRB:** South Roan Basin
+- **MMSB:** Mwembeshi Shear Belt
+- **NRB_3a:** Northern Roan Basin (Western/Central sector)
+- **NRB_3b:** Northern Roan Basin (Eastern/Southeastern sector)
 
-## 3.3 Predictor preprocessing and spatial folds
+In the hierarchical model, domain labels index domain-varying intercepts and distance coefficients. These domains represent regional tectonic regimes with differing structural evolution, basement involvement, and stratigraphic preservation. 
 
-For each of four predefined along-belt spatial folds, one block $B_k$ is held out and the remaining observations form the training set:
+The domains are not treated as independent cross-validation blocks. A standard classification metric such as ROC-AUC requires the presence of both positive (deposit) and negative (non-deposit) instances in the evaluation sample. Consequently, domain-stratified ROC-AUC can be meaningfully evaluated only in NRB_3a and NRB_3b. In CRZ, NKB, SRB, and MMSB, where deposits are absent ($Y_i = 0$ for all cells), the receiver operating characteristic is undefined. These domains are not "failed" validation tests; rather, the discrimination estimand is mathematically undefined in single-class samples.
+
+## 3.3 Spatial blocking and preprocessing protocol
+
+To eliminate spatial data leakage caused by spatial autocorrelation, the modeling domain is partitioned into four contiguous, along-belt spatial blocks ($B_1, B_2, B_3, B_4$). Validation proceeds by holding out one spatial block at a time:
 
 \[
-\mathcal{D}^{(k)}_{train}=\mathcal{D}\setminus B_k,\qquad
-\mathcal{D}^{(k)}_{test}=B_k.
+\mathcal{D}^{(k)}_{train} = \mathcal{D} \setminus B_k, \qquad \mathcal{D}^{(k)}_{test} = B_k \quad (k \in \{1, 2, 3, 4\}).
 \]
 
-Each continuous predictor is standardized using parameters estimated only from $\mathcal{D}^{(k)}_{train}$. The held-out observations are transformed with those training parameters. The quadratic distance terms are then constructed from the standardized distance variables, so the model uses $z_{fault}^2$ and $z_{lith}^2$, not the square of an unstandardized physical distance. This preserves spatial separation between training and test observations and prevents test-fold information from entering preprocessing.
+Strict preprocessing isolation is enforced across folds:
+1. **Standardization:** Continuous predictors ($D_{fault}, D_{lith}, X_{grav}$) are standardized to zero mean and unit variance using parameters $(\mu_{train}, \sigma_{train})$ calculated solely from the training partition $\mathcal{D}^{(k)}_{train}$:
+   \[
+   z_{i} = \frac{X_i - \mu_{train}}{\sigma_{train}}.
+   \]
+   Test-block observations are transformed using the frozen training parameters.
+2. **Quadratic Construction:** Quadratic terms are constructed from the standardized variables: $z_{f, i}^2$ and $z_{l, i}^2$. Polynomial terms are never squared in raw physical units prior to standardization.
+3. **Categorical Filtering:** Host lithology indicators are subjected to a train-only support check; categories without representation in $\mathcal{D}^{(k)}_{train}$ are omitted.
 
-The four-fold along-belt design is the primary validation framework. It evaluates geographic transferability rather than random-cell interpolation, where neighboring cells could place closely related geological environments in both training and test data.
+This along-belt spatial holdout strategy provides an honest assessment of geographic predictive transferability to unmapped or frontier sectors along the orogen, avoiding the artificial optimism of random-cell cross-validation.
 
-## 3.4 V11 hierarchical Bayesian model
+## 3.4 V11 hierarchical Bayesian model specification
 
-V11 is a Bayesian hierarchical logistic-regression model. For observation $i$ in Daly domain $d(i)$, the linear predictor implemented in the model is
+V11 is formulated as a hierarchical Bayesian logistic regression with partial pooling across Daly domains. For observation $i$ located in Daly domain $d(i) \in \{1, \dots, 6\}$:
+
+\[
+Y_i \sim \operatorname{Bernoulli}(p_i), \qquad \operatorname{logit}(p_i) = \eta_i,
+\]
+
+with the linear predictor defined as:
+
+\[
+\eta_i = \alpha_{d(i)} + \beta_{f, d(i)} z_{f, i} + \beta_{f^2, d(i)} z_{f, i}^2 + \beta_{l, d(i)} z_{l, i} + \beta_{l^2, d(i)} z_{l, i}^2 + \beta_g z_{g, i} + \mathbf{x}_{rock, i}^{\mathsf T}\boldsymbol{\beta}_{rock}.
+\]
+
+The model architecture specifies:
+- **Hierarchical Distance Effects:** Linear and quadratic coefficients for fault distance ($\beta_{f, d}, \beta_{f^2, d}$) and lithology contact distance ($\beta_{l, d}, \beta_{l^2, d}$) vary by Daly domain, partially pooled toward belt-wide population distributions.
+- **Global Geophysical & Lithological Effects:** Bouguer gravity anomaly enters through a single global linear coefficient $\beta_g$, with no quadratic term. The retained host-lithology indicators enter via a global parameter vector $\boldsymbol{\beta}_{rock}$.
+- **Hierarchical Intercept:** Base-rate intercepts $\alpha_d$ vary across domains around a population mean anchored to the empirical training log-odds.
+
+### Prior distributions and sampling parameterization
+
+Priors are specified weakly informative to regularize inference without dominating the likelihood:
 
 \[
 \begin{aligned}
-\eta_i ={}& \alpha_{d(i)}
- + \beta_{f,d(i)}z_{f,i}
- + \beta_{f^2,d(i)}z_{f,i}^{2}\\
-&+ \beta_{l,d(i)}z_{l,i}
- + \beta_{l^2,d(i)}z_{l,i}^{2}
- + \beta_g z_{g,i}
- + \mathbf{x}_{rock,i}^{\mathsf T}\boldsymbol{\beta}_{rock},
+\mu_{f, lin}, \mu_{f, sq}, \mu_{l, lin}, \mu_{l, sq} &\sim \operatorname{Normal}(0, 1), \\
+\sigma_{f, lin}, \sigma_{f, sq}, \sigma_{l, lin}, \sigma_{l, sq} &\sim \operatorname{HalfNormal}(1), \\
+\text{offset}_{p, d} &\sim \operatorname{Normal}(0, 1), \\
+\mu_\alpha &\sim \operatorname{Normal}\left(\operatorname{logit}(\hat{p}_{train}), 1\right), \\
+\sigma_\alpha &\sim \operatorname{HalfNormal}(1), \\
+\beta_g &\sim \operatorname{Normal}(0, 1), \\
+\boldsymbol{\beta}_{rock} &\sim \operatorname{Normal}(\mathbf{0}, \mathbf{I}).
 \end{aligned}
 \]
 
-with
-
+Domain-specific coefficients are constructed using the non-centered parameterization:
 \[
-P(Y_i=1\mid\eta_i)=\operatorname{logit}^{-1}(\eta_i).
+\beta_{p, d} = \mu_p + \sigma_p \cdot \text{offset}_{p, d},
+\]
+for each distance parameter $p \in \{f_{lin}, f_{sq}, l_{lin}, l_{sq}\}$ and domain $d$. The non-centered parameterization avoids pathological funnel geometries in the posterior geometry when sample sizes and event counts within domains are modest.
+
+### Compact reference baseline (M5)
+
+To benchmark predictive skill, V11 is evaluated alongside a compact, non-hierarchical baseline model (M5). M5 is a global logistic regression containing standardized Bouguer gravity, standardized lithology contact distance, and its quadratic term ($z_g, z_l, z_l^2$), omitting fault distance and domain hierarchy. M5 is trained and tested on the exact same four along-belt spatial partitions.
+
+## 3.5 Distance representation sensitivity framework ($2 \times 2$ factorial grid)
+
+Distance predictors in mineral exploration are strongly right-skewed: most cells are relatively close to faults or contacts, but a long spatial tail extends tens of kilometres into regional basins. To determine whether inferred distance responses, quadratic curvatures, and predictive performance are robust to mathematical representation choices, a pre-registered $2 \times 2$ factorial sensitivity analysis was implemented across all four spatial folds.
+
+Four alternative models were evaluated:
+- **Model A (Raw-Quadratic, V11 specification):** Standardized raw distance with linear and quadratic terms: $\beta_1 z + \beta_2 z^2$.
+- **Model B (Log-Quadratic):** Standardized log-transformed distance, $x_{\log} = \log(1 + x_{\text{km}})$, standardized within training folds, with linear and quadratic terms: $\beta_1 z_{\log} + \beta_2 z_{\log}^2$.
+- **Model C (Raw-Linear):** Standardized raw distance with a linear term only: $\beta_1 z$.
+- **Model D (Log-Linear):** Standardized log-transformed distance with a linear term only: $\beta_1 z_{\log}$.
+
+### Distal tail perturbation ($p_{95}$ truncation)
+
+To test whether quadratic curvature is driven by sparse observations in the distant right tail, an 8-fit sensitivity test was conducted by truncating training observations exceeding the 95th percentile ($p_{95}$) of distance to fault or contact. This perturbation removes approximately 141 distal non-deposit grid cells per fold while retaining more than 90% of deposit occurrences, isolating the influence of distal background cells on model curvature.
+
+### Operational robustness criteria for stationary points ($D^*$)
+
+To evaluate whether a derived stationary point ($D^*$) represents a genuine physical feature of the mineralization system rather than an artifact of polynomial fitting, three quantitative robustness criteria were pre-registered across all 48 evaluable $(\text{fold} \times \text{domain} \times \text{predictor})$ combinations:
+1. **Criterion 1 (Curvature Probability Agreement):** The posterior probability of positive curvature must be consistent between raw and log representations:
+   \[
+   |\Delta P(\beta_2 > 0)| = |P(\beta_{2, \text{raw}} > 0) - P(\beta_{2, \log} > 0)| < 0.15.
+   \]
+2. **Criterion 2 (Quantitative Stationary-Point Agreement):** The posterior medians of back-transformed $D^*$ under Model A ($D^*_A$) and Model B ($D^*_B$) must agree within 25% of their mid-point:
+   \[
+   \frac{|D^*_A - D^*_B|}{0.5(D^*_A + D^*_B)} \le 0.25.
+   \]
+3. **Criterion 3 (Posterior Support Concentration):** Both models must place the majority of their posterior stationary-point mass within the observed empirical training support:
+   \[
+   P(D^*_A \in \text{Support}_A) \ge 0.50 \quad \text{and} \quad P(D^*_B \in \text{Support}_B) \ge 0.50.
+   \]
+
+A turning-point diagnostic is classified as representation-robust if and only if all three criteria are satisfied simultaneously.
+
+## 3.6 Mathematical formulation of the stationary-point diagnostic ($D^*$)
+
+For a quadratic distance component on the standardized scale,
+\[
+\eta(z) = \alpha + \beta_{lin} z + \beta_{sq} z^2,
+\]
+the first and second derivatives with respect to $z$ are:
+\[
+\frac{d\eta}{dz} = \beta_{lin} + 2\beta_{sq} z, \qquad \frac{d^2\eta}{dz^2} = 2\beta_{sq}.
 \]
 
-Thus, the model contains three continuous predictors: fault distance, lithology-contact distance and Bouguer gravity. The first two have linear and quadratic terms; Bouguer gravity has one global linear coefficient and no quadratic term. The lithological-class indicators retained after the train-only validity check enter through the global coefficient vector $\boldsymbol{\beta}_{rock}$.
-
-The intercept and the four distance coefficients are domain-specific and hierarchically partially pooled. The implemented population-level priors are
-
+For any posterior MCMC draw where $\beta_{sq} \neq 0$, an algebraic stationary point exists at:
 \[
-\begin{aligned}
-\mu_{f,lin},\mu_{f,sq},\mu_{l,lin},\mu_{l,sq} &\sim \operatorname{Normal}(0,1),\\
-\sigma_{f,lin},\sigma_{f,sq},\sigma_{l,lin},\sigma_{l,sq} &\sim \operatorname{HalfNormal}(1),\\
-\text{offset}_{k} &\sim \operatorname{Normal}(0,1).
-\end{aligned}
+z^* = -\frac{\beta_{lin}}{2\beta_{sq}}.
+\]
+This stationary point is back-transformed to physical kilometres using the training fold's standardization parameters:
+\[
+D^* = \mu_{train} + \sigma_{train} z^*.
 \]
 
-The intercept population mean uses the training-fold log-odds base rate,
+### Evidential separation of diagnostic quantities
+
+To prevent misinterpreting algebraic artifacts as physical exploration targets, the analytical framework enforces strict separation among six distinct quantities:
+1. **Curvature sign and strength:** Evaluated by $P(\beta_{sq} > 0)$ and the magnitude of $\beta_{sq}$. A positive coefficient indicates convex (minimum-shaped) curvature on the logit scale; a negative coefficient indicates concave (maximum-shaped) curvature.
+2. **Algebraic stationary-point existence:** A finite $z^*$ exists for every draw where $\beta_{sq} \neq 0$. However, when posterior mass spans zero ($\beta_{sq} \approx 0$), division by values near zero produces an explosive Cauchy-like distribution with extreme, unidentifiable tails.
+3. **Empirical support check:** A stationary point is within empirical support if $D_{min, train} \le D^* \le D_{max, train}$. Posterior draws falling outside this interval represent mathematical extrapolation beyond observed data.
+4. **Posterior concentration:** Evaluated via the 95% highest posterior density interval or credible interval of $D^*$. Broad intervals spanning negative distances or hundreds of kilometres indicate non-identifiability.
+5. **Posterior-mean response shape:** Evaluated by plotting the posterior expectation $\mathbb{E}[P(Y=1 \mid D)]$ over the observed domain. The extremum of this expected curve need not coincide with the median of draw-level $D^*$ ratios due to Jensen's inequality and ratio skewness.
+6. **Predictive discrimination:** Evaluated by out-of-fold ROC-AUC, PR-AUC, and Brier score. A model may achieve high discrimination regardless of whether its quadratic stationary point is stable.
+
+Bouguer gravity enters linearly and has no quadratic term ($\beta_{g^2} \equiv 0$); therefore, it possesses no algebraic $D^*$. This is a property of the model parameterization, not an indication that gravity is less influential in prospectivity discrimination.
+
+## 3.7 Predictor variance contribution decomposition
+
+To quantify how the relative importance of geological predictors varies along the strike of the Copperbelt without relying on causal assumptions, we perform a linear predictor variance decomposition. For each held-out spatial test fold $B_k$, the out-of-fold linear predictor is decomposed into its constituent additive terms:
 
 \[
-\mu_\alpha\sim\operatorname{Normal}(\operatorname{logit}(\hat p_{train}),1),
+\eta_i = \alpha_{d(i)} + \eta_{f, i} + \eta_{l, i} + \eta_{g, i} + \eta_{rock, i},
 \]
+where:
+- $\eta_{f, i} = \beta_{f, d(i)} z_{f, i} + \beta_{f^2, d(i)} z_{f, i}^2$ (fault distance component),
+- $\eta_{l, i} = \beta_{l, d(i)} z_{l, i} + \beta_{l^2, d(i)} z_{l, i}^2$ (lithology contact distance component),
+- $\eta_{g, i} = \beta_g z_{g, i}$ (Bouguer gravity component),
+- $\eta_{rock, i} = \mathbf{x}_{rock, i}^{\mathsf T}\boldsymbol{\beta}_{rock}$ (host lithology component).
 
-with $\alpha$ variation governed by $\sigma_\alpha\sim\operatorname{HalfNormal}(1)$ and standard-normal domain offsets. The global Bouguer-gravity coefficient and global retained lithological-class coefficients have $\operatorname{Normal}(0,1)$ priors. The domain-specific coefficients are constructed from their population means, scale parameters and standard-normal offsets; V11 samples these relationships using the corresponding non-centred parameterization. This is the implemented sampling representation of partial pooling rather than a separate model specification.
-
-The compact M5 baseline is a global logistic regression using Bouguer gravity, standardized lithology-contact distance and its quadratic term. It supplies the comparative predictive reference for the same four spatial test partitions.
-
-## 3.5 Interpretation of curvature and $D^*$
-
-For either distance predictor, the quadratic component can be written on the standardized scale as
-
+The sample variance of each additive component across test cells in $B_k$ is computed:
 \[
-\eta(z)=\alpha+\beta_{lin}z+\beta_{sq}z^2.
+s_j^2 = \operatorname{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \text{for } j \in \{fault, lith, grav, rocks\}.
 \]
-
-Its slope and curvature are
-
+The relative variance contribution share for predictor $j$ in fold $k$ is defined as:
 \[
-\frac{d\eta}{dz}=\beta_{lin}+2\beta_{sq}z,
-\qquad
-\frac{d^2\eta}{dz^2}=2\beta_{sq}.
+S_{j, k} = \frac{s_{j, k}^2}{\sum_{m} s_{m, k}^2} \times 100\%.
 \]
+This metric directly reveals which geological factors drive spatial variation in predicted prospectivity within each geographical fold, providing an empirical measure of spatial non-stationarity in predictor relevance.
 
-A finite algebraic stationary point for a draw with $\beta_{sq}\neq0$ is
+## 3.8 Predictive evaluation metrics and secondary domain stratification
 
-\[
-z^*=-\frac{\beta_{lin}}{2\beta_{sq}},
-\qquad
-D^*=\mu_{train}+\sigma_{train}z^*.
-\]
+Model performance is evaluated across the four along-belt spatial holdout partitions using three complementary metrics:
+1. **Receiver Operating Characteristic Area Under the Curve (ROC-AUC):** Measures the ranking discrimination across all classification thresholds, independent of class prevalence.
+2. **Precision-Recall Area Under the Curve (PR-AUC):** Evaluates precision across recall levels, providing a stringent assessment under severe class imbalance (138 deposits out of 1,872 cells, ~7.4% base rate).
+3. **Brier Score:** Evaluates mean squared probability calibration error: $\frac{1}{N} \sum_{i=1}^N (\hat{p}_i - Y_i)^2$.
 
-The transformation uses the same training-fold mean and scale that standardized the corresponding physical distance. Therefore, reported $D^*$ values in kilometres are back-transformed physical distances; the underlying coefficient calculation is performed in standardized $z$-space.
+To quantify uncertainty in predictive metrics, 1,000-iteration spatial block bootstrap distributions are computed across varying spatial block scales ($10\times 10$, $15\times 15$, $20\times 20$, and $25\times 25$ grid units).
 
-The curvature sign determines the shape of the quadratic component: $\beta_{sq}>0$ gives a minimum-shaped quadratic and $\beta_{sq}<0$ gives a maximum-shaped quadratic. When $\beta_{sq}$ is near zero, $D^*$ becomes numerically unstable and a finite algebraic value should not be interpreted as strong turning-point identification. The analysis therefore distinguishes posterior curvature sign, existence of a finite stationary point, stationary-point classification, empirical support, posterior concentration and the extremum of the posterior-mean response curve.
+### Secondary domain stratification protocol
 
-These $D^*$ calculations apply only to fault distance and lithology-contact distance because only those predictors have quadratic terms in V11. Bouguer gravity has no quadratic term and consequently has no $D^*$ under this model.
+Following the generation of primary out-of-fold predictions from the four spatial holdout models, predictions are matched to their corresponding Daly domain labels. This secondary stratification groups the frozen spatial OOF predictions by domain to assess regional performance differences. 
 
-For a distance $D$, posterior slope behavior is evaluated through
-
-\[
-slope(D)=\beta_{lin}+2\beta_{sq}\left(\frac{D-\mu_{train}}{\sigma_{train}}\right).
-\]
-
-In particular, $\beta_{lin}$ is the local slope at $z=0$, corresponding to the training-fold mean physical distance, not the slope at physical distance zero.
-
-## 3.6 Empirical support and response-curve quantities
-
-Empirical distance support is defined from the actual training observations for each fold and relevant domain/variable. If $D_{min,train}$ and $D_{max,train}$ denote the observed minimum and maximum training distances, a draw is counted as within support when
-
-\[
-D_{min,train}\le D^*\le D_{max,train},
-\]
-
-using inclusive boundaries. The held-out fold does not define this support. A within-support probability indicates that a stationary point lies within the observed predictor range represented by the relevant training data; it does not establish geological causality or validation of a geological threshold.
-
-The manuscript distinguishes two further quantities. First, the posterior median of draw-level algebraic $D^*$ values summarizes the posterior distribution of stationary points. Second, the turning point of the posterior-mean response curve is obtained from the independently constructed mean fitted response over the empirical domain. These need not coincide because taking a nonlinear ratio draw by draw and then taking its median is not equivalent to finding the extremum of the posterior-mean curve.
-
-The logistic transformation is monotonic, so an interior extremum occurs at the same distance on the linear-predictor and probability scales. Response-curve interpretation therefore reports the scale being plotted while preserving the location of the corresponding extremum.
-
-## 3.7 Predictive validation and domain stratification
-
-Predictive validation uses the four predefined along-belt spatial folds as the primary evaluation. V11 predictions are generated for held-out observations and compared with the compact M5 baseline using the existing ROC-AUC and Brier outputs, with V11 PR-AUC reported as an additional V11-only summary. The pooled OOF result aggregates predictions across the four held-out folds.
-
-Daly-domain results are a secondary descriptive stratification of those already-generated frozen four-fold OOF predictions. V11 is not refit by Daly domain, and no Leave-One-Daly-Domain-Out or Fold-by-Domain validation design is introduced. Domain-level ROC-AUC is reported only where both classes occur in the modeling frame.
-
-## 3.8 Analytical interpretation framework
-
-The analytical framework keeps six evidential quantities separate: (1) coefficient magnitude and uncertainty; (2) quadratic curvature; (3) algebraic stationary-point existence and classification; (4) empirical support and posterior concentration of $D^*$; (5) posterior slope and response-curve behavior; and (6) held-out predictive discrimination. Coefficient stability, response-curve stability, turning-point stability and predictive stability are therefore distinct concepts. The hierarchy and spatial OOF design are interpreted together rather than allowing any one quantity to stand in for the others.
+Critically:
+- The model is **never refit** by Daly domain.
+- This is **not** Leave-One-Daly-Domain-Out (LODO) validation, nor is it a Fold $\times$ Domain cross-validation scheme.
+- ROC-AUC is reported exclusively for domains containing both deposits and non-deposits (NRB_3a and NRB_3b), with 95% bootstrap percentile intervals.
