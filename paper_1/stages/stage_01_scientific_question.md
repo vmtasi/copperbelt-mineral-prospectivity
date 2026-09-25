@@ -2,7 +2,7 @@
 
 ## 1.1 Geological context and prospectivity mapping
 
-Mineral prospectivity mapping in complex metallogenic belts requires integrating multiple geological and geophysical indicators to estimate the spatial probability of undiscovered mineral deposits. The Central African Copperbelt is one of the world's premier sediment-hosted stratiform copper-cobalt provinces, extending over 400 kilometres across diverse structural and tectonic domains in Zambia and the Democratic Republic of the Congo. Mineralization in this belt is not governed by a single structural or lithological feature; rather, ore formation is widely recognized as the product of an interconnected earth system involving basin architecture, fluid pathways, host-rock reactivity, and regional crustal configuration.
+Mineral prospectivity mapping in complex metallogenic belts requires integrating multiple geological and geophysical indicators to estimate the spatial probability of undiscovered mineral deposits. The Central African Copperbelt is one of the world's premier sediment-hosted stratiform copper-cobalt provinces, extending over 400 kilometres across diverse structural and tectonic domains in Zambia and the Democratic Republic of the Congo. Mineralization in this belt is not associated with a single structural or lithological feature; rather, ore formation is widely recognized as the product of an interconnected earth system involving basin architecture, fluid pathways, host-rock reactivity, and regional crustal configuration.
 
 To reflect this multivariate system, this study evaluates three principal continuous geological and geophysical predictors alongside host-rock stratigraphy:
 1. **Distance to major faults ($D_{fault}$):** Structural discontinuities that served as primary conduits for hydrothermal basin fluids.
@@ -39,17 +39,17 @@ Proximity to faults and contacts is a cornerstone of mineral exploration vectori
 
 To investigate whether distance responses exhibit curvature, earlier iterations of this project introduced quadratic distance terms on the standardized scale:
 
-\[
+$$
 \eta(z) = \alpha + \beta_{1} z + \beta_{2} z^2.
-\]
+$$
 
 Where positive quadratic curvature ($\beta_{2} > 0$) is supported, an algebraic stationary point can be derived:
 
-\[
+$$
 z^* = -\frac{\beta_{1}}{2\beta_{2}}, \qquad D^* = \mu_{train} + \sigma_{train} z^*.
-\]
+$$
 
-Historically, $D^*$ was treated as a candidate "optimal" or "characteristic" distance. However, rigorous scientific inference requires testing whether this quadratic curvature and its derived stationary point represent genuine geological thresholds or are sensitive to mathematical representation choices (e.g., raw versus logarithmic distances, or polynomial versus linear functional forms). In this study, $D^*$ is treated strictly as a **derived mathematical diagnostic**, and its representation robustness is formally evaluated. Bouguer gravity enters as a linear predictor and consequently has no corresponding turning-point quantity; its lack of a $D^*$ reflects model structure, not an assertion of lesser geological importance.
+Historically, $D^*$ was treated as a candidate "optimal" or "characteristic" distance. However, rigorous scientific inference requires testing whether this quadratic curvature and its derived stationary point are representation-dependent and sensitive to mathematical representation choices (e.g., raw versus logarithmic distances, or polynomial versus linear functional forms). In this study, $D^*$ is treated strictly as a **model-derived diagnostic** whose interpretation is not robust to the distance representation and cannot be interpreted as an invariant geological quantity. Bouguer gravity enters as a linear predictor and consequently has no corresponding turning-point quantity; its lack of a $D^*$ reflects model structure, not an assertion of lesser geological importance.
 
 ## 1.5 Central scientific objective and questions
 
