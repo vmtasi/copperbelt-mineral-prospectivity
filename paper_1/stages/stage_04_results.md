@@ -41,7 +41,7 @@ Evaluating the out-of-fold linear predictor components ($\eta_i = \alpha_{d(i)} 
 | **Fold 4** (Southern) | 468 | 61 | **34.9%** ($\sigma=0.65$) | 17.7% ($\sigma=0.33$) | **31.1%** ($\sigma=0.58$) | 16.3% ($\sigma=0.30$) | **Fault & Gravity Co-dominant** |
 
 This decomposition highlights a pronounced geographic gradient:
-- In **Fold 1**, prospectivity discrimination is overwhelmingly governed by proximity to major fault structures (86.5% variance share), with mineralization sharply localized along structural corridors.
+- In **Fold 1**, proximity to major fault structures accounts for 86.5% of the variance contribution share in the decomposed OOF linear predictor. This pattern is compatible with structural architecture being particularly informative in that fold; the decomposition does not identify the underlying causal mechanism.
 - In **Folds 2 and 3**, control transitions toward a balanced, multi-factor system where lithological contact proximity (23.9%–28.2%) and host stratigraphy (20.3%–23.4%) play major roles alongside faults.
 - In **Fold 4**, regional Bouguer gravity variations surge to account for 31.1% of linear predictor variance, co-dominating with fault distance (34.9%), while the discriminatory power of fault distance alone attenuates markedly ($\sigma = 0.65$ vs $\sigma = 7.36$ in Fold 1).
 
@@ -78,7 +78,7 @@ Across all 48 evaluable $(\text{fold} \times \text{domain} \times \text{predicto
 - **Criterion 3 (Posterior Support Concentration, $P(D^* \in \text{Support}) \ge 0.50$ in both):** Passed in **15 of 48 cases (31.3%)**.
 - **Overall Robustness (Simultaneous satisfaction of all 3 criteria):** **0 of 48 cases (0.0%)**.
 
-Under the pre-registered protocol, the derived stationary point $D^*$ fails the test of representation robustness. It is an artifact of polynomial fitting to skewed raw distance predictors rather than an invariant physical optimum.
+Under the pre-registered protocol, the derived stationary point $D^*$ fails the test of representation robustness. It is representation-dependent under the evaluated raw-distance polynomial specification and is not an invariant physical quantity.
 
 ### Distal tail perturbation ($p_{95}$ truncation)
 Truncating training observations above the 95th percentile (removing ~141 distal non-deposit cells per fold while preserving >90% of deposits) demonstrated marked sensitivity:
@@ -126,7 +126,7 @@ Key predictive transferability findings:
    - In Fold 3, V11 significantly outperforms M5 by $+0.091$ [$+0.024$, $+0.159$].
    - In Fold 2, M5 outperforms V11 by $+0.136$ [$+0.020$, $+0.250$].
    - In Folds 1 and 4, the 95% bootstrap intervals for $\Delta\text{AUC}$ span zero ($-0.038$ and $-0.020$, respectively).
-3. **Multiscale Spatial Bootstrap Invariance:** Spatial block bootstrap tests across $10\times 10$, $15\times 15$, $20\times 20$, and $25\times 25$ grid blocks consistently confirmed the observed fold-level sign pattern and pooled median differences ($+0.163$ to $+0.167$).
+3. **Multiscale Spatial Bootstrap Invariance:** Spatial block bootstrap tests across $10\times 10$, $15\times 15$, $20\times 20$, and $25\times 25$ grid blocks consistently supported the observed fold-level sign pattern and pooled median differences ($+0.163$ to $+0.167$) within the evaluated spatial framework.
 
 ## 4.6 Secondary Daly-domain stratification of frozen OOF predictions
 
