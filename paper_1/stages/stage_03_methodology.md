@@ -108,17 +108,23 @@ To test whether quadratic curvature is driven by sparse observations in the dist
 
 To evaluate whether a derived stationary point ($D^*$) represents a stable feature across distance representations rather than a representation-dependent property of polynomial fitting, three quantitative robustness criteria were pre-registered across all 48 evaluable $(\mathrm{fold} \times \mathrm{domain} \times \mathrm{predictor})$ combinations:
 1. **Criterion 1 (Curvature Probability Agreement):** The posterior probability of positive curvature must be consistent between raw and log representations:
+
    $$
    |\Delta \Pr(\beta_2 > 0)| = |\Pr(\beta_{2, \mathrm{raw}} > 0) - \Pr(\beta_{2, \mathrm{log}} > 0)| < 0.15.
    $$
+
 2. **Criterion 2 (Quantitative Stationary-Point Agreement):** The posterior medians of back-transformed $D^*$ under Model A ($D^*_A$) and Model B ($D^*_B$) must agree within 25% of their mid-point:
+
    $$
    \frac{|D^*_A - D^*_B|}{0.5(D^*_A + D^*_B)} \le 0.25.
    $$
+
 3. **Criterion 3 (Posterior Support Concentration):** Both models must place the majority of their posterior stationary-point mass within the observed empirical training support:
+
    $$
    \Pr(D^*_A \in \mathrm{Support}_A) \ge 0.50 \quad \mathrm{and} \quad \Pr(D^*_B \in \mathrm{Support}_B) \ge 0.50.
    $$
+
 
 A turning-point diagnostic is classified as representation-robust if and only if all three criteria are satisfied simultaneously.
 
