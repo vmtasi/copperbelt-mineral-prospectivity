@@ -33,7 +33,7 @@ Regional Bouguer gravity anomaly acts as a stabilizing global linear predictor (
 
 Evaluating the out-of-fold linear predictor components ($\eta_i = \alpha_{d(i)} + \eta_{f, i} + \eta_{l, i} + \eta_{g, i} + \eta_{rock, i}$) across test observations reveals marked spatial non-stationarity in the relative importance of geological controls along the Copperbelt strike:
 
-| Spatial Test Fold | Test Cells | Known Deposits | Fault Dist Share ($S_f$) | Lith Dist Share ($S_l$) | Bouguer Gravity Share ($S_g$) | Host Rock Share ($S_{rock}$) | Dominant Geological Driver |
+| Spatial Test Fold | Test Cells | Known Deposits | Fault Dist Share ($S_f$) | Lith Dist Share ($S_l$) | Bouguer Gravity Share ($S_g$) | Host Rock Share ($S_{rock}$) | Largest Predictor Contribution |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
 | **Fold 1** (Northern) | 468 | 9 | **86.5%** ($\sigma=7.36$) | 11.1% ($\sigma=0.95$) | 2.0% ($\sigma=0.17$) | 0.4% ($\sigma=0.03$) | **Fault Proximity (86.5%)** |
 | **Fold 2** (North-Central) | 468 | 31 | **50.3%** ($\sigma=1.17$) | 23.9% ($\sigma=0.56$) | 5.6% ($\sigma=0.13$) | 20.3% ($\sigma=0.47$) | **Fault Proximity (50.3%)** |
@@ -121,7 +121,7 @@ The primary evaluation of prospective transferability compares the full hierarch
 | **Pooled Spatial OOF** | 0.525 [0.470, 0.581] | 0.689 [0.647, 0.727] | $\mathbf{+0.164}$ [$+0.084$, $+0.236$] | 0.125 | 0.069 | 0.070 |
 
 Key predictive transferability findings:
-1. **Pooled Predictive Superiority:** Aggregated across the entire strike of the Copperbelt, V11 achieves an out-of-fold ROC-AUC of $0.689$ [0.647, 0.727], substantially outperforming M5 ($0.525$ [0.470, 0.581]), yielding a significant pooled improvement of $\Delta\text{AUC} = +0.164$ with $P(\Delta > 0) = 1.000$.
+1. **Pooled OOF Discrimination:** Aggregated across the entire strike of the Copperbelt, V11 achieves an out-of-fold ROC-AUC of $0.689$ [0.647, 0.727], substantially outperforming M5 ($0.525$ [0.470, 0.581]), yielding a significant pooled improvement of $\Delta\text{AUC} = +0.164$ with $P(\Delta > 0) = 1.000$.
 2. **Regional Transferability Divergence:** Across individual folds, relative performance is heterogeneous:
    - In Fold 3, V11 significantly outperforms M5 by $+0.091$ [$+0.024$, $+0.159$].
    - In Fold 2, M5 outperforms V11 by $+0.136$ [$+0.020$, $+0.250$].

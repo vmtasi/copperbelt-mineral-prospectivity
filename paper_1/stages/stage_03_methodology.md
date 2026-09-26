@@ -50,7 +50,7 @@ This along-belt spatial holdout strategy provides an honest assessment of geogra
 V11 is formulated as a hierarchical Bayesian logistic regression with partial pooling across Daly domains. For observation $i$ located in Daly domain $d(i) \in \{1, \dots, 6\}$:
 
 $$
-Y_i \sim \operatorname{Bernoulli}(p_i), \qquad \operatorname{logit}(p_i) = \eta_i,
+Y_i \sim \mathrm{Bernoulli}(p_i), \qquad \mathrm{logit}(p_i) = \eta_i,
 $$
 
 with the linear predictor defined as:
@@ -70,13 +70,13 @@ Priors are specified weakly informative to regularize inference without dominati
 
 $$
 \begin{aligned}
-\mu_{f, lin}, \mu_{f, sq}, \mu_{l, lin}, \mu_{l, sq} &\sim \operatorname{Normal}(0, 1), \\
-\sigma_{f, lin}, \sigma_{f, sq}, \sigma_{l, lin}, \sigma_{l, sq} &\sim \operatorname{HalfNormal}(1), \\
-\text{offset}_{p, d} &\sim \operatorname{Normal}(0, 1), \\
-\mu_\alpha &\sim \operatorname{Normal}\left(\operatorname{logit}(\hat{p}_{train}), 1\right), \\
-\sigma_\alpha &\sim \operatorname{HalfNormal}(1), \\
-\beta_g &\sim \operatorname{Normal}(0, 1), \\
-\boldsymbol{\beta}_{rock} &\sim \operatorname{Normal}(\mathbf{0}, \mathbf{I}).
+\mu_{f, lin}, \mu_{f, sq}, \mu_{l, lin}, \mu_{l, sq} &\sim \mathcal{N}(0, 1), \\
+\sigma_{f, lin}, \sigma_{f, sq}, \sigma_{l, lin}, \sigma_{l, sq} &\sim \mathrm{HalfNormal}(1), \\
+\text{offset}_{p, d} &\sim \mathcal{N}(0, 1), \\
+\mu_\alpha &\sim \mathcal{N}\left(\mathrm{logit}(\hat{p}_{train}), 1\right), \\
+\sigma_\alpha &\sim \mathrm{HalfNormal}(1), \\
+\beta_g &\sim \mathcal{N}(0, 1), \\
+\boldsymbol{\beta}_{rock} &\sim \mathcal{N}(\mathbf{0}, \mathbf{I}).
 \end{aligned}
 $$
 
@@ -169,7 +169,7 @@ where:
 
 The sample variance of each additive component across test cells in $B_k$ is computed:
 $$
-s_j^2 = \operatorname{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \text{for } j \in \{fault, lith, grav, rocks\}.
+s_j^2 = \mathrm{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \text{for } j \in \{fault, lith, grav, rocks\}.
 $$
 The relative variance contribution share for predictor $j$ in fold $k$ is defined as:
 $$

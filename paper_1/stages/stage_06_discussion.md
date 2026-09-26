@@ -15,7 +15,7 @@ This study establishes an uncertainty-aware Bayesian framework for mineral prosp
 
 The empirical shift in predictor variance shares aligns closely with modern tectonic interpretations of the Central African Copperbelt as a heterogeneous, multi-stage orogenic system. 
 
-In the northwestern Lufilian Arc (represented in Fold 1), intense shortening, nappe emplacement, and steep structural imbrication localize hydrothermal fluids into narrow, fault-bounded corridors. Here, proximity to major faults accounts for 86.5% of linear predictor variance ($\sigma = 7.36$), providing sharp spatial discrimination. In this structural regime, fault mapping is the preeminent exploration vector.
+In the northwestern Lufilian Arc (represented in Fold 1), intense shortening, nappe emplacement, and steep structural imbrication localize hydrothermal fluids into narrow, fault-bounded corridors. Here, proximity to major faults accounts for 86.5% of linear predictor variance ($\sigma = 7.36$), providing sharp spatial discrimination. In this evaluated fold, fault proximity provides the largest contribution to variation in the decomposed OOF linear predictor.
 
 Progressing southeastward into the Zambian Copperbelt (Folds 2, 3, and 4), structural styles transition toward basement-cored domes, broader fold geometries, and extensive sub-basin depocentres. Accordingly, the decomposed OOF linear predictor assigns contributions to stratigraphic contact proximity (up to 28.2%), host-rock units (up to 23.4%), and regional Bouguer gravity anomalies (up to 31.1%). In Fold 4, where the variation of the fault-distance component is lower ($\sigma = 0.65$), Bouguer gravity is a co-dominant model component. These contribution patterns are compatible with a setting in which regional architecture is informative; the present analysis does not identify the underlying causal mechanism.
 
@@ -31,7 +31,7 @@ This interpretation is supported by two empirical findings in this study:
 1. **Logarithmic Linearization:** Applying a log transformation ($\log(1 + x_{\text{km}})$) naturally compresses the distal tail. Under this transformation (Model B), quadratic curvature largely vanishes ($P(\beta_{sq} > 0)$ drops to $\approx 50\%$), and the fitted response is adequately represented by a monotonic log-linear decay (Model D).
 2. **Tail Truncation Collapse:** Truncating training observations at the 95th percentile ($p_{95}$) removes distal background cells, causing Fold 1 discrimination to drop from $0.817 \to 0.595$. The fitted predictions and discrimination are sensitive to the distal tail under both Model A and Model B.
 
-Because hierarchical linear models (Models C and D) match or exceed the predictive discrimination of quadratic models under spatial cross-validation—with log-linear Model D achieving the highest PR-AUC ($0.145$)—the principle of model parsimony indicates that linear distance representations are superior for operational exploration vectoring.
+Because hierarchical linear models (Models C and D) match or exceed the predictive discrimination of quadratic models under spatial cross-validation—with log-linear Model D achieving the highest PR-AUC ($0.145$)—the principle of model parsimony indicates that linear distance representations are more parsimonious under the evaluated spatial predictive criteria.
 
 ## 6.4 The diagnostic limits of $D^*$ and avoidance of false reification
 
