@@ -133,16 +133,20 @@ A turning-point diagnostic is classified as representation-robust if and only if
 For a quadratic distance component on the standardized scale,
 $$
 \eta(z) = \alpha + \beta_{lin} z + \beta_{sq} z^2,
+
 $$
 the first and second derivatives with respect to $z$ are:
+
 $$
 \frac{d\eta}{dz} = \beta_{lin} + 2\beta_{sq} z, \qquad \frac{d^2\eta}{dz^2} = 2\beta_{sq}.
 $$
 
 For any posterior MCMC draw where $\beta_{sq} \neq 0$, an algebraic stationary point exists at:
+
 $$
 z^* = -\frac{\beta_{lin}}{2\beta_{sq}}.
 $$
+
 This stationary point is back-transformed to physical kilometres using the training fold's standardization parameters:
 $$
 D^* = \mu_{train} + \sigma_{train} z^*.
