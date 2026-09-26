@@ -55,7 +55,7 @@ Historically, $D^*$ was treated as a candidate "optimal" or "characteristic" dis
 
 The central objective of this study is:
 
-> **To establish an uncertainty-aware Bayesian mineral prospectivity mapping framework under spatially separated along-belt prediction, and to investigate whether geological and geophysical predictor relationships exhibit spatial heterogeneity across the distinct tectonic regimes of the Central African Copperbelt.**
+> **To establish an uncertainty-aware Bayesian mineral prospectivity mapping framework under spatially separated along-belt prediction, and to investigate spatial heterogeneity in geological and geophysical predictor relationships across the Central African Copperbelt, with this heterogeneity examined in relation to the belt's distinct Daly tectonic domains.**
 
 Specifically, the study addresses five primary scientific questions:
 1. **Multivariate Predictor Association:** How do fault distance, lithology-contact distance, Bouguer gravity, and host stratigraphy jointly relate to copper-cobalt mineralization across the Copperbelt when modeled within a Bayesian framework?
