@@ -72,7 +72,7 @@ $$
 \begin{aligned}
 \mu_{f, lin}, \mu_{f, sq}, \mu_{l, lin}, \mu_{l, sq} &\sim \mathcal{N}(0, 1), \\
 \sigma_{f, lin}, \sigma_{f, sq}, \sigma_{l, lin}, \sigma_{l, sq} &\sim \mathrm{HalfNormal}(1), \\
-\text{offset}_{p, d} &\sim \mathcal{N}(0, 1), \\
+\mathrm{offset}_{p, d} &\sim \mathcal{N}(0, 1), \\
 \mu_\alpha &\sim \mathcal{N}\left(\mathrm{logit}(\hat{p}_{train}), 1\right), \\
 \sigma_\alpha &\sim \mathrm{HalfNormal}(1), \\
 \beta_g &\sim \mathcal{N}(0, 1), \\
@@ -82,7 +82,7 @@ $$
 
 Domain-specific coefficients are constructed using the non-centered parameterization:
 $$
-\beta_{p, d} = \mu_p + \sigma_p \cdot \text{offset}_{p, d},
+\beta_{p, d} = \mu_p + \sigma_p \cdot \mathrm{offset}_{p, d},
 $$
 for each distance parameter $p \in \{f_{lin}, f_{sq}, l_{lin}, l_{sq}\}$ and domain $d$. The non-centered parameterization avoids pathological funnel geometries in the posterior geometry when sample sizes and event counts within domains are modest.
 
@@ -96,7 +96,7 @@ Distance predictors in mineral exploration are strongly right-skewed: most cells
 
 Four alternative models were evaluated:
 - **Model A (Raw-Quadratic, V11 specification):** Standardized raw distance with linear and quadratic terms: $\beta_1 z + \beta_2 z^2$.
-- **Model B (Log-Quadratic):** Standardized log-transformed distance, $x_{\log} = \log(1 + x_{\text{km}})$, standardized within training folds, with linear and quadratic terms: $\beta_1 z_{\log} + \beta_2 z_{\log}^2$.
+- **Model B (Log-Quadratic):** Standardized log-transformed distance, $x_{\log} = \log(1 + x_{\mathrm{km}})$, standardized within training folds, with linear and quadratic terms: $\beta_1 z_{\log} + \beta_2 z_{\log}^2$.
 - **Model C (Raw-Linear):** Standardized raw distance with a linear term only: $\beta_1 z$.
 - **Model D (Log-Linear):** Standardized log-transformed distance with a linear term only: $\beta_1 z_{\log}$.
 
@@ -106,10 +106,10 @@ To test whether quadratic curvature is driven by sparse observations in the dist
 
 ### Operational robustness criteria for stationary points ($D^*$)
 
-To evaluate whether a derived stationary point ($D^*$) represents a stable feature across distance representations rather than a representation-dependent property of polynomial fitting, three quantitative robustness criteria were pre-registered across all 48 evaluable $(\text{fold} \times \text{domain} \times \text{predictor})$ combinations:
+To evaluate whether a derived stationary point ($D^*$) represents a stable feature across distance representations rather than a representation-dependent property of polynomial fitting, three quantitative robustness criteria were pre-registered across all 48 evaluable $(\mathrm{fold} \times \mathrm{domain} \times \mathrm{predictor})$ combinations:
 1. **Criterion 1 (Curvature Probability Agreement):** The posterior probability of positive curvature must be consistent between raw and log representations:
    $$
-   |\Delta P(\beta_2 > 0)| = |P(\beta_{2, \text{raw}} > 0) - P(\beta_{2, \log} > 0)| < 0.15.
+   |\Delta \Pr(\beta_2 > 0)| = |\Pr(\beta_{2, \mathrm{raw}} > 0) - \Pr(\beta_{2, \mathrm{log}} > 0)| < 0.15.
    $$
 2. **Criterion 2 (Quantitative Stationary-Point Agreement):** The posterior medians of back-transformed $D^*$ under Model A ($D^*_A$) and Model B ($D^*_B$) must agree within 25% of their mid-point:
    $$
@@ -117,7 +117,7 @@ To evaluate whether a derived stationary point ($D^*$) represents a stable featu
    $$
 3. **Criterion 3 (Posterior Support Concentration):** Both models must place the majority of their posterior stationary-point mass within the observed empirical training support:
    $$
-   P(D^*_A \in \text{Support}_A) \ge 0.50 \quad \text{and} \quad P(D^*_B \in \text{Support}_B) \ge 0.50.
+   \Pr(D^*_A \in \mathrm{Support}_A) \ge 0.50 \quad \mathrm{and} \quad \Pr(D^*_B \in \mathrm{Support}_B) \ge 0.50.
    $$
 
 A turning-point diagnostic is classified as representation-robust if and only if all three criteria are satisfied simultaneously.
@@ -169,7 +169,7 @@ where:
 
 The sample variance of each additive component across test cells in $B_k$ is computed:
 $$
-s_j^2 = \mathrm{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \text{for } j \in \{fault, lith, grav, rocks\}.
+s_j^2 = \mathrm{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \mathrm{for}\; j \in \{fault, lith, grav, rocks\}.
 $$
 The relative variance contribution share for predictor $j$ in fold $k$ is defined as:
 $$
