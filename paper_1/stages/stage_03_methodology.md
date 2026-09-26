@@ -36,9 +36,11 @@ $$
 
 Strict preprocessing isolation is enforced across folds:
 1. **Standardization:** Continuous predictors ($D_{fault}, D_{lith}, X_{grav}$) are standardized to zero mean and unit variance using parameters $(\mu_{train}, \sigma_{train})$ calculated solely from the training partition $\mathcal{D}^{(k)}_{train}$:
+
    $$
    z_{i} = \frac{X_i - \mu_{train}}{\sigma_{train}}.
    $$
+
    Test-block observations are transformed using the frozen training parameters.
 2. **Quadratic Construction:** Quadratic terms are constructed from the standardized variables: $z_{f, i}^2$ and $z_{l, i}^2$. Polynomial terms are never squared in raw physical units prior to standardization.
 3. **Categorical Filtering:** Host lithology indicators are subjected to a train-only support check; categories without representation in $\mathcal{D}^{(k)}_{train}$ are omitted.
@@ -81,9 +83,11 @@ $$
 $$
 
 Domain-specific coefficients are constructed using the non-centered parameterization:
+
 $$
 \beta_{p, d} = \mu_p + \sigma_p \cdot \mathrm{offset}_{p, d},
 $$
+
 for each distance parameter $p \in \{f_{lin}, f_{sq}, l_{lin}, l_{sq}\}$ and domain $d$. The non-centered parameterization avoids pathological funnel geometries in the posterior geometry when sample sizes and event counts within domains are modest.
 
 ### Compact reference baseline (M5)
@@ -131,10 +135,11 @@ A turning-point diagnostic is classified as representation-robust if and only if
 ## 3.6 Mathematical formulation of the stationary-point diagnostic ($D^*$)
 
 For a quadratic distance component on the standardized scale,
-$$
-\eta(z) = \alpha + \beta_{lin} z + \beta_{sq} z^2,
 
 $$
+\eta(z) = \alpha + \beta_{lin} z + \beta_{sq} z^2,
+$$
+
 the first and second derivatives with respect to $z$ are:
 
 $$
@@ -148,6 +153,7 @@ z^* = -\frac{\beta_{lin}}{2\beta_{sq}}.
 $$
 
 This stationary point is back-transformed to physical kilometres using the training fold's standardization parameters:
+
 $$
 D^* = \mu_{train} + \sigma_{train} z^*.
 $$
@@ -162,7 +168,7 @@ To prevent misinterpreting algebraic diagnostics as physical exploration targets
 5. **Posterior-mean response shape:** Evaluated by plotting the posterior expectation $\mathbb{E}[P(Y=1 \mid D)]$ over the observed domain. The extremum of this expected curve need not coincide with the median of draw-level $D^*$ ratios due to Jensen's inequality and ratio skewness.
 6. **Predictive discrimination:** Evaluated by out-of-fold ROC-AUC, PR-AUC, and Brier score. A model may achieve high discrimination regardless of whether its quadratic stationary point is stable.
 
-Bouguer gravity enters linearly and has no quadratic term ($\beta_{g^2} \equiv 0$); therefore, it possesses no algebraic $D^*$. This is a property of the model parameterization, not an indication that gravity is less influential in prospectivity discrimination.
+Bouguer gravity enters linearly and has no quadratic term  ($\beta_{g^2} \equiv 0$); therefore, it possesses no algebraic $D^*$. This is a property of the model parameterization, not an indication that gravity is less influential in prospectivity discrimination.
 
 ## 3.7 Predictor variance contribution decomposition
 
@@ -171,6 +177,7 @@ To quantify how the relative importance of geological predictors varies along th
 $$
 \eta_i = \alpha_{d(i)} + \eta_{f, i} + \eta_{l, i} + \eta_{g, i} + \eta_{rock, i},
 $$
+
 where:
 - $\eta_{f, i} = \beta_{f, d(i)} z_{f, i} + \beta_{f^2, d(i)} z_{f, i}^2$ (fault distance component),
 - $\eta_{l, i} = \beta_{l, d(i)} z_{l, i} + \beta_{l^2, d(i)} z_{l, i}^2$ (lithology contact distance component),
@@ -178,13 +185,17 @@ where:
 - $\eta_{rock, i} = \mathbf{x}_{rock, i}^{\mathsf T}\boldsymbol{\beta}_{rock}$ (host lithology component).
 
 The sample variance of each additive component across test cells in $B_k$ is computed:
+
 $$
 s_j^2 = \mathrm{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \mathrm{for}\; j \in \{fault, lith, grav, rocks\}.
 $$
+
 The relative variance contribution share for predictor $j$ in fold $k$ is defined as:
+
 $$
 S_{j, k} = \frac{s_{j, k}^2}{\sum_{m} s_{m, k}^2} \times 100\%.
 $$
+
 This metric describes each predictor component's contribution to variation in the decomposed OOF linear predictor within each geographical fold. It provides a model-based description of spatial non-stationarity in predictor contributions; it is not a direct causal or geological importance measure.
 
 ## 3.8 Predictive evaluation metrics and secondary domain stratification
