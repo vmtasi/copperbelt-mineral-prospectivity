@@ -69,13 +69,13 @@ While linear distance decay is preserved across all models, quadratic curvature 
 - Under raw distance (Model A), NRB_3a lithology contact distance exhibits near-certain positive curvature ($P(\beta_{l^2} > 0) \ge 0.993$ across all folds).
 - Under logarithmic transformation (Model B), positive curvature evidence collapses toward ambiguity: $P(\beta_{l^2} > 0)$ drops to $0.700$ (Fold 1), $0.641$ (Fold 2), $0.519$ (Fold 3), and $0.542$ (Fold 4).
 - For fault distance in NRB_3a, Model B flips the curvature sign from positive to negative: $P(\beta_{f^2} > 0)$ drops from $0.984 \to 0.093$ (Fold 1), $0.464 \to 0.126$ (Fold 2), and $0.902 \to 0.072$ (Fold 3), indicating concave response in log space.
-Because the logarithmic transformation $\log(1 + x_{\text{km}})$ compresses the extended upper tail, it naturally linearizes the distance relationship, rendering quadratic curvature parameters redundant or sign-inverted.
+Because the logarithmic transformation $\log(1 + x_{\mathrm{km}})$ compresses the extended upper tail, it naturally linearizes the distance relationship, rendering quadratic curvature parameters redundant or sign-inverted.
 
 ### Pre-registered operational robustness criteria evaluation
-Across all 48 evaluable $(\text{fold} \times \text{domain} \times \text{predictor})$ combinations comparing Model A and Model B:
+Across all 48 evaluable $(\mathrm{fold} \times \mathrm{domain} \times \mathrm{predictor})$ combinations comparing Model A and Model B:
 - **Criterion 1 (Curvature Probability Agreement, $|\Delta P| < 0.15$):** Passed in **13 of 48 cases (27.1%)**.
 - **Criterion 2 ($D^*$ Median Agreement within 25%):** Passed in **0 of 48 cases (0.0%)**. The mean relative shift in median $D^*$ between raw and log models was $67.2\%$.
-- **Criterion 3 (Posterior Support Concentration, $P(D^* \in \text{Support}) \ge 0.50$ in both):** Passed in **15 of 48 cases (31.3%)**.
+- **Criterion 3 (Posterior Support Concentration, $P(D^* \in \mathrm{Support}) \ge 0.50$ in both):** Passed in **15 of 48 cases (31.3%)**.
 - **Overall Robustness (Simultaneous satisfaction of all 3 criteria):** **0 of 48 cases (0.0%)**.
 
 Under the pre-registered protocol, the derived stationary point $D^*$ fails the test of representation robustness. It is representation-dependent under the evaluated raw-distance polynomial specification and is not an invariant physical quantity.
@@ -98,14 +98,15 @@ Reconstructing belt-wide population distributions from the frozen V11 posterior 
 | **Lithology quadratic ($\mu_{l, sq}$)** | $+0.221$ | $+0.141$ | $+0.105$ | $+0.212$ | **$+0.170$** | $P(\mu > 0) = \mathbf{74.3\%}$ (Ambiguous curvature) |
 
 Because the population quadratic parameters heavily overlap zero, calculating the population algebraic stationary point $z^* = -\mu_{lin} / (2\mu_{sq})$ produces severe division-by-zero singularities:
-- For fault distance, the 95% posterior credible interval for population $D^*$ spans from **$-279.36\text{ km}$ to $+366.38\text{ km}$** (Fold 3).
-- For lithology contact distance, the 95% credible interval spans from **$-161.69\text{ km}$ to $+152.34\text{ km}$** (Fold 4).
+- For fault distance, the 95% posterior credible interval for population $D^*$ spans from **$-279.36\ \mathrm{km}$ to $+366.38\ \mathrm{km}$** (Fold 3).
+- For lithology contact distance, the 95% credible interval spans from **$-161.69\ \mathrm{km}$ to $+152.34\ \mathrm{km}$** (Fold 4).
 These posterior distributions place heavy density on negative kilometres (physically impossible) and hundreds of kilometres beyond the geographic boundary of the basin. At the population level, $D^*$ is mathematically unidentifiable.
 
 ### Domain-level $D^*$ diagnostics within V11 (Model A)
 At the domain level within Model A:
-- For NRB_3a lithology contact distance, fold-median $D^*$ values clustered tightly between $26.189$ and $28.534\text{ km}$, with within-support probabilities of $0.963$ to $1.000$. However, in Model B, this median shifted to $6.8\text{--}19.1\text{ km}$ ($19.1\text{ km}$ in Fold 1, $12.5\text{ km}$ in Fold 2, $11.4\text{ km}$ in Fold 3, and $6.8\text{ km}$ in Fold 4), demonstrating scale dependence.
-- For NRB_3a fault distance, fold medians in Model A swung wildly from $-18.024\text{ km}$ (Fold 2) to $+46.619\text{ km}$ (Fold 3), with within-support probabilities ranging from $0.126$ to $0.938$. In Model B, fault medians collapsed to boundary values ($\approx 0\text{ km}$) or exceeded $80\text{ km}$.
+- For NRB_3a lithology contact distance, fold-median $D^*$ values clustered tightly between $26.189$ and $28.534\ \mathrm{km}$, with within-support probabilities of $0.963$ to $1.000$. However, in Model B, this median shifted to $6.8\!-
+!19.1\ \mathrm{km}$ ($19.1\ \mathrm{km}$ in Fold 1, $12.5\ \mathrm{km}$ in Fold 2, $11.4\ \mathrm{km}$ in Fold 3, and $6.8\ \mathrm{km}$ in Fold 4), demonstrating scale dependence.
+- For NRB_3a fault distance, fold medians in Model A swung wildly from $-18.024\ \mathrm{km}$ (Fold 2) to $+46.619\ \mathrm{km}$ (Fold 3), with within-support probabilities ranging from $0.126$ to $0.938$. In Model B, fault medians collapsed to boundary values ($\approx 0\ \mathrm{km}$) or exceeded $80\ \mathrm{km}$.
 - In unmineralized domains (CRZ, MMSB, NKB, SRB), $P(\beta_{sq} > 0)$ remained below $0.50$, rendering $D^*$ completely undefined.
 
 ## 4.5 Four-fold along-belt spatial OOF predictive performance (V11 vs M5)
@@ -121,11 +122,11 @@ The primary evaluation of prospective transferability compares the full hierarch
 | **Pooled Spatial OOF** | 0.525 [0.470, 0.581] | 0.689 [0.647, 0.727] | $\mathbf{+0.164}$ [$+0.084$, $+0.236$] | 0.125 | 0.069 | 0.070 |
 
 Key predictive transferability findings:
-1. **Pooled OOF Discrimination:** Aggregated across the entire strike of the Copperbelt, V11 achieves an out-of-fold ROC-AUC of $0.689$ [0.647, 0.727], substantially outperforming M5 ($0.525$ [0.470, 0.581]), yielding a significant pooled improvement of $\Delta\text{AUC} = +0.164$ with $P(\Delta > 0) = 1.000$.
+1. **Pooled OOF Discrimination:** Aggregated across the entire strike of the Copperbelt, V11 achieves an out-of-fold ROC-AUC of $0.689$ [0.647, 0.727], substantially outperforming M5 ($0.525$ [0.470, 0.581]), yielding a significant pooled improvement of $\Delta\mathrm{AUC} = +0.164$ with $P(\Delta > 0) = 1.000$.
 2. **Regional Transferability Divergence:** Across individual folds, relative performance is heterogeneous:
    - In Fold 3, V11 significantly outperforms M5 by $+0.091$ [$+0.024$, $+0.159$].
    - In Fold 2, M5 outperforms V11 by $+0.136$ [$+0.020$, $+0.250$].
-   - In Folds 1 and 4, the 95% bootstrap intervals for $\Delta\text{AUC}$ span zero ($-0.038$ and $-0.020$, respectively).
+   - In Folds 1 and 4, the 95% bootstrap intervals for $\Delta\mathrm{AUC}$ span zero ($-0.038$ and $-0.020$, respectively).
 3. **Multiscale Spatial Bootstrap Invariance:** Spatial block bootstrap tests across $10\times 10$, $15\times 15$, $20\times 20$, and $25\times 25$ grid blocks consistently supported the observed fold-level sign pattern and pooled median differences ($+0.163$ to $+0.167$) within the evaluated spatial framework.
 
 ## 4.6 Secondary Daly-domain stratification of frozen OOF predictions
