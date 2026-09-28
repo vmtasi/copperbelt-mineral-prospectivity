@@ -50,6 +50,5 @@ data/*.csv
 *.fdb_latexmk
 *.synctex.gz
 
-# Reference literature
+# Reference literature (large binary PDFs)
 literature/
-
