@@ -41,3 +41,11 @@ figures/
 data/*.csv
 
 .trash/
+
+# LaTeX build artifacts
+*.aux
+*.fls
+*.log
+*.out
+*.fdb_latexmk
+*.synctex.gz
