@@ -48,4 +48,8 @@ data/*.csv
 *.log
 *.out
 *.fdb_latexmk
-*.synctex.gz
+*.synctex.gz
+
+# Reference literature
+literature/
+
