@@ -49,6 +49,8 @@ data/*.csv
 *.out
 *.fdb_latexmk
 *.synctex.gz
+*.bbl
+*.blg
 
 # Reference literature (large binary PDFs)
 literature/
