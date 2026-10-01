@@ -14,11 +14,11 @@ Because geological histories, deformation intensity, and stratigraphic host sett
 
 ## 1.2 Uncertainty and spatially separated predictive transfer
 
-A fundamental challenge in mineral prospectivity modeling is spatial autocorrelation. Mineral deposits and geological features cluster in space, meaning that conventional random cross-validation—where randomly selected grid cells are held out—inevitably allows training and testing observations from the same local cluster to mingle. This produces severe data leakage and artificially inflated performance estimates that fail to indicate how well a model can predict prospectivity in genuinely unexplored frontier regions.
+A fundamental challenge in mineral prospectivity modeling is spatial dependence. Nearby cells may share geology, occurrence history, and sampling processes; random cross-validation can therefore place related observations in training and test sets and overstate performance for a new-region prediction task. The size and direction of this effect depend on the prediction target and validation design.
 
-Evaluating prospectivity models therefore demands **spatially separated predictive validation**, in which entire contiguous geographical sectors are held out out-of-fold (OOF). A model that achieves high predictive accuracy when interpolating between known deposits may collapse entirely when required to extrapolate across distinct geological sectors. Spatially separated validation provides an honest, rigorous test of whether learned multivariate relationships transfer along the orogenic strike.
+Evaluating prospectivity models therefore benefits from **spatially separated predictive validation**, in which contiguous geographical sectors are held out out-of-fold (OOF). The four along-belt folds used here assess transfer among the specified sectors; they reduce local train-test overlap but do not guarantee independence at fold boundaries or establish performance in all unexplored frontier regions.
 
-Furthermore, geological data are inherently observational, incomplete, and subject to spatial sampling bias. An exploration model must therefore quantify predictive and parametric uncertainty in a principled manner, avoiding overconfident assertions regarding unobservable frontier ground.
+Geological data are observational, incomplete, and subject to spatial sampling bias. This study quantifies parameter posterior uncertainty and computes draw-wise conditional probabilities for held-out cells, but the frozen OOF table reports posterior means rather than cell-level intervals, and the workflow does not simulate future Bernoulli outcomes. These distinctions constrain what uncertainty the reported outputs represent.
 
 ## 1.3 Spatial heterogeneity and hierarchical Bayesian inference
 
@@ -55,12 +55,12 @@ Historically, $D^*$ was treated as a candidate "optimal" or "characteristic" dis
 
 The central objective of this study is:
 
-> **To establish an uncertainty-aware Bayesian mineral prospectivity mapping framework under spatially separated along-belt prediction, and to investigate spatial heterogeneity in geological and geophysical predictor relationships across the Central African Copperbelt, with this heterogeneity examined in relation to the belt's distinct Daly tectonic domains.**
+> **To evaluate a hierarchical Bayesian mineral prospectivity model under along-belt spatial separation, quantify posterior uncertainty in model parameters and draw-wise conditional probabilities, and describe how fitted predictor relationships and OOF discrimination vary across the Central African Copperbelt and its Daly-domain labels.**
 
 Specifically, the study addresses five primary scientific questions:
 1. **Multivariate Predictor Association:** How do fault distance, lithology-contact distance, Bouguer gravity, and host stratigraphy jointly relate to copper-cobalt mineralization across the Copperbelt when modeled within a Bayesian framework?
 2. **Spatial Transferability:** How well do the learned multivariate prospectivity relationships transfer to held-out geographical sectors under honest four-fold along-belt spatial cross-validation?
-3. **Spatial Heterogeneity:** Do the relative contributions of structural, lithological, and geophysical predictors vary systematically across the along-belt folds and tectonic domains?
+3. **Spatial Heterogeneity:** How do the SD-normalized shares of additive predictor components in the posterior-mean OOF linear predictor vary across the along-belt folds, and how do fitted relationships differ across Daly-domain labels?
 4. **Distance Representation Robustness:** Are proximity associations and apparent quadratic curvatures robust to alternative mathematical representations (raw versus logarithmic scaling, linear versus quadratic functional forms)?
 5. **Diagnostic Status of $D^*$:** Does the derived stationary point $D^*$ constitute an identifiable, representation-robust geological quantity, or is it an unstable mathematical property of specific polynomial parameterizations?
 
