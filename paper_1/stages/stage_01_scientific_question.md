@@ -59,7 +59,7 @@ The central objective of this study is:
 
 Specifically, the study addresses five primary scientific questions:
 1. **Multivariate Predictor Association:** How do fault distance, lithology-contact distance, Bouguer gravity, and host stratigraphy jointly relate to copper-cobalt mineralization across the Copperbelt when modeled within a Bayesian framework?
-2. **Spatial Transferability:** How well do the learned multivariate prospectivity relationships transfer to held-out geographical sectors under honest four-fold along-belt spatial cross-validation?
+2. **Spatial Transferability:** How do the learned multivariate prospectivity scores and discrimination compare across the four specified PCA-ordered along-belt holdout folds?
 3. **Spatial Heterogeneity:** How do the SD-normalized shares of additive predictor components in the posterior-mean OOF linear predictor vary across the along-belt folds, and how do fitted relationships differ across Daly-domain labels?
 4. **Distance Representation Robustness:** Are proximity associations and apparent quadratic curvatures robust to alternative mathematical representations (raw versus logarithmic scaling, linear versus quadratic functional forms)?
 5. **Diagnostic Status of $D^*$:** Does the derived stationary point $D^*$ constitute an identifiable, representation-robust geological quantity, or is it an unstable mathematical property of specific polynomial parameterizations?
