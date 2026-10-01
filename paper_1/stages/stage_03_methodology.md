@@ -2,15 +2,19 @@
 
 ## 3.1 Study area and modeling data
 
-The study area encompasses the Central African Copperbelt tract represented by the project spatial modeling grid. Each grid observation corresponds to a discrete spatial cell with centroid coordinates $(x_i, y_i)$ and a binary indicator $Y_i \in \{0, 1\}$ denoting the presence or absence of a sediment-hosted stratiform copper-cobalt deposit. The analysis uses the complete-case modeling frame of 1,872 grid observations, matching the exact filtering and feature availability criteria established in the frozen V11 baseline.
+The study area encompasses the Central African Copperbelt tract represented by the project spatial modeling grid. Each observation is one $5\,\mathrm{km}\times5\,\mathrm{km}$ cell with centroid coordinates $(x_i,y_i)$ in WGS 84 / UTM Zone 35S (EPSG:32735) and a binary label $Y_i\in\{0,1\}$. The V11 complete-case frame contains 1,872 cells after the filtering described below.
 
-The modeling framework integrates three continuous geological and geophysical predictors alongside host-rock stratigraphy:
-1. **Distance to major faults ($D_{fault}$):** Euclidean distance in kilometres from cell centroids to regional-scale faults and structural lineaments.
-2. **Distance to lithological contacts ($D_{lith}$):** Euclidean distance in kilometres from cell centroids to mapped stratigraphic contacts.
-3. **Bouguer gravity anomaly ($X_{grav}$):** Regional Bouguer gravity values (in mGal) reflecting basement topography, sub-basin architecture, and crustal density variations.
-4. **Host lithological classes ($\mathbf{x}_{rock}$):** One-hot encoded categorical indicators representing mapped stratigraphic units.
+The prepared modeling table supplies three continuous predictors alongside host lithology:
+1. **Distance to mapped faults ($D_{fault}$):** Precomputed distance to supplied structural linework, stored on the projected spatial basis; V11 consumes the field and does not reconstruct the GIS distance.
+2. **Distance to lithological contacts ($D_{lith}$):** Precomputed distance to supplied contact linework; the original geological map and its scale are not identified in the inspected project files.
+3. **Bouguer gravity anomaly ($X_{grav}$):** A prepared regional gravity value. An executed notebook reads a local text grid, transforms its coordinates from EPSG:4326 to EPSG:32735, and assigns the nearest grid-point value; the original grid and publisher metadata are unavailable.
+4. **Host lithological class ($\mathbf{x}_{rock}$):** The V11 predictor is the prepared field `litho_contact_litho_class`, not the separate `Africa_Surface_Lithology.tif` raster.
 
-Within the 1,872-cell modeling frame, exactly 138 deposit-positive observations are documented. The deposit distribution is geographically concentrated across Daly's tectonic domains: 107 deposits occur in NRB_3a and 31 in NRB_3b. The remaining four domains (CRZ, NKB, SRB, and MMSB) contain zero deposit-positive occurrences in this modeling frame. These deposit counts reflect the spatial distribution of documented occurrences within the compiled tract; they do not imply that unmineralized domains lack tectonic significance.
+The V11 fit reads prepared fields from `data/copperbelt_training_v5_with_tectonic_domain.csv`; it does not reproject source layers or calculate raw GIS distances. The supplied fault layer's `source` attribute identifies `Selley_et_al_2005_Fig1` for the mapped structural features. The source map for the contact linework could not be identified. The input `domain` strings are mapped to six model labels by substring rules; V11 does not perform point-in-polygon assignment.
+
+Within the 1,872-cell modeling frame, 138 cells have a positive label and 1,734 are background cells. The input table contains 107 positive cells in NRB_3a and 31 in NRB_3b; CRZ, NKB, SRB, and MMSB have no positive labels in this frame. These counts describe the compiled occurrence inventory, not the true absence of mineralization in the four single-class domains.
+
+The available base-grid table contains 210 positive rows across 139 unique cell IDs, including 71 repeated positive rows. The executed feature notebook deduplicates positive base-grid records by cell ID, retaining the first row, before merging the binary presence flag onto unique grid cells. Thus repeated rows do not become repeated V11 observations. The original occurrence inventory is unavailable, so the repeated rows cannot be classified further as separate deposits, overlapping footprints, or duplicate records. The input modeling table has 139 positive labels before V11 filtering; the complete-case/domain filter leaves 138.
 
 ## 3.2 Daly-domain classification and hierarchical stratification
 
@@ -24,17 +28,17 @@ Daly's tectonic domains provide a six-class geological stratification of the Cop
 
 In the hierarchical model, domain labels index domain-varying intercepts and distance coefficients. These domains represent regional tectonic regimes with differing structural evolution, basement involvement, and stratigraphic preservation. 
 
-The domains are not treated as independent cross-validation blocks. A standard classification metric such as ROC-AUC requires the presence of both positive (deposit) and negative (non-deposit) instances in the evaluation sample. Consequently, domain-stratified ROC-AUC can be meaningfully evaluated only in NRB_3a and NRB_3b. In CRZ, NKB, SRB, and MMSB, where deposits are absent ($Y_i = 0$ for all cells), the receiver operating characteristic is undefined. These domains are not "failed" validation tests; rather, the discrimination estimand is mathematically undefined in single-class samples.
+The domains are not treated as independent cross-validation blocks. A standard classification metric such as ROC-AUC requires both positive and negative labels in the evaluation sample. Consequently, domain-stratified ROC-AUC can be evaluated only in NRB_3a and NRB_3b. In CRZ, NKB, SRB, and MMSB, all labels are zero, so ROC-AUC is undefined. These are single-class strata, not failed validation tests or evidence of true geological absence.
 
 ## 3.3 Spatial blocking and preprocessing protocol
 
-To eliminate spatial data leakage caused by spatial autocorrelation, the modeling domain is partitioned into four contiguous, along-belt spatial blocks ($B_1, B_2, B_3, B_4$). Validation proceeds by holding out one spatial block at a time:
+The 1,872 cell centroids are projected onto the first principal component, sorted by projection, and split into four approximately equal contiguous along-belt folds of 468 cells each ($B_1, B_2, B_3, B_4$). Validation holds out one fold at a time:
 
 $$
 \mathcal{D}^{(k)}_{train} = \mathcal{D} \setminus B_k, \qquad \mathcal{D}^{(k)}_{test} = B_k \quad (k \in \{1, 2, 3, 4\}).
 $$
 
-Strict preprocessing isolation is enforced across folds:
+Fold-specific preprocessing is fitted on the training partition and applied to the held-out fold:
 1. **Standardization:** Continuous predictors ($D_{fault}, D_{lith}, X_{grav}$) are standardized to zero mean and unit variance using parameters $(\mu_{train}, \sigma_{train})$ calculated solely from the training partition $\mathcal{D}^{(k)}_{train}$:
 
    $$
@@ -43,9 +47,11 @@ Strict preprocessing isolation is enforced across folds:
 
    Test-block observations are transformed using the frozen training parameters.
 2. **Quadratic Construction:** Quadratic terms are constructed from the standardized variables: $z_{f, i}^2$ and $z_{l, i}^2$. Polynomial terms are never squared in raw physical units prior to standardization.
-3. **Categorical Filtering:** Host lithology indicators are subjected to a train-only support check; categories without representation in $\mathcal{D}^{(k)}_{train}$ are omitted.
+3. **Categorical Filtering:** A host-lithology one-hot category is retained only when the training partition contains at least one positive and at least one negative cell in that category. This support check uses training labels only.
 
-This along-belt spatial holdout strategy provides an honest assessment of geographic predictive transferability to unmapped or frontier sectors along the orogen, avoiding the artificial optimism of random-cell cross-validation.
+This design assesses geographic transfer among the four specified sectors and reduces local train-test overlap relative to random-cell splitting. It does not guarantee independence across fold boundaries or establish performance in all unmapped or frontier sectors.
+
+Before fitting, V11 excludes rows missing `centroid_x`, `centroid_y`, `domain`, `litho_contact_litho_class`, `distance_to_fault`, `distance_to_lithology_contact`, or `bouguer`, then removes domain strings that do not map to one of the six recognized labels. `deposit_present` is not included in the `dropna` list; the supplied modeling table contains labels for retained rows. These operations produce the 1,872-cell frame described above. Continuous predictors are standardized using training-fold statistics, and quadratic terms are formed after standardization.
 
 ## 3.4 V11 hierarchical Bayesian model specification
 
@@ -90,6 +96,10 @@ $$
 
 for each distance parameter $p \in \{f_{lin}, f_{sq}, l_{lin}, l_{sq}\}$ and domain $d$. The non-centered parameterization avoids pathological funnel geometries in the posterior geometry when sample sizes and event counts within domains are modest.
 
+### Posterior prediction and uncertainty scope
+
+Sampling uses NUTS with two chains, 2,500 tuning steps, and 1,500 retained draws per chain (3,000 parameter draws per fold), `target_accept=0.99`, one core, and random seed 42. For each held-out cell and posterior draw, the prediction code calculates $p_i^{(s)}=\mathrm{logit}^{-1}(\eta_i^{(s)})$ and stores the mean $\bar p_i=3000^{-1}\sum_s p_i^{(s)}$ in the frozen OOF table. The draw-wise probabilities represent posterior uncertainty in the conditional probability given model parameters and predictors; the workflow does not sample future Bernoulli outcomes. A reconstruction from the four frozen traces reproduced all 1,872 OOF means with maximum absolute difference approximately $9.97\times10^{-17}$ and did not refit the model.
+
 ### Compact reference baseline (M5)
 
 To benchmark predictive skill, V11 is evaluated alongside a compact, non-hierarchical baseline model (M5). M5 is a global logistic regression containing standardized Bouguer gravity, standardized lithology contact distance, and its quadratic term ($z_g, z_l, z_l^2$), omitting fault distance and domain hierarchy. M5 is trained and tested on the exact same four along-belt spatial partitions.
@@ -106,7 +116,7 @@ Four alternative models were evaluated:
 
 ### Distal tail perturbation ($p_{95}$ truncation)
 
-To test whether quadratic curvature is driven by sparse observations in the distant right tail, an 8-fit sensitivity test was conducted by truncating training observations exceeding the 95th percentile ($p_{95}$) of distance to fault or contact. This perturbation removes approximately 141 distal non-deposit grid cells per fold while retaining more than 90% of deposit occurrences, isolating the influence of distal background cells on model curvature.
+To assess sensitivity to observations in the distant right tail, an 8-fit perturbation truncated training observations exceeding the 95th percentile ($p_{95}$) of fault or contact distance. It removes approximately 141 distal non-deposit cells per fold while retaining more than 90% of positive cells. This changes the fitted data and scores but does not isolate the mechanism behind that change.
 
 ### Operational robustness criteria for stationary points ($D^*$)
 
@@ -170,33 +180,21 @@ To prevent misinterpreting algebraic diagnostics as physical exploration targets
 
 Bouguer gravity enters linearly and has no quadratic term  ($\beta_{g^2} \equiv 0$); therefore, it possesses no algebraic $D^*$. This is a property of the model parameterization, not an indication that gravity is less influential in prospectivity discrimination.
 
-## 3.7 Predictor variance contribution decomposition
+## 3.7 SD-normalized shares of OOF linear-predictor components
 
-To quantify how the relative importance of geological predictors varies along the strike of the Copperbelt without relying on causal assumptions, we perform a linear predictor variance decomposition. For each held-out spatial test fold $B_k$, the out-of-fold linear predictor is decomposed into its constituent additive terms:
-
-$$
-\eta_i = \alpha_{d(i)} + \eta_{f, i} + \eta_{l, i} + \eta_{g, i} + \eta_{rock, i},
-$$
-
-where:
-- $\eta_{f, i} = \beta_{f, d(i)} z_{f, i} + \beta_{f^2, d(i)} z_{f, i}^2$ (fault distance component),
-- $\eta_{l, i} = \beta_{l, d(i)} z_{l, i} + \beta_{l^2, d(i)} z_{l, i}^2$ (lithology contact distance component),
-- $\eta_{g, i} = \beta_g z_{g, i}$ (Bouguer gravity component),
-- $\eta_{rock, i} = \mathbf{x}_{rock, i}^{\mathsf T}\boldsymbol{\beta}_{rock}$ (host lithology component).
-
-The sample variance of each additive component across test cells in $B_k$ is computed:
+For each held-out fold, the implementation computes posterior-mean additive components for fault distance, contact distance, Bouguer gravity, and host lithology. The intercept is omitted from the four-component share denominator. Let $c_{m,i}$ denote the posterior-mean contribution of component $m$ for held-out cell $i$ in fold $k$. Its dispersion across the $N_k$ held-out cells is:
 
 $$
-s_j^2 = \mathrm{Var}\left(\{\eta_{j, i}\}_{i \in B_k}\right) \quad \mathrm{for}\; j \in \{fault, lith, grav, rocks\}.
+\mathrm{SD}_{m,k}=\sqrt{\frac{1}{N_k}\sum_{i\in B_k}(c_{m,i}-\bar{c}_{m,k})^2},\qquad m\in\{fault,lith,grav,rocks\}.
 $$
 
-The relative variance contribution share for predictor $j$ in fold $k$ is defined as:
+The reported share is:
 
 $$
-S_{j, k} = \frac{s_{j, k}^2}{\sum_{m} s_{m, k}^2} \times 100\%.
+S_{m,k}=\frac{\mathrm{SD}_{m,k}}{\sum_{j\in\{fault,lith,grav,rocks\}}\mathrm{SD}_{j,k}}\times100\%.
 $$
 
-This metric describes each predictor component's contribution to variation in the decomposed OOF linear predictor within each geographical fold. It provides a model-based description of spatial non-stationarity in predictor contributions; it is not a direct causal or geological importance measure.
+These are SD-normalized shares of dispersion in the decomposed posterior-mean OOF linear predictor. They are not proportions of outcome variance explained, Shapley values, or causal geological importance measures.
 
 ## 3.8 Predictive evaluation metrics and secondary domain stratification
 
@@ -205,7 +203,7 @@ Model performance is evaluated across the four along-belt spatial holdout partit
 2. **Precision-Recall Area Under the Curve (PR-AUC):** Evaluates precision across recall levels, providing a stringent assessment under severe class imbalance (138 deposits out of 1,872 cells, ~7.4% base rate).
 3. **Brier Score:** Evaluates mean squared probability calibration error: $\frac{1}{N} \sum_{i=1}^N (\hat{p}_i - Y_i)^2$.
 
-To quantify uncertainty in predictive metrics, 1,000-iteration spatial block bootstrap distributions are computed across varying spatial block scales ($10\times 10$, $15\times 15$, $20\times 20$, and $25\times 25$ grid units).
+The primary pooled and fold-level metric intervals use 1,000 row-bootstrap resamples of fixed OOF scores. Separately, the multiscale spatial block bootstrap resamples occupied coordinate blocks at $10\times10$, $15\times15$, $20\times20$, and $25\times25$ grid-unit scales to assess robustness of performance differences. These procedures quantify metric uncertainty and are distinct from posterior uncertainty in cell-conditional probabilities.
 
 ### Secondary domain stratification protocol
 
