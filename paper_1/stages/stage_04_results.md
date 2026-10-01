@@ -29,21 +29,21 @@ In NRB_3b, fault distance shows weak and highly variable curvature:
 ### Bouguer gravity and host lithology
 Regional Bouguer gravity anomaly acts as a stabilizing global linear predictor ($\beta_g$). Because the V11 model specification parameterizes gravity as strictly linear without a quadratic term, it does not possess an algebraic stationary point ($D^*$). Its lack of a $D^*$ diagnostic is an architectural feature of the model, not an empirical finding that gravity is secondary to distance predictors.
 
-## 4.2 Spatial variation in predictor importance (linear predictor variance decomposition)
+## 4.2 Spatial variation in SD-normalized component shares
 
-Evaluating the out-of-fold linear predictor components ($\eta_i = \alpha_{d(i)} + \eta_{f, i} + \eta_{l, i} + \eta_{g, i} + \eta_{rock, i}$) across test observations reveals marked spatial non-stationarity in the relative importance of geological controls along the Copperbelt strike:
+Across test observations, the SD-normalized shares of posterior-mean additive components in the OOF linear predictor vary across the Copperbelt folds. These shares describe component dispersion, not outcome variance explained or causal importance:
 
-| Spatial Test Fold | Test Cells | Known Deposits | Fault Dist Share ($S_f$) | Lith Dist Share ($S_l$) | Bouguer Gravity Share ($S_g$) | Host Rock Share ($S_{rock}$) | Largest Predictor Contribution |
+| Spatial Test Fold | Test Cells | Positive Cells | Fault SD-Share ($S_f$) | Contact SD-Share ($S_l$) | Gravity SD-Share ($S_g$) | Host-Rock SD-Share ($S_{rock}$) | Largest SD-normalized Share |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Fold 1** (Northern) | 468 | 9 | **86.5%** ($\sigma=7.36$) | 11.1% ($\sigma=0.95$) | 2.0% ($\sigma=0.17$) | 0.4% ($\sigma=0.03$) | **Fault Proximity (86.5%)** |
-| **Fold 2** (North-Central) | 468 | 31 | **50.3%** ($\sigma=1.17$) | 23.9% ($\sigma=0.56$) | 5.6% ($\sigma=0.13$) | 20.3% ($\sigma=0.47$) | **Fault Proximity (50.3%)** |
-| **Fold 3** (Central-South) | 468 | 37 | **33.1%** ($\sigma=0.79$) | 28.2% ($\sigma=0.68$) | 15.3% ($\sigma=0.37$) | 23.4% ($\sigma=0.56$) | **Multi-factor Co-dominant** |
-| **Fold 4** (Southern) | 468 | 61 | **34.9%** ($\sigma=0.65$) | 17.7% ($\sigma=0.33$) | **31.1%** ($\sigma=0.58$) | 16.3% ($\sigma=0.30$) | **Fault & Gravity Co-dominant** |
+| **Fold 1** (Northern) | 468 | 9 | **86.5%** ($\sigma=7.36$) | 11.1% ($\sigma=0.95$) | 2.0% ($\sigma=0.17$) | 0.4% ($\sigma=0.03$) | **Fault distance (86.5%)** |
+| **Fold 2** (North-Central) | 468 | 31 | **50.3%** ($\sigma=1.17$) | 23.9% ($\sigma=0.56$) | 5.6% ($\sigma=0.13$) | 20.3% ($\sigma=0.47$) | **Fault distance (50.3%)** |
+| **Fold 3** (Central-South) | 468 | 37 | **33.1%** ($\sigma=0.79$) | 28.2% ($\sigma=0.68$) | 15.3% ($\sigma=0.37$) | 23.4% ($\sigma=0.56$) | **Fault distance (33.1%)** |
+| **Fold 4** (Southern) | 468 | 61 | **34.9%** ($\sigma=0.65$) | 17.7% ($\sigma=0.33$) | **31.1%** ($\sigma=0.58$) | 16.3% ($\sigma=0.30$) | **Fault distance (34.9%)** |
 
 This decomposition highlights a pronounced geographic gradient:
-- In **Fold 1**, proximity to major fault structures accounts for 86.5% of the variance contribution share in the decomposed OOF linear predictor. This pattern is compatible with structural architecture being particularly informative in that fold; the decomposition does not identify the underlying causal mechanism.
-- In **Folds 2 and 3**, control transitions toward a balanced, multi-factor system where lithological contact proximity (23.9%–28.2%) and host stratigraphy (20.3%–23.4%) play major roles alongside faults.
-- In **Fold 4**, regional Bouguer gravity variations surge to account for 31.1% of linear predictor variance, co-dominating with fault distance (34.9%), while the discriminatory power of fault distance alone attenuates markedly ($\sigma = 0.65$ vs $\sigma = 7.36$ in Fold 1).
+- In **Fold 1**, the fault-distance component has the largest SD-normalized share (86.5%); its component standard deviation is 7.36.
+- In **Folds 2 and 3**, the shares are distributed across fault distance, contact distance, host lithology, and gravity, with contact distance at 23.9% and 28.2%, and host lithology at 20.3% and 23.4%, respectively.
+- In **Fold 4**, the gravity share is 31.1% and the fault-distance share is 34.9%; their component standard deviations are 0.58 and 0.65, respectively. These figures do not measure either predictor's isolated discrimination or explain why fold performance differs.
 
 ## 4.3 Distance representation sensitivity analysis ($2 \times 2$ factorial grid)
 
@@ -60,16 +60,16 @@ Out-of-fold predictive performance across all four spatial folds is summarized b
 | **Model D** | Log ($z_{\log}$) | Linear | 0.8751 | 0.6768 | 0.6513 | 0.5297 | **0.6832 (~0.683)** | **0.1446 (~0.145)** | 0.6975 |
 
 Key findings from the representation grid:
-1. **Predictive Invariance to Functional Form:** Mean spatial OOF ROC-AUC is virtually indistinguishable across all four models ($0.671$ to $0.686$). Adding quadratic terms provides no meaningful improvement in spatial transferability over hierarchical linear models.
-2. **Superior Precision-Recall of Log-Linear Formulation:** Hierarchical log-linear Model D achieves the highest mean PR-AUC ($0.1446$) across spatial folds—substantially outperforming quadratic Model A ($0.1069$)—while maintaining a highly competitive mean ROC-AUC ($0.6832$).
-3. **Linear Model Discriminatory Power:** In Fold 1, raw-linear Model C achieves an exceptional OOF ROC-AUC of $0.9041$, demonstrating that linear proximity captures the essential structural vectoring signal.
+1. **Mean ROC-AUC Across Specifications:** Mean spatial OOF ROC-AUC ranges from $0.671$ to $0.686$; Model A has the highest mean ($0.686$) and Model D has $0.683$. This comparison does not establish invariance of response shape or universal superiority of a functional form.
+2. **Mean PR-AUC:** Model D has the highest mean PR-AUC ($0.1446$), compared with $0.1069$ for Model A. This is a descriptive comparison across the evaluated folds.
+3. **Fold 1 Model C Result:** Raw-linear Model C achieves OOF ROC-AUC $0.9041$ in Fold 1; its mean OOF ROC-AUC is $0.671$, so the single-fold result should not be generalized to all sectors.
 
 ### Curvature sensitivity to logarithmic transformation
-While linear distance decay is preserved across all models, quadratic curvature is highly sensitive to the transformation:
+Posterior curvature support is sensitive to the distance transformation:
 - Under raw distance (Model A), NRB_3a lithology contact distance exhibits near-certain positive curvature ($P(\beta_{l^2} > 0) \ge 0.993$ across all folds).
 - Under logarithmic transformation (Model B), positive curvature evidence collapses toward ambiguity: $P(\beta_{l^2} > 0)$ drops to $0.700$ (Fold 1), $0.641$ (Fold 2), $0.519$ (Fold 3), and $0.542$ (Fold 4).
 - For fault distance in NRB_3a, Model B flips the curvature sign from positive to negative: $P(\beta_{f^2} > 0)$ drops from $0.984 \to 0.093$ (Fold 1), $0.464 \to 0.126$ (Fold 2), and $0.902 \to 0.072$ (Fold 3), indicating concave response in log space.
-Because the logarithmic transformation $\log(1 + x_{\mathrm{km}})$ compresses the extended upper tail, it naturally linearizes the distance relationship, rendering quadratic curvature parameters redundant or sign-inverted.
+The logarithmic transformation $\log(1 + x_{\mathrm{km}})$ compresses upper-tail distances, and the fitted curvature support changes between the raw and log representations. This sensitivity analysis does not identify the mechanism producing that change.
 
 ### Pre-registered operational robustness criteria evaluation
 Across all 48 evaluable $(\mathrm{fold} \times \mathrm{domain} \times \mathrm{predictor})$ combinations comparing Model A and Model B:
@@ -84,7 +84,7 @@ Under the pre-registered protocol, the derived stationary point $D^*$ fails the 
 Truncating training observations above the 95th percentile (removing ~141 distal non-deposit cells per fold while preserving >90% of deposits) demonstrated marked sensitivity:
 - In Fold 1, Model A OOF ROC-AUC collapsed from $0.8168 \to 0.595$, and Model B collapsed from $0.8054 \to 0.576$.
 - Mean OOF ROC-AUC dropped from $0.686 \to 0.640$ (Model A) and $0.673 \to 0.622$ (Model B).
-This confirms that distal background cells provide essential contrast required to calibrate base rates and define spatial gradients away from prospective corridors.
+These results show that the evaluated predictions and discrimination change when distal background cells are removed under this perturbation. They do not isolate why performance changes or establish that the removed cells are universally essential.
 
 ## 4.4 Population-level reconstruction and $D^*$ diagnostic failure
 
@@ -107,11 +107,11 @@ At the domain level within Model A:
 - For NRB_3a lithology contact distance, fold-median $D^*$ values clustered tightly between $26.189$ and $28.534\ \mathrm{km}$, with within-support probabilities of $0.963$ to $1.000$. However, in Model B, this median shifted to $6.8\!-
 !19.1\ \mathrm{km}$ ($19.1\ \mathrm{km}$ in Fold 1, $12.5\ \mathrm{km}$ in Fold 2, $11.4\ \mathrm{km}$ in Fold 3, and $6.8\ \mathrm{km}$ in Fold 4), demonstrating scale dependence.
 - For NRB_3a fault distance, fold medians in Model A swung wildly from $-18.024\ \mathrm{km}$ (Fold 2) to $+46.619\ \mathrm{km}$ (Fold 3), with within-support probabilities ranging from $0.126$ to $0.938$. In Model B, fault medians collapsed to boundary values ($\approx 0\ \mathrm{km}$) or exceeded $80\ \mathrm{km}$.
-- In unmineralized domains (CRZ, MMSB, NKB, SRB), $P(\beta_{sq} > 0)$ remained below $0.50$, rendering $D^*$ completely undefined.
+- In CRZ, MMSB, NKB, and SRB, no positive observations are available to inform within-domain positive-class behavior. Domain effects remain estimated through the hierarchical model and depend more strongly on shared population structure; any algebraic $D^*$ in these domains is not evidence of an observed positive-class threshold. Domain-stratified ROC-AUC is undefined in these single-class data.
 
 ## 4.5 Four-fold along-belt spatial OOF predictive performance (V11 vs M5)
 
-The primary evaluation of prospective transferability compares the full hierarchical V11 model against the compact M5 baseline across the four predefined along-belt spatial holdout partitions:
+The primary evaluation compares frozen OOF scores from V11 and M5 across the four predefined along-belt spatial holdout partitions. The table's fold and pooled 95% intervals are row-bootstrap intervals over fixed prediction scores; they are distinct from the separate multiscale spatial block-bootstrap assessment:
 
 | Spatial Evaluation Partition | M5 ROC-AUC [95% CI] | V11 ROC-AUC [95% CI] | Difference ($\Delta$AUC) [95% CI] | V11 PR-AUC | V11 Brier Score | M5 Brier Score |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -127,13 +127,13 @@ Key predictive transferability findings:
    - In Fold 3, V11 significantly outperforms M5 by $+0.091$ [$+0.024$, $+0.159$].
    - In Fold 2, M5 outperforms V11 by $+0.136$ [$+0.020$, $+0.250$].
    - In Folds 1 and 4, the 95% bootstrap intervals for $\Delta\mathrm{AUC}$ span zero ($-0.038$ and $-0.020$, respectively).
-3. **Multiscale Spatial Bootstrap Invariance:** Spatial block bootstrap tests across $10\times 10$, $15\times 15$, $20\times 20$, and $25\times 25$ grid blocks consistently supported the observed fold-level sign pattern and pooled median differences ($+0.163$ to $+0.167$) within the evaluated spatial framework.
+3. **Multiscale Spatial Block-Bootstrap Assessment:** Resampling occupied coordinate blocks at $10\times10$, $15\times15$, $20\times20$, and $25\times25$ grid scales is a separate robustness assessment. Its results apply to the evaluated block definitions and do not replace the fixed-score row-bootstrap intervals in the table or represent cell-level posterior uncertainty.
 
 ## 4.6 Secondary Daly-domain stratification of frozen OOF predictions
 
 Aligning the frozen four-fold out-of-fold predictions to the 1,872 grid observations and stratifying by Daly domain provides regional context for model behavior without refitting:
 
-| Daly Domain | Total Cells | Deposit Occurrences | Non-Deposit Cells | M5 OOF ROC-AUC [95% CI] | V11 OOF ROC-AUC [95% CI] | Domain Difference ($\Delta$AUC) |
+| Daly Domain | Total Cells | Positive Cells | Non-Positive Cells | M5 OOF ROC-AUC [95% CI] | V11 OOF ROC-AUC [95% CI] | Domain Difference ($\Delta$AUC) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **CRZ** | 154 | 0 | 154 | Undefined | Undefined | Undefined |
 | **NKB** | 24 | 0 | 24 | Undefined | Undefined | Undefined |
@@ -143,6 +143,6 @@ Aligning the frozen four-fold out-of-fold predictions to the 1,872 grid observat
 | **NRB_3b** | 550 | 31 | 519 | 0.8669 [0.8115, 0.9139] | 0.5838 [0.4919, 0.6782] | **-0.2831** |
 
 Key insights from domain stratification:
-- In **NRB_3a**, which hosts 77.5% of known deposits, V11 demonstrates strong predictive transferability, outperforming the baseline by $+0.1259$ ($0.6617$ vs $0.5358$).
-- In **NRB_3b**, M5 achieves higher discrimination ($0.8669$ vs $0.5838$), reflecting the fact that M5's global specification aligns closely with the local gradient in this sector.
-- In CRZ, NKB, SRB, and MMSB, ROC-AUC is undefined due to the lack of deposit occurrences. These domains do not represent model failures, but rather the intrinsic limitation of binary classification metrics in unmineralized evaluation partitions.
+- In **NRB_3a**, which contains 107 of the 138 positive cells, V11 has higher domain-stratified ROC-AUC than M5 ($0.6617$ vs $0.5358$; difference $+0.1259$).
+- In **NRB_3b**, M5 has higher domain-stratified ROC-AUC than V11 ($0.8669$ vs $0.5838$; difference $-0.2831$); the comparison does not establish why the scores differ.
+- In CRZ, NKB, SRB, and MMSB, ROC-AUC is undefined because these strata contain no positive labels in this modeling frame. This is a single-class metric limitation, not evidence of model failure or of true geological absence.
