@@ -58,12 +58,11 @@ Consequently, $D^*$ must be interpreted strictly as an unstable mathematical dia
 
 Four-fold along-belt spatial holdout evaluates transfer among the specified sectors; it does not guarantee independence across fold boundaries or performance in all future regions:
 
-- **Pooled OOF discrimination ($\Delta\mathrm{AUC}=+0.164$):** Pooled V11 ROC-AUC is $0.689$ compared with $0.525$ for M5; the paired row-bootstrap interval for their difference is positive. Because the specifications differ in predictor set and model structure, this comparison does not isolate the contribution of any single component or guarantee transfer beyond these folds.
-- **Regional Divergence and Geographic Non-Stationarity:** The pooled advantage masks pronounced regional contrasts:
-  - In **Fold 3**, V11 exceeds M5 ($\Delta\mathrm{AUC} = +0.091$ [$+0.024$, $+0.159$]) on this held-out fold; the comparison does not identify a geological cause.
-  - In **Fold 2**, M5 exceeds V11 ($\Delta\mathrm{AUC} = -0.136$ [$-0.250$, $-0.020$]) on this held-out fold; the result does not show why the scores differ.
-  - In **Folds 1 and 4**, performance between the two models is comparable within 95% bootstrap intervals.
-- **Spatial block-bootstrap assessment:** The separate block bootstrap evaluates metric-difference sensitivity to the specified occupied-coordinate block scales ($10\times 10$ to $25\times 25$ units); it does not represent posterior uncertainty for individual cells.
+- **Pooled OOF discrimination ($\Delta\mathrm{AUC}=+0.164$):** Pooled V11 ROC-AUC is $0.689$ compared with $0.525$ for M5; the paired row-bootstrap CI is $[+0.084,+0.236]$ and $P(\Delta>0)=1.000$. Because the specifications differ in predictor set and model structure, this comparison does not isolate the contribution of any single component or guarantee transfer beyond these folds.
+- In **Fold 3**, the paired row-bootstrap V11-minus-M5 ROC-AUC difference is $+0.091$ [$+0.024$,$+0.159$]; this score difference does not identify a geological cause.
+- In **Fold 2**, the paired row-bootstrap V11-minus-M5 ROC-AUC difference is $-0.136$ [$-0.250$,$-0.020$]; this score difference does not explain why M5 scores higher.
+- In **Folds 1 and 4**, the 95% row-bootstrap intervals for the differences span zero.
+- The separate multiscale spatial block bootstrap evaluates metric-difference sensitivity across occupied-coordinate block scales from $10\times10$ to $25\times25$; it is not a cell-level posterior uncertainty interval.
 
 These results show that pooled and fold-level discrimination differ in the specified evaluation. The analysis does not establish which geological factors cause the observed performance differences.
 
@@ -71,9 +70,10 @@ These results show that pooled and fold-level discrimination differ in the speci
 
 Stratifying the frozen out-of-fold predictions by Daly domain provides descriptive performance summaries for the strata containing both classes:
 
-- **NRB_3a (Western/Central Sector, 107 positive cells):** V11 domain-stratified ROC-AUC is $0.6617$ compared with $0.5358$ for M5 ($\Delta\mathrm{AUC}=+0.1259$). This is a descriptive difference in the frozen OOF scores.
-- **NRB_3b (Eastern/Southeastern Sector, 31 positive cells):** M5 achieves an OOF ROC-AUC of $0.8669$ compared to $0.5838$ for V11 ($\Delta\mathrm{AUC} = -0.2831$). This is a descriptive comparison of frozen domain-stratified scores; it does not isolate why M5 scores higher.
+- **NRB_3a (107 positive cells):** V11 domain-stratified ROC-AUC is $0.6617$ compared with $0.5358$ for M5 ($\Delta\mathrm{AUC}=+0.1259$); this is a descriptive difference in frozen OOF scores.
+- **NRB_3b (31 positive cells):** M5 domain-stratified ROC-AUC is $0.8669$ compared with $0.5838$ for V11 ($\Delta\mathrm{AUC}=-0.2831$); the comparison does not isolate why the scores differ.
 - **Zero-positive strata (CRZ, NKB, SRB, MMSB):** ROC-AUC is undefined because these domains have only zero labels in this modeling frame. This single-class limitation does not establish true geological absence, model failure, or calibration behavior.
+
 
 This secondary stratification summarizes frozen spatial OOF scores without refitting by domain; it is not LODO or fold-by-domain validation. ROC-AUC is defined only for strata containing both positive and negative cells, and the procedure does not establish domain-level transfer to held-out domains.
 
@@ -82,5 +82,5 @@ This secondary stratification summarizes frozen spatial OOF scores without refit
 The empirical findings describe variation across model groups indexed by the supplied Daly-domain labels; this analysis does not independently test or validate Daly's geological framework:
 
 1. **Observed model variation:** Posterior associations and domain-stratified scores vary across the supplied labels. Four labels have no positive observations, and their effects depend more strongly on the shared hierarchical structure. These results do not demonstrate distinct causal regimes or test the geological validity of the labels.
-2. **Not supported: A universal invariant distance interpretation:** The evidence does not support interpreting Daly's domains as characterized by fixed, representation-invariant distance thresholds or stationary points. Curvature is representation-dependent, population $D^*$ is unidentifiable, and predictive transferability is equally well captured by linear and log-linear formulations.
+2. **Not supported: A universal invariant distance interpretation:** The evidence does not support interpreting Daly's domains as characterized by fixed, representation-invariant distance thresholds or stationary points. Curvature is representation-dependent and population $D^*$ is unidentifiable; the evaluated ROC-AUC values are similar across the distance representations, while PR-AUC differs.
 3. **Synthesis:** In this analysis, the labels provide a grouping structure for partial pooling and descriptive summaries. The fitted component shares do not estimate the relative importance of ore-forming processes or calibrate physical distance thresholds.
