@@ -23,7 +23,7 @@
 
 \begin{abstract}
 \noindent
-Mineral prospectivity mapping integrates geological, geochemical, and geophysical evidence to identify locations whose mapped characteristics are associated with known deposits. We evaluate a partially pooled hierarchical Bayesian logistic model across four geographically contiguous held-out sectors of the Central African Copperbelt. The 1,872-cell modeling frame consists of a regular $5\,\mathrm{km}\times 5\,\mathrm{km}$ grid containing 138 documented sediment-hosted stratiform copper-cobalt occurrences, with predictors for distance to mapped faults, distance to lithological contacts, Bouguer gravity, and retained host-lithology classes. Intercepts and the four distance coefficients vary by Daly tectonic domain; Bouguer gravity and retained host-rock effects are global. Posterior parameter uncertainty is quantified; cell-level predictive intervals and Bernoulli outcome draws are not reported. Each held-out cell receives the posterior mean of its draw-wise conditional probabilities $\bar{p}_i = \frac{1}{S}\sum_s p_i^{(s)}$. No classification threshold (e.g., 0.5) is applied to generate predictions or compute discrimination metrics; performance is evaluated across the continuous probability distribution. Predictor contributions to the decomposed out-of-fold (OOF) linear predictor vary across folds, and across four distance-representation specifications mean ROC-AUC ranges from 0.671 to 0.686 while mean PR-AUC ranges from 0.107 to 0.145. Distance associations recur across evaluated representations, whereas quadratic curvature is representation-dependent and population-level $D^*$ is not identifiable. Bootstrap intervals quantify uncertainty in performance metrics, not individual cell probabilities. The results demonstrate geographic variation in fitted associations and held-out discrimination, but do not establish distinct causal geological processes or a universal distance law.
+Mineral prospectivity mapping integrates geological, geochemical, and geophysical evidence to identify locations whose mapped characteristics are associated with known deposits. We evaluate a partially pooled hierarchical Bayesian logistic model across four geographically contiguous held-out sectors of the Central African Copperbelt. The 1,872-cell modeling frame consists of a regular $5\,\mathrm{km}\times 5\,\mathrm{km}$ grid containing 138 documented sediment-hosted stratiform copper-cobalt occurrences, with predictors for distance to mapped faults, distance to lithological contacts, Bouguer gravity, and retained host-lithology classes. Intercepts and the four distance coefficients vary by Daly tectonic domain; Bouguer gravity and retained host-rock effects are global. Parameter posterior uncertainty is quantified, but the frozen OOF table contains only posterior mean conditional probabilities; future Bernoulli outcomes are not sampled. Each held-out cell receives $\bar{p}_i = \frac{1}{S}\sum_s p_i^{(s)}$. No classification threshold (e.g., 0.5) is applied to generate predictions or compute discrimination metrics; performance is evaluated across the continuous probability distribution. SD-normalized shares of additive components in the decomposed out-of-fold (OOF) linear predictor vary across folds, and across four distance-representation specifications mean ROC-AUC ranges from 0.671 to 0.686 while mean PR-AUC ranges from 0.107 to 0.145. Distance associations recur across evaluated representations, whereas quadratic curvature is representation-dependent and population-level $D^*$ is not identifiable. Bootstrap intervals quantify uncertainty in performance metrics, not individual cell probabilities. The results demonstrate geographic variation in fitted associations and held-out discrimination, but do not establish distinct causal geological processes or a universal distance law.
 \end{abstract}
 
 \noindent\textbf{Keywords:} mineral prospectivity mapping; Bayesian hierarchical model; spatial cross-validation; spatial heterogeneity; Central African Copperbelt; Daly tectonic domains; parameter uncertainty
@@ -38,7 +38,7 @@ The Bayesian formulation represents posterior uncertainty in shared parameters, 
 
 The Central African Copperbelt provides a setting in which to examine regional transfer. Daly's domain labels are used as a geological stratification for model terms and secondary summaries \citep{Daly2025}; the model estimates associations indexed by those labels but does not validate the tectonic framework itself. Spatially varying coefficient models offer a statistical representation of changing relationships without making that variation causal \citep{Gelfand2003, Fotheringham2002}.
 
-This study contributes: (i) a partially pooled hierarchical Bayesian mineral prospectivity framework evaluated under along-belt spatial separation to test geographic transferability without spatial leakage; and (ii) a representation-sensitivity design that explicitly separates robust, recurring proximity associations from representation-dependent polynomial curvature and $D^*$ stationary-point diagnostics.
+This study contributes: (i) a partially pooled hierarchical Bayesian mineral prospectivity framework evaluated under along-belt spatial separation to assess geographic transferability while reducing local train-test overlap; and (ii) a representation-sensitivity design that separates recurring proximity associations from representation-dependent polynomial curvature and $D^*$ stationary-point diagnostics.
 
 The objective is to estimate multivariate geological and geophysical predictor associations under a hierarchical Bayesian model and evaluate how fitted relationships and discrimination vary across four spatially separated Copperbelt sectors. We ask how fault distance, lithological-contact distance, Bouguer gravity, and host lithology jointly relate to the recorded occurrence labels; how model-component contributions differ across held-out sectors; how OOF discrimination varies; and whether distance-response conclusions persist under alternative mathematical representations.
 
@@ -48,18 +48,20 @@ The objective is to estimate multivariate geological and geophysical predictor a
 
 The study area encompasses the Central African Copperbelt tract represented in the project spatial modelling grid, spanning the border region of northern Zambia and the southern Democratic Republic of the Congo. The spatial frame is defined on a regular $5\,\mathrm{km}\times 5\,\mathrm{km}$ grid projected in WGS 84 / UTM Zone 35S (EPSG:32735). The grid extends from Easting $282{,}675\,\mathrm{m}$ to $715{,}465\,\mathrm{m}$ and Northing $8{,}380{,}251\,\mathrm{m}$ to $8{,}859{,}512\,\mathrm{m}$, covering an along-belt tract of approximately $500\,\mathrm{km}$ in strike length.
 
-The observational unit is a grid cell identified by its centroid coordinates $(x_i, y_i)$ and a binary occurrence indicator $Y_i \in \{0, 1\}$. Cells containing at least one documented sediment-hosted stratiform copper-cobalt deposit or significant occurrence are labeled $Y_i = 1$ ($n=138$). Cells without a recorded occurrence in the compiled inventory are labeled $Y_i = 0$ ($n=1{,}734$). In mineral exploration, a zero denotes the absence of a recorded occurrence in the compiled database, not confirmed barren ground. After complete-case filtering across all continuous and categorical predictors, the modelling frame comprises exactly 1,872 cells.
+The observational unit is one 5 km by 5 km grid cell identified by its centroid coordinates $(x_i,y_i)$ and a binary occurrence indicator $Y_i \in \{0,1\}$. The supplied grid is in WGS 84 / UTM Zone 35S (EPSG:32735), the projected coordinate system used for stored centroids and distance fields. The V11 code excludes rows with a missing centroid coordinate, raw domain label, host-lithology class, fault distance, lithology-contact distance, or Bouguer value; it then excludes domain labels that do not map to one of its six recognized categories. \texttt{deposit\_present} is not included in the code's \texttt{dropna} list; the supplied modeling table contains labels for retained rows. These filters yield 1,872 cells, including 138 positive and 1,734 background cells.
+
+The target is presence, not an occurrence count. The available base-grid table contains 210 positive rows across 139 unique cell IDs (71 repeated positive rows). The executed feature notebook deduplicates the base target by \texttt{id}, retaining the first row, before merging the binary flag onto unique cells; repeated rows therefore do not become repeated V11 observations. The original occurrence inventory is not present, so the repeated rows cannot be classified further as distinct deposits, overlapping footprints, or duplicate records.
 
 \subsection{Data sources and feature extraction}
 
-Predictor variables were compiled from regional geological, structural, geophysical, and tectonic layers:
+V11 reads the prepared fields from \texttt{data/copperbelt\_training\_v5\_with\_tectonic\_domain.csv}; the fit does not reproject source layers or calculate raw GIS distances. The supplied project layers and executed feature notebook support the following provenance statements:
 
 \begin{enumerate}[leftmargin=*]
-\item \textbf{Distance to mapped faults ($d_f$):} Regional fault lineaments and major structural boundaries were compiled from regional structural maps of the Katangan basin (\texttt{CACB\_Structures}). For each grid cell, $d_f$ was computed as the minimum Euclidean distance (in meters) from the cell centroid to the nearest mapped fault trace.
-\item \textbf{Distance to lithological contacts ($d_l$):} Stratigraphic contacts between Neoproterozoic Katangan sedimentary formations and underlying basement or adjacent units were extracted from regional geological line work (\texttt{all\_lithology\_lines}). The distance $d_l$ was computed as the minimum Euclidean distance from the cell centroid to the nearest contact trace.
-\item \textbf{Bouguer gravity ($g$):} Regional Bouguer gravity anomaly values were extracted from regional terrestrial-satellite gravity grids (WGM2012 / Bureau Gravim\'etrique International), sampled at each cell centroid in milligals ($\mathrm{mGal}$), reflecting crustal density variations and basement architecture.
-\item \textbf{Host-rock lithology ($\mathbf{x}_{\mathrm{rock}}$):} Surficial lithological parent material classes were derived from the African Surficial Lithology dataset compiled by the U.S. Geological Survey and RCMRD \citep{Sayre2013}, which classifies bedrock geology and surficial deposits into 19 regional units. The dominant class at each cell centroid was assigned.
-\item \textbf{Tectonic domain stratification ($d(i)$):} Regional tectonic domain polygons were digitized from the recent tectonic framework of the Katangan basin by \citet{Daly2025}. Each cell was assigned to one of six Daly domains via spatial point-in-polygon intersection: Northern Red Beds domain 3a (NRB\_3a), Northern Red Beds domain 3b (NRB\_3b), Central Ridge Zone (CRZ), Northern Kundelungu Basin (NKB), Southern Red Beds (SRB), and Mwashya--Mulungushi Sub-basin (MMSB).
+\item \textbf{Distance to mapped faults ($d_f$):} The supplied \texttt{CACB\_Structures.gpkg} contains a \texttt{faults\_shear\_zones} layer whose \texttt{source} attribute identifies \texttt{Selley\_et\_al\_2005\_Fig1} \citep{Selley2005}. V11 consumes the precomputed \texttt{distance\_to\_fault} field in projected meters.
+\item \textbf{Distance to lithological contacts ($d_l$):} The prepared contact-distance and \texttt{all\_lithology\_lines.gpkg} layers provide the precomputed \texttt{distance\_to\_lithology\_contact} and \texttt{litho\_contact\_litho\_class} fields. The inspected layer attributes do not identify the original geological map or its scale; that original provenance cannot be established from the available files. V11 consumes the stored distance in projected meters.
+\item \textbf{Bouguer gravity ($g$):} An executed project notebook reads a regional text grid named \texttt{grid\_bouguer\_-17.558\_51.465\_-34.85\_37.35.txt}, with longitude, latitude, and Bouguer columns. It transforms the grid coordinates from EPSG:4326 to EPSG:32735 and assigns each cell the value of the nearest grid point using a $k=1$ KD-tree query. The source text grid and original publisher metadata are absent from the repository and supplied external data directory; a WGM2012/BGI attribution could not be verified.
+\item \textbf{Lithology class ($\mathbf{x}_{\mathrm{rock}}$):} The V11 categorical predictor is \texttt{litho\_contact\_litho\_class}, associated with the supplied project contact-linework data. It is not the separate \texttt{Africa\_Surface\_Lithology.tif} raster. Its original geological-map provenance is not documented in the inspected files.
+\item \textbf{Tectonic domain stratification ($d(i)$):} V11 reads the \texttt{domain} field from the input table and maps its string values to the six labels NRB\_3a, NRB\_3b, CRZ, NKB, SRB, and MMSB using substring rules. The V11 fit does not digitize polygons or perform point-in-polygon assignment. Daly's framework provides geological context for these labels \citep{Daly2025}, but the provenance of the input table's cell-level domain assignments is not documented in the supplied project files.
 \end{enumerate}
 
 \subsection{Domain-level positive-observation structure and partial-pooling qualification}
@@ -69,14 +71,13 @@ Documented deposit occurrences in the modelling frame are concentrated exclusive
 Methodologically, this empirical structure has specific implications for the hierarchical Bayesian model:
 \begin{itemize}[leftmargin=*]
 \item The formulation remains a fully partially pooled hierarchical model across all six domains, with domain-varying parameters linked through shared population hyperparameters $\mu_p$ and $\sigma_p$.
-\item However, because CRZ, NKB, SRB, and MMSB contain no positive observations, their domain-specific coefficients are not informed by within-domain positive-versus-background contrast in the empirical likelihood.
-\item Instead, parameter estimates in these four single-class domains are governed almost entirely by hierarchical shrinkage toward the population mean $\mu_p$ and by the shared background likelihood contributions.
+\item In CRZ, NKB, SRB, and MMSB, the likelihood contains no within-domain positive-class information. Their domain-specific effects are informed by the available negative observations together with the shared hierarchical population structure, and therefore rely more strongly on partial pooling than effects in domains containing both classes.
 \item Consequently, domain-specific coefficient interpretations for CRZ, NKB, SRB, and MMSB must be treated with substantial caution, and standard binary classification metrics such as ROC-AUC are undefined within these single-class partitions.
 \end{itemize}
 
 \subsection{Complete preprocessing chain}
 
-The complete preprocessing and spatial prediction workflow is shown in Figure~\ref{fig:preprocessing_flowchart}. All fold-specific transformations---standardization of continuous predictors, construction of quadratic terms, and host-lithology support filtering---are fitted using training cells only and applied unchanged to the held-out cells, enforcing zero data leakage between spatial partitions. Formally, each continuous predictor is standardized as $z_i = (X_i - \mu_{\mathrm{train}}) / \sigma_{\mathrm{train}}$, where the training-fold statistics are frozen before any held-out transformation. Quadratic terms $z_{f,i}^2$ and $z_{l,i}^2$ are constructed in $z$-space after standardization.
+The complete preprocessing and spatial prediction workflow is shown in Figure~\ref{fig:preprocessing_flowchart}. V11 removes rows missing either centroid coordinate, \texttt{domain}, \texttt{litho\_contact\_litho\_class}, \texttt{distance\_to\_fault}, \texttt{distance\_to\_lithology\_contact}, or \texttt{bouguer}, then excludes unrecognized domain labels. Within each fold, standardization statistics and lithology support are determined from training cells only and applied to held-out cells; this prevents leakage through those preprocessing operations. Each continuous predictor is standardized as $z_i = (X_i - \mu_{\mathrm{train}}) / \sigma_{\mathrm{train}}$. Quadratic distance terms are constructed as $z_{f,i}^2$ and $z_{l,i}^2$ after standardization. A one-hot lithology category is retained only if the training partition contains at least one positive and at least one negative cell in that category; test-fold categories do not affect this filter.
 
 \begin{figure}[htbp]
 \centering
@@ -139,7 +140,7 @@ The complete preprocessing and spatial prediction workflow is shown in Figure~\r
 
 % Side branch — Daly domains
 \node[side, right=2.4cm of sort] (daly)
-  {Assign 6 Daly tectonic domains\\[-1pt]{\scriptsize (point-in-polygon)}};
+  {Recode input domain field\\[-1pt]{\scriptsize (string mapping to 6 categories)}};
 \node[side, below=0.40cm of daly] (dalyuse)
   {Domain index used for\\hierarchical grouping variable\\[-1pt]
    {\scriptsize \& post-hoc regional description}};
@@ -168,7 +169,7 @@ The complete preprocessing and spatial prediction workflow is shown in Figure~\r
 
 % Leakage annotation
 \node[note, left=0.55cm of std, text width=2.9cm] (leaknote)
-  {Zero data leakage:\\scalers and support\\sets from training\\cells only};
+  {Training-only preprocessing:\\scalers and support\\sets from training\\cells only};
 \draw[darr, black!45] (leaknote.east) -- (std.west);
 
 % Phase C background
@@ -236,14 +237,14 @@ The complete preprocessing and spatial prediction workflow is shown in Figure~\r
 
 \end{tikzpicture}%
 }% end resizebox
-\caption{Complete preprocessing and spatial prediction workflow for the V11 hierarchical Bayesian prospectivity model. Spatial partitioning precedes fold-specific preprocessing; standardization and host-lithology support filtering are estimated from training cells only, while held-out cells are transformed using the frozen training-fold operations.}
+\caption{Complete preprocessing and spatial prediction workflow for the V11 hierarchical Bayesian prospectivity model. Centroids are projected onto the first principal component, sorted, and divided into four approximately equal along-belt folds. Fold-specific standardization and host-lithology support filtering use training cells only; held-out cells use those frozen training-fold operations.}
 \label{fig:preprocessing_flowchart}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.72\textwidth]{images/fig1_spatial_folds.png}
-\caption{Four along-belt contiguous spatial validation folds across the Central African Copperbelt modeling grid. Cells are partitioned into four balanced blocks of 468 cells along the first principal component of coordinates, enforcing spatial separation between training and test sets.}
+\caption{Four along-belt spatial validation folds across the Central African Copperbelt modeling grid. Centroid coordinates are projected onto their first principal component, ordered by projection, and divided into four balanced folds of 468 cells each; one fold is held out at a time.}
 \label{fig:spatial_folds}
 \end{figure}
 
@@ -251,7 +252,7 @@ The complete preprocessing and spatial prediction workflow is shown in Figure~\r
 
 It is essential to distinguish the two spatial stratifications used in this study:
 \begin{itemize}[leftmargin=*]
-\item \textbf{Along-belt validation folds (Folds 1--4):} A purely geometric, 1D along-strike partition designed to evaluate out-of-fold spatial predictive transferability and prevent spatial auto-correlation leakage.
+\item \textbf{Along-belt validation folds (Folds 1--4):} Centroid coordinates are subjected to PCA; observations are projected onto the first principal component, sorted by that projection, and divided into four approximately equal contiguous groups of 468 cells. Each group is held out once to evaluate geographic transfer. This reduces local train-test overlap but does not guarantee independence across fold boundaries.
 \item \textbf{Daly tectonic domains (6 domains):} A geological and structural stratification based on Katangan basin evolution \citep{Daly2025}, used as the grouping variable for hierarchical partial pooling of model parameters.
 \end{itemize}
 The validation is neither Leave-One-Daly-Domain-Out nor a Fold $\times$ Domain cross-validation. The model is trained on three spatial folds and evaluated on the held-out spatial fold; domain-level performance metrics are computed post hoc as descriptive strata of the spatial predictions.
@@ -290,7 +291,7 @@ and
 \alpha_d = \mu_\alpha + \sigma_\alpha \cdot \mathrm{offset}_{\alpha,d}.
 \end{equation}
 
-Prior distributions are weakly informative:
+The model uses the following priors:
 
 \begin{align}
 \mu_p &\sim \mathcal{N}(0, 1), & \sigma_p &\sim \mathrm{HalfNormal}(1),\\
@@ -303,7 +304,7 @@ where $\hat{p}_{\mathrm{train}} = \sum y_{\mathrm{train}} / N_{\mathrm{train}}$ 
 
 \subsection{Continuous probability prediction and threshold-free evaluation}
 
-For each posterior draw $s \in \{1,\dots,S\}$ and held-out cell $i$, the model computes draw-wise linear predictors and conditional probabilities:
+For each posterior draw $s \in \{1,\dots,S\}$ and held-out cell $i$, the prediction code computes the draw-specific linear predictor from that draw's parameters and the held-out cell's fold-preprocessed features, then applies the logistic link to obtain its conditional prospectivity probability:
 
 \begin{equation}
 \eta_i^{(s)} = \alpha_{d(i)}^{(s)} + \dots, \qquad p_i^{(s)} = \mathrm{logit}^{-1}(\eta_i^{(s)}) = \frac{1}{1 + \exp(-\eta_i^{(s)})}.
@@ -322,14 +323,14 @@ The reported out-of-fold prediction is the posterior mean conditional probabilit
 We maintain four distinct uncertainty concepts:
 \begin{enumerate}[leftmargin=*]
 \item \textbf{Parameter posterior uncertainty:} Represented by MCMC posterior samples of coefficients and hyperparameters.
-\item \textbf{Conditional probability uncertainty:} Represented by the distribution of draw-wise probabilities $\{p_i^{(s)}\}_{s=1}^S$. The reported OOF map presents the posterior mean $\bar{p}_i$; cell-level credible intervals are not part of the stored prediction table.
+\item \textbf{Posterior uncertainty in the conditional probability:} For each held-out cell and draw $s$, the prediction logic computes $\eta_i^{(s)}$ and $p_i^{(s)}=\mathrm{logit}^{-1}(\eta_i^{(s)})$. The distribution $\{p_i^{(s)}\}_{s=1}^{3000}$ is posterior uncertainty in the cell's conditional probability induced by parameter uncertainty; it is not a Bernoulli outcome interval. The frozen OOF CSV stores only $\bar{p}_i=3000^{-1}\sum_s p_i^{(s)}$. A post-fit reconstruction from the four frozen traces reproduced all 1,872 frozen OOF means, with maximum absolute difference approximately $9.97\times10^{-17}$, without fitting a model. Cell-level posterior summaries were not in the original frozen prediction table.
 \item \textbf{Future outcome uncertainty:} The workflow does not sample binary Bernoulli realizations $Y_i^{(s)} \sim \mathrm{Bernoulli}(p_i^{(s)})$; predictions represent expected conditional probabilities, not simulated futures.
-\item \textbf{Performance metric uncertainty:} Uncertainty in ROC-AUC, PR-AUC, and metric differences is evaluated via spatial non-parametric bootstrap resampling of the test cells, producing 95\% bootstrap confidence intervals.
+\item \textbf{Performance metric uncertainty:} The final fold and pooled metric intervals use paired row-bootstrap resampling of fixed OOF scores. A separate multiscale spatial block bootstrap resamples occupied coordinate blocks and evaluates robustness of $\Delta$AUC at the specified block scales. Both quantify uncertainty in performance metrics; neither is cell-level posterior probability uncertainty.
 \end{enumerate}
 
 \subsection{Decomposition of linear predictor variance}
 
-To quantify the shifting relative influence of predictor groups across along-belt sectors, the out-of-fold linear predictor is decomposed additively for each test cell $i$ in fold $k$:
+To describe how additive predictor components vary across held-out cells in each sector, the out-of-fold linear predictor is decomposed for each test cell $i$ in fold $k$:
 
 \begin{equation}
 \eta_i = c_{\mathrm{intercept},i} + c_{\mathrm{fault},i} + c_{\mathrm{lith},i} + c_{\mathrm{grav},i} + c_{\mathrm{rocks},i},
@@ -349,13 +350,13 @@ For each predictor component $m \in \{\mathrm{fault}, \mathrm{lith}, \mathrm{gra
 \mathrm{SD}_m = \sqrt{\frac{1}{N_{\mathrm{test}}} \sum_{i \in \mathcal{D}_{\mathrm{test}}^{(k)}} (c_{m,i} - \bar{c}_m)^2}.
 \end{equation}
 
-The relative contribution share of component $m$ in fold $k$ is defined as the proportion of total linear-predictor standard deviation attributable to that component:
+The reported component share is the component standard deviation divided by the sum of the four component standard deviations. It is therefore an SD-normalized share of additive-component dispersion, not a proportion of outcome variance explained:
 
 \begin{equation}
 \mathrm{Share}_m = \frac{\mathrm{SD}_m}{\mathrm{SD}_{\mathrm{fault}} + \mathrm{SD}_{\mathrm{lith}} + \mathrm{SD}_{\mathrm{grav}} + \mathrm{SD}_{\mathrm{rocks}}} \times 100\%.
 \end{equation}
 
-These values represent contribution shares to the dispersion of the out-of-fold linear predictor across test cells. They do not represent causal geological effects, Shapley values, or proportions of outcome variance explained ($R^2$).
+These values describe relative dispersion of the additive components of the decomposed OOF linear predictor across test cells. They are not causal geological effects, Shapley values, or proportions of outcome variance explained ($R^2$). Because the implementation normalizes component standard deviations (rather than squared variances), the percentages should be read as SD-normalized contribution shares.
 
 \subsection{Distance-representation sensitivity design and robustness criteria}
 
@@ -399,7 +400,7 @@ A relationship is classified as representationally robust if and only if it sati
 
 \subsection{Multivariate posterior structure}
 
-The fitted V11 model jointly estimates fault distance, lithological-contact distance, Bouguer gravity, and host lithology across domains and folds. In NRB\_3a, lithological-contact distance consistently displays negative linear coefficients (medians $-0.849$ to $-0.451$) and positive quadratic curvature (medians $+0.293$ to $+0.334$), with posterior probabilities of positive curvature $P(\beta_{l,\mathrm{sq}} > 0) \ge 0.993$ across all four folds (Figure~\ref{fig:response_lithology}). In NRB\_3b, lithological curvature remains positive but exhibits wider posterior uncertainty.
+The fitted V11 model jointly estimates fault distance, lithological-contact distance, Bouguer gravity, and host lithology across domains and folds. In NRB\_3a, lithological-contact distance has negative linear coefficient medians ($-0.849$ to $-0.451$) and positive quadratic coefficient medians ($+0.293$ to $+0.334$), with posterior probabilities of positive curvature $P(\beta_{l,\mathrm{sq}} > 0) \ge 0.993$ across all four folds (Figure~\ref{fig:response_lithology}). In NRB\_3b, posterior support for positive curvature is fold-dependent and weaker than in NRB\_3a.
 
 \begin{figure}[htbp]
 \centering
@@ -419,11 +420,11 @@ Fault-distance effects vary more dramatically (Figure~\ref{fig:response_fault}).
 
 \subsection{Spatial heterogeneity in predictor contributions}
 
-Variance decomposition of the out-of-fold linear predictor components reveals shifting geological and geophysical controls across along-belt sectors (Table~\ref{tab:variance_shares} and Figure~\ref{fig:predictor_contributions}):
+The SD-normalized shares of additive out-of-fold linear-predictor components vary across along-belt sectors (Table~\ref{tab:variance_shares} and Figure~\ref{fig:predictor_contributions}):
 
 \begin{table}[ht]
 \centering
-\caption{Variance shares of decomposed out-of-fold linear-predictor components.}
+\caption{SD-normalized shares of decomposed out-of-fold linear-predictor components.}
 \label{tab:variance_shares}
 \begin{tabular}{lrrrr}
 \toprule
@@ -440,15 +441,15 @@ Fold & Fault distance & Lithology distance & Bouguer gravity & Host lithology \\
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.88\textwidth]{images/fig3_predictor_contributions.png}
-\caption{Variance decomposition of the decomposed out-of-fold linear predictor across the four spatial folds. Fault proximity dominates in the north (Fold 1), while lithology and Bouguer gravity contribute progressively larger shares in central and southern sectors.}
+\caption{SD-normalized contribution shares of additive components in the decomposed out-of-fold linear predictor across the four spatial folds. Shares describe model-predictor dispersion, not causal geological importance.}
 \label{fig:predictor_contributions}
 \end{figure}
 
-In Fold 1 (northern sector), fault distance accounts for 86.5\% of the linear predictor variance. Moving southward, fault dominance drops to 50.3\% in Fold 2, 33.1\% in Fold 3, and 34.9\% in Fold 4. Concurrently, Bouguer gravity's contribution increases from 2.0\% in Fold 1 to 31.1\% in Fold 4, where gravity is nearly co-dominant with fault distance. Host lithology and contact distance provide their largest contributions in Folds 2 and 3.
+In Fold 1, the fault-distance component has the largest SD-normalized share (86.5\%). Its share is 50.3\% in Fold 2, 33.1\% in Fold 3, and 34.9\% in Fold 4. The Bouguer component share ranges from 2.0\% in Fold 1 to 31.1\% in Fold 4. Host lithology and contact-distance component shares are largest in Folds 2 and 3. These percentages are descriptive features of the decomposed OOF linear predictor and do not establish geological controls.
 
 \subsection{Distance-response sensitivity and diagnostic failure of \texorpdfstring{$D^*$}{D*}}
 
-The $2\times 2$ representation grid demonstrated that mean spatial discrimination is robust to functional form: mean ROC-AUC values are 0.686 for Model A, 0.673 for Model B, 0.671 for Model C, and 0.683 for Model D. Mean PR-AUC values are 0.107, 0.123, 0.130, and 0.145, with the log-linear specification (Model D) achieving the highest PR-AUC.
+Mean spatial discrimination was similar across the four evaluated representations: mean ROC-AUC values are 0.686 for Model A, 0.673 for Model B, 0.671 for Model C, and 0.683 for Model D. Mean PR-AUC values are 0.107, 0.123, 0.130, and 0.145, with the log-linear specification (Model D) achieving the highest PR-AUC. Similar fold-averaged scores do not establish that the underlying response shapes are invariant.
 
 While proximity associations persist, polynomial curvature and the derived stationary point $D^* = -\beta_{\mathrm{lin}} / (2\beta_{\mathrm{sq}})$ are representation-dependent. Pre-registered robustness criteria across the 48 evaluation cases passed in 13 of 48 cases for curvature sign agreement (Criterion 1), 0 of 48 cases for stationary-point agreement (Criterion 2), and 15 of 48 cases for posterior support concentration (Criterion 3). All three criteria were satisfied simultaneously in \textbf{0 of 48 cases}.
 
@@ -465,9 +466,9 @@ The out-of-fold prospectivity predictions produce the regional prospectivity map
 \label{fig:prediction_map}
 \end{figure}
 
-Pooled performance masks geographic divergence: V11 strongly outperforms M5 in Fold 3 ($\Delta\mathrm{AUC} = +0.126$), whereas M5 outperforms V11 in Fold 2 ($\Delta\mathrm{AUC} = -0.283$), while Folds 1 and 4 yield overlapping confidence intervals. This geographic discrepancy underscores that pooled belt-wide metrics conceal localized predictive failure.
+Pooled performance masks geographic divergence: in Fold 3, V11 exceeds M5 by $\Delta\mathrm{AUC}=+0.091$ (95\% paired row-bootstrap CI $[+0.024,+0.159]$); in Fold 2, V11 trails M5 by $\Delta\mathrm{AUC}=-0.136$ (95\% CI $[-0.250,-0.020]$). The corresponding intervals for Folds 1 and 4 span zero. These differences describe performance on the specified held-out folds and do not identify their geological cause.
 
-In secondary domain stratification, V11 achieves ROC-AUC of 0.6617 in NRB\_3a and 0.5838 in NRB\_3b. In single-class domains (CRZ, NKB, SRB, MMSB), ROC-AUC is undefined due to the absence of documented occurrences.
+In secondary domain stratification, NRB\_3a V11 ROC-AUC is $0.661701$ versus M5 $0.535752$ ($\Delta=+0.125948$). In NRB\_3b, V11 ROC-AUC is $0.583815$ versus M5 $0.866897$ ($\Delta=-0.283082$). ROC-AUC is undefined in CRZ, NKB, SRB, and MMSB because these strata contain no positive observations.
 
 \section{Interpretation and representation sensitivity}
 
@@ -477,7 +478,7 @@ The multivariate results establish that geological and geophysical predictors co
 
 \subsection{Spatial non-stationarity across along-belt sectors}
 
-The strongest empirical finding is the marked spatial variation in predictor contribution shares along the belt. Structural proximity dominates the northern sector (Fold 1), whereas stratigraphic contact proximity, host-rock units, and regional Bouguer gravity provide substantially larger contribution shares in central and southern sectors (Folds 2--4). In the southern fold, Bouguer gravity accounts for 31.1\% of linear predictor dispersion, co-dominating with fault distance. This pattern demonstrates that the empirical predictive expression of geological controls is spatially heterogeneous across the belt, consistent with regional variations in basin architecture documented in the Copperbelt geological literature \citep{Cailteux2005, Selley2005, Hitzman2012, Ndonfack2025}.
+The OOF decomposition shows that the SD-normalized shares of additive predictor components vary across along-belt sectors. The fault-distance share is largest in Fold 1; contact distance and host lithology have larger shares in Folds 2 and 3; and gravity's share rises in Fold 4. These are model-based descriptive patterns rather than evidence of causal geological controls. The regional geological literature documents variation in basin structure and stratigraphic setting, providing context for examining these patterns without identifying their cause (Cailteux et al., 2005; Selley et al., 2005; Hitzman et al., 2012; Ndonfack et al., 2025).
 
 \subsection{Representation sensitivity and diagnostic role of \texorpdfstring{$D^*$}{D*}}
 
@@ -487,7 +488,7 @@ Proximity associations persist across mathematical transformations, but polynomi
 
 \subsection{What the model establishes: empirical association versus causal ore genesis}
 
-The results demonstrate that geological proxies contain predictive signal for sediment-hosted copper prospectivity, but their relationships are spatially non-stationary. The shifting variance shares reflect changing empirical predictor importance across sectors. We caution against conflating statistical variance decomposition with causal ore-forming mechanisms. The increased contribution of Bouguer gravity in Fold 4 does not imply that gravity caused mineralization; rather, regional density contrasts provide a stronger conditional predictor of deposit location in the southern sector where fault proximity is less discriminative.
+The results show that geological proxies contain predictive signal for sediment-hosted copper prospectivity, with fitted associations and held-out discrimination varying across the evaluated sectors. The SD-normalized shares describe dispersion of additive components in the posterior-mean OOF linear predictor; they are neither causal effects nor a direct measure of each variable's marginal or conditional predictive value. Bouguer gravity's larger share in Fold 4 is descriptive and does not establish a geological mechanism or explain regional differences in discrimination.
 
 \subsection{Regional transferability and Daly's tectonic framework}
 
@@ -497,13 +498,13 @@ Daly's tectonic domain classification \citep{Daly2025} provides a principled geo
 
 \subsection{Model parsimony and distance representations}
 
-The comparable discrimination achieved by linear and log-linear specifications (Models C and D) relative to quadratic models indicates that quadratic distance terms are not universally required to achieve predictive skill. Linear and logarithmic distance representations offer greater parsimony and avoid introducing unidentifiable polynomial stationary points, making them preferable baselines for regional prospectivity screening.
+The comparable discrimination achieved by linear and log-linear specifications (Models C and D) relative to quadratic models indicates that quadratic distance terms did not improve mean discrimination in these evaluated folds. Linear and logarithmic representations are simpler specifications for this comparison; the results do not establish a universally preferred distance form.
 
 \subsection{Methodological and data limitations}
 
 Several methodological limitations must be acknowledged:
 \begin{enumerate}[leftmargin=*]
-\item \textbf{Sample size and domain imbalance:} Only 138 deposit-present cells are available, with 107 concentrated in NRB\_3a and 31 in NRB\_3b. Four Daly domains contain zero positive observations in this modelling frame, precluding within-domain discrimination evaluation and restricting parameter inference in those domains to hierarchical shrinkage.
+\item \textbf{Sample size and domain imbalance:} Only 138 deposit-present cells are available, with 107 concentrated in NRB\_3a and 31 in NRB\_3b. Four Daly domains contain zero positive observations in this modelling frame, precluding within-domain discrimination evaluation. Their domain effects are still estimated, but lack within-domain positive-class information and depend more strongly on the shared hierarchical structure.
 \item \textbf{Residual spatial autocorrelation:} Although contiguous spatial blocking mitigates optimistic cross-validation bias, spatial autocorrelation may persist across block boundaries \citep{Roberts2017}.
 \item \textbf{Input layer uncertainty:} Regional geological maps, structural compilations, and gravity grids contain measurement, interpolation, and cartographic errors that propagate into distance calculations.
 \item \textbf{Surface proxies vs. 3D geometry:} Near-surface distance features do not capture three-dimensional fault dip, subsurface stratigraphy, or depth to basement.
@@ -513,11 +514,11 @@ Several methodological limitations must be acknowledged:
 
 \section{Conclusions}
 
-An uncertainty-aware hierarchical Bayesian framework enables rigorous evaluation of mineral prospectivity mapping under along-belt spatial separation. In the Central African Copperbelt, predictor associations are geographically heterogeneous: structural proximity dominates predictive discrimination in northern sectors, whereas stratigraphic contacts and regional gravity play larger roles in central and southern sectors. Distance-response associations persist across functional representations, but quadratic curvature and derived $D^*$ stationary points are representation-dependent and unidentifiable at the population scale. Prospective models should be evaluated under spatially separated cross-validation and interpreted as conditional predictive representations rather than invariant physical laws.
+The hierarchical Bayesian model represents posterior uncertainty in global and domain-varying parameters, and the frozen held-out scores are posterior mean conditional probabilities. The OOF decomposition shows geographically varying SD-normalized shares of additive linear-predictor components, while fold and domain discrimination vary across the evaluated sectors. These are model-based associations and predictive results, not causal evidence that controls or ore-forming processes change between domains. Distance associations recur across the evaluated representations; quadratic curvature and derived $D^*$ diagnostics are representation-dependent, and population-level $D^*$ is unidentifiable. Spatially separated validation provides an evaluation for the specified folds, not a guarantee of transfer to all frontier areas.
 
 \section{Reproducibility, data, and code availability}
 
-The modeling workflow is implemented in Python using PyMC \citep{Salvatier2016}, ArviZ, and scikit-learn. The core spatial cross-validation script is \texttt{src/v11\_spatial\_stability\_final.py}; the distance sensitivity framework is in \texttt{src/run\_distance\_sensitivity.py}; and the population reconstruction pipeline is in \texttt{src/run\_v11\_population\_reconstruction.py}. MCMC sampling used the No-U-Turn Sampler \citep{Hoffman2014} with 2 chains $\times$ 1,500 retained iterations per fold following 1,000 tuning steps (target acceptance rate 0.90, random seed 42). Source spatial data layers and frozen posterior traces are archived within the project repository.
+The modeling workflow is implemented in Python using PyMC \citep{Salvatier2016}, ArviZ, and scikit-learn. The core spatial cross-validation script is \texttt{src/v11\_spatial\_stability\_final.py}; OOF extraction is in \texttt{src/extract\_v11\_oof.py}; the distance-sensitivity and population-reconstruction scripts are also identified in the repository. The frozen V11 sampler call uses two chains, 2,500 tuning steps, 1,500 retained draws per chain, target acceptance 0.99, one core, and random seed 42. The original input CSV, four frozen traces, and OOF means are in the repository. The original Bouguer text grid is referenced by a drive-local path in an executed notebook and is not archived here; complete original-source metadata for contact linework and occurrence records is also unavailable in the files examined. These provenance gaps remain limitations for independent reproduction.
 
 \bibliographystyle{plainnat}
 \bibliography{references}
