@@ -2,36 +2,32 @@
 
 ## 6.1 Principal findings and surviving scientific contributions
 
-This study establishes an uncertainty-aware Bayesian framework for mineral prospectivity mapping along the Central African Copperbelt, evaluating how multivariate geological and geophysical controls transfer across spatially separated sectors. By reframing the investigation around multivariate prediction, spatial heterogeneity, and representation robustness, the analysis yields six core scientific findings:
+This study evaluates a hierarchical Bayesian prospectivity model using four along-belt holdout folds and a distance-representation sensitivity analysis. The frozen scores are posterior mean conditional probabilities; no future Bernoulli outcomes are sampled. The results support the following scoped findings:
 
 1. **Multivariate Geological Associations:** Copper-cobalt mineralization across the evaluated modeling population is associated with the joint predictor pattern involving fault distance, lithological contact distance, Bouguer gravity anomaly, and host-rock lithology. Proximity effects cannot be interpreted in isolation from this broader multivariate model.
-2. **Spatial Heterogeneity in Predictor Importance:** The relative importance of geological controls shifts systematically along the strike of the orogen. Linear predictor variance decomposition reveals that prospectivity discrimination is overwhelmingly fault-dominated in the northwest (Fold 1: 86.5% variance share), transitions to a balanced multi-factor system in the central sectors (Folds 2 and 3), and becomes co-dominated by regional Bouguer gravity in the southeast (Fold 4: 31.1% variance share).
+2. **Fold variation in component dispersion:** SD-normalized shares of additive components in the posterior-mean OOF linear predictor vary across folds (fault-distance share: 86.5% in Fold 1; gravity share: 31.1% in Fold 4). These are not shares of outcome variance, causal effects, or measures of isolated discrimination.
 3. **Recurring Distance Associations Across Representations:** Proximity to faults and lithological contacts exhibits a recurring predictive association with mineralization log-odds across the evaluated representations, with magnitude and transferability varying by spatial fold.
-4. **Representation Sensitivity of Quadratic Curvature:** While distance decay is robust, quadratic curvature is sensitive to mathematical scaling. Curvature in raw distance models reflects polynomial accommodation of the long, right-skewed spatial tail. When distances are log-transformed, the relationship linearizes on the logit scale, causing quadratic terms to collapse toward zero or invert in sign.
+4. **Representation sensitivity of curvature:** Posterior support for quadratic curvature differs between raw and log distance representations. The sensitivity analysis establishes this difference for the evaluated specifications but does not identify a unique response form or the geological mechanism behind the difference.
 5. **Diagnostic Limits of $D^*$ as a Physical Quantity:** The derived algebraic stationary point $D^*$ fails all pre-registered operational robustness criteria across representations (0 of 48 cases passed simultaneously). At the population level, $D^*$ suffers from denominator singularity with credible intervals spanning $[-279, +366]\ \mathrm{km}$. Quadratic curvature is representation-dependent, population-level $D^*$ is not identifiable, and domain/fold stationary points should not be interpreted as invariant geological distances.
-6. **Model Parsimony in Prospective Transfer:** Simpler linear and log-linear hierarchical models (Models C and D) achieve out-of-fold spatial discrimination (AUC between $0.671$ and $0.683$) comparable to quadratic models (AUC between $0.673$ and $0.686$), while the hierarchical log-linear model achieves the highest precision-recall performance (PR-AUC $= 0.145$).
+6. **Discrimination across evaluated specifications:** Mean OOF ROC-AUC ranges from $0.671$ to $0.686$ across the four distance representations; log-linear Model D has the highest mean PR-AUC ($0.145$). These fold-specific comparisons do not establish a universally preferable model form.
 
-## 6.2 Geological implications: shifting metallogenic regimes along strike
+## 6.2 Interpreting spatial variation cautiously
 
-The empirical shift in predictor variance shares aligns closely with modern tectonic interpretations of the Central African Copperbelt as a heterogeneous, multi-stage orogenic system. 
+The fold-wise decomposition describes how the standard deviations of posterior-mean additive predictor components compare within the held-out cells. Fault distance has the largest SD-normalized share in Fold 1 (86.5%); the gravity share is 31.1% in Fold 4. Contact distance and host lithology have larger shares in Folds 2 and 3 than in Fold 1. These quantities characterize the model's decomposed OOF linear predictor, not mineralization mechanisms or outcome variance.
 
-In the northwestern Lufilian Arc (represented in Fold 1), intense shortening, nappe emplacement, and steep structural imbrication localize hydrothermal fluids into narrow, fault-bounded corridors. Here, proximity to major faults accounts for 86.5% of linear predictor variance ($\sigma = 7.36$), providing sharp spatial discrimination. In this evaluated fold, fault proximity provides the largest contribution to variation in the decomposed OOF linear predictor.
-
-Progressing southeastward into the Zambian Copperbelt (Folds 2, 3, and 4), structural styles transition toward basement-cored domes, broader fold geometries, and extensive sub-basin depocentres. Accordingly, the decomposed OOF linear predictor assigns contributions to stratigraphic contact proximity (up to 28.2%), host-rock units (up to 23.4%), and regional Bouguer gravity anomalies (up to 31.1%). In Fold 4, where the variation of the fault-distance component is lower ($\sigma = 0.65$), Bouguer gravity is a co-dominant model component. These contribution patterns are compatible with a setting in which regional architecture is informative; the present analysis does not identify the underlying causal mechanism.
-
-This geographic non-stationarity indicates why exploration models calibrated in one sector of a metallogenic belt may transfer variably to another. The present results show changing model contributions along the evaluated tectonic strike, but do not identify the underlying physical processes.
+Regional geological literature provides context for considering spatially varying associations, but these results do not map folds directly to unique tectonic mechanisms, identify causal fluid pathways, or explain why discrimination differs. They motivate geological follow-up rather than establish a geological process from the component decomposition.
 
 ## 6.3 Representation sensitivity and model parsimony in spatial data
 
-The sensitivity analysis highlights a critical methodological hazard in data-driven mineral prospectivity modeling: the conflation of polynomial curvature with geological process.
+The sensitivity analysis illustrates why polynomial curvature should not be equated with a geological process.
 
-Distance measurements in regional exploration grids are inevitably right-skewed: a few cells lie within prospective mineralized corridors ($< 5\ \mathrm{km}$), while the vast majority extend across tens of kilometres of unmineralized regional basin. Fitting a quadratic polynomial ($\beta_1 z + \beta_2 z^2$) to such raw physical distances forces the model to balance the steep proximal slope against the broad distal background. If the model is penalized for over-predicting in the distant tail, the quadratic term can bend upward at large distances as a representation-dependent consequence of polynomial rigidity.
+The evaluated raw and log specifications differ in how distance is represented, and the posterior curvature summaries change across those representations. Tail truncation also changes the observed Fold 1 AUC under the specified sensitivity perturbation. These results establish sensitivity in the evaluated design; they do not determine whether the cause is tail leverage, model form, or another feature of the data.
 
-This interpretation is supported by two empirical findings in this study:
-1. **Logarithmic Linearization:** Applying a log transformation ($\log(1 + x_{\mathrm{km}})$) naturally compresses the distal tail. Under this transformation (Model B), quadratic curvature largely vanishes ($P(\beta_{sq} > 0)$ drops to $\approx 50\%$), and the fitted response is adequately represented by a monotonic log-linear decay (Model D).
-2. **Tail Truncation Collapse:** Truncating training observations at the 95th percentile ($p_{95}$) removes distal background cells, causing Fold 1 discrimination to drop from $0.817 \to 0.595$. The fitted predictions and discrimination are sensitive to the distal tail under both Model A and Model B.
+Two empirical results motivate this caution:
+1. **Representation change:** Applying $\log(1+x_{\mathrm{km}})$ compresses upper-tail values, and the posterior curvature support differs between Models A and B. This difference does not establish that the log-linear model is the true response function.
+2. **Tail perturbation:** Under the specified $p_{95}$ training-data truncation, Fold 1 AUC changes from $0.817$ to $0.595$. This demonstrates sensitivity to that perturbation, not a general causal role for distal background cells.
 
-Because hierarchical linear models (Models C and D) match or exceed the predictive discrimination of quadratic models under spatial cross-validation—with log-linear Model D achieving the highest PR-AUC ($0.145$)—the principle of model parsimony indicates that linear distance representations are more parsimonious under the evaluated spatial predictive criteria.
+Model D has the highest mean PR-AUC ($0.145$), and the linear specifications have mean ROC-AUC values within the range of the quadratic specifications in the evaluated folds. This supports comparing simpler forms, but does not establish that they are universally preferable.
 
 ## 6.4 The diagnostic limits of $D^*$ and avoidance of false reification
 
@@ -42,39 +38,31 @@ Historically, the identification of a stationary point $D^*$ at $25\!-
 !28\ \mathrm{km}$ down to $7\!-
 !19\ \mathrm{km}$, and fault medians to collapse to boundary values ($0\ \mathrm{km}$) or explode beyond $80\ \mathrm{km}$.
 2. **Denominator Singularity:** In unconstrained Bayesian inference, whenever the posterior distribution of the quadratic parameter $\beta_{sq}$ includes density near zero, the ratio $z^* = -\beta_{lin} / (2\beta_{sq})$ produces explosive, fat-tailed Cauchy-like distributions. At the population level, this produces 95% credible intervals spanning $[-279, +366]\ \mathrm{km}$, indicating population-level non-identifiability.
-3. **Absence in Geophysical Predictors:** Bouguer gravity enters linearly and has no $D^*$ diagnostic, despite contributing up to 31.1% of predictive variance in Fold 4.
+3. **Linear gravity term:** Bouguer gravity enters linearly and has no $D^*$ diagnostic. Its SD-normalized component share is 31.1% in Fold 4; this is not a share of predictive variance or evidence of causal importance.
 
 $D^*$ must therefore be recognized as a model-derived diagnostic whose interpretation is dependent on the distance representation rather than as an intrinsic property of the Copperbelt hydrothermal system. Domain/fold stationary points should not be interpreted as invariant geological distances, and the analysis does not support establishing fixed spatial buffer corridors from these polynomial diagnostics.
 
-## 6.5 Honest spatial evaluation versus historical linear baselines
+## 6.5 Comparing model specifications without attributing gains
 
-A notable question arising in Copperbelt prospectivity modeling is why early linear logistic regression models reportedly performed near chance levels ($AUC \le 0.50$), whereas the modern hierarchical Raw-Linear Model C evaluated here achieves a spatial OOF ROC-AUC of $0.671$ (and $0.904$ in Fold 1) across the evaluated folds.
+V11 and M5 differ in predictor set and model structure, so their OOF score differences do not isolate the effect of a single feature or of hierarchical pooling. V11's pooled ROC-AUC is $0.689$ versus $0.525$ for M5, with a pooled difference of $+0.164$; the fold-level differences vary, including $+0.091$ in Fold 3 and $-0.136$ in Fold 2. These are results for the specified frozen predictions, not evidence about why one specification scores higher.
 
-Forensic analysis reveals that this is an apples-to-oranges comparison stemming from fundamentally different modeling architectures:
-- **Early Linear Baselines:** Early models typically used unpooled, non-hierarchical logistic regressions fit to crude tract-boundary buffers, lacking geological domain stratification, omitting regional gravity, and failing to account for regional baseline odds. Furthermore, many were evaluated on poorly isolated or spatially confounded validation sets.
-- **Hierarchical Linear Model C:** In contrast, Model C incorporates:
-  1. High-fidelity geological proxies (distances to mapped structural lineaments and lithological contacts);
-  2. Hierarchical partial pooling across Daly tectonic domains, allowing regional intercepts and slopes to adapt while sharing belt-wide strength;
-  3. Regional Bouguer gravity and host stratigraphy as stabilizing multivariate controls;
-  4. Rigorous Bayesian regularization preventing over-fitting.
-
-When linear distance predictors are embedded in an appropriate hierarchical spatial architecture, they provide recurring predictive associations across the evaluated spatial folds without requiring polynomial complexity.
+The distance-representation comparison is separate from the V11--M5 comparison. Model C has mean OOF ROC-AUC $0.671$ and Fold 1 ROC-AUC $0.904$, illustrating why fold-level results should accompany the mean. The available results do not establish a historical performance trend or support attributing differences from unrelated studies to any one modeling choice.
 
 ## 6.6 Re-evaluating Daly's tectonic hypothesis
 
 The completed evidence reframes how Daly's tectonic domain hypothesis should be utilized in quantitative resource assessment:
 
-- **Supported: Regional heterogeneity:** The data support the interpretation that the Central African Copperbelt comprises distinct tectonic regimes that should not automatically be treated as a single homogeneous metallogenic province. Base rates, decomposed predictor contribution shares, and out-of-fold transferability differ between domains such as NRB_3a and NRB_3b.
-- **Not supported: A universal invariant distance interpretation:** The empirical evidence does not support the interpretation that Daly's domains are characterized by fixed, invariant turning points or characteristic distances. Proximity associations recur across evaluated representations, while their mathematical form and predictive contribution vary geographically.
+- **Observed variation:** Posterior summaries and descriptive OOF scores vary across the supplied domain labels. The four zero-positive domains provide no within-domain positive-class information, and their model effects rely more strongly on hierarchical pooling.
+- **Scope of the domain analysis:** The labels index model terms and post-hoc strata; this study does not formally test or validate Daly's tectonic framework. The sensitivity results do not support universal, representation-invariant distance thresholds.
 
-The primary value of Daly's framework is as a principled geological prior for **spatial hierarchical stratification**, allowing Bayesian models to pool information across sub-basins without imposing false uniformity.
+In this model, the supplied labels serve as a grouping variable for partial pooling. The analysis does not independently establish that they are a validated geological prior or that every labeled group represents a distinct causal regime.
 
 ## 6.7 Methodological limitations
 
 To ensure rigorous interpretation, several study limitations must be explicitly noted:
 
 1. **Observational Modeling Frame:** The analysis is based on a 2D spatial grid of 1,872 cells with 138 documented deposits. The absence of deposits in CRZ, NKB, SRB, and MMSB reflects compiled surface occurrences, rendering binary ranking metrics (ROC-AUC) mathematically undefined in those domains.
-2. **Spatial Holdout Resolution:** While four-fold along-belt spatial holdout provides rigorous protection against spatial leakage, four folds provide a discrete discretization of a continuous tectonic gradient.
+2. **Spatial Holdout Resolution:** The PCA-ordered four-fold design reduces local train-test overlap but cannot guarantee independence across fold boundaries. Four folds discretize a continuous spatial gradient and assess only the specified holdout design.
 3. **Dimensionality Constraints:** Geological predictors represent surface and near-surface mapped features and regional gravity. The model does not include 3D structural geometries, subsurface seismic reflections, or depth-to-basement models, which may account for unexplained spatial variance.
 4. **Conditional Posterior Filtering:** Diagnostic summaries evaluating $\beta_{sq} > 0.05$ represent conditional methodological filters rather than unconditional Bayesian posteriors, and must not be interpreted as physical validation criteria.
 
@@ -82,15 +70,15 @@ To ensure rigorous interpretation, several study limitations must be explicitly 
 
 The findings of this study suggest four concrete methodological recommendations for quantitative mineral prospectivity research:
 
-1. **Mandate Spatially Separated Holdout Validation:** Random-cell cross-validation must be abandoned in regional prospectivity studies. Models must be validated by holding out contiguous geographical blocks along orogenic strike to assess genuine exploration transferability.
+1. **Match validation to the prediction target:** For a new-region prediction task, use geographically separated evaluation appropriate to the intended transfer and report the blocking design and its limitations; no single block design guarantees independence or universal transferability.
 2. **Test Representation Sensitivity:** Proximity relationships should routinely be evaluated across raw, logarithmic, and linear representations. Researchers must verify whether apparent non-linearities or turning points persist under monotonic transformations before inferring physical trapping mechanisms.
-3. **Adopt Hierarchical Bayesian Architectures:** Rather than choosing between over-generalized global models and data-starved local models, prospectivity workflows should employ hierarchical models with partial pooling across tectono-stratigraphic domains.
-4. **Report Predictor Contribution Shares:** Researchers should report linear predictor variance decompositions across spatial test folds to expose geographic non-stationarity in geological controls, rather than relying solely on global performance metrics.
+3. **Consider partial pooling when justified:** Hierarchical models can share information across groups, but their use and grouping structure should be justified by the data and scientific question.
+4. **Label component summaries precisely:** If reporting additive predictor-component shares, state their normalization, compute them on held-out predictions, and avoid interpreting them as causal importance or outcome variance explained.
 
 ## 6.9 Final synthesis
 
-Paper 1 shows that Bayesian mineral prospectivity mapping across the Central African Copperbelt can be formulated as an uncertainty-aware, multivariate hierarchical system that explicitly accounts for spatial heterogeneity.
+Paper 1 evaluates a hierarchical Bayesian model for the Central African Copperbelt under a specified four-fold along-belt holdout design. It quantifies parameter posterior uncertainty and computes draw-wise held-out conditional probabilities, while the frozen OOF table contains their posterior means and does not include sampled future outcomes.
 
 Distance to major faults and distance to lithological contacts provide recurring predictive associations across the evaluated representations, with variable magnitude and transferability. However, the apparent quadratic curvature and derived stationary points (\(D^*\)) observed in raw-distance models are representation-dependent under the evaluated specifications and do not satisfy the pre-registered robustness criteria for representation-robust curvature and stationary-point inference.
 
-By shifting attention from universal physical turning points to spatial non-stationarity, the study shows that decomposed predictor contributions shift from fault-associated patterns in the northwest to more distributed multi-factor and gravity-associated patterns in the southeast. Hierarchical linear and log-linear models capture these recurring associations parsimoniously within the evaluated spatial folds
+The SD-normalized component shares vary across folds, and discrimination also varies between the specified held-out sectors. These are descriptive predictive results, not evidence that causal controls shift geographically. The evaluated distance associations and response forms should be interpreted within this modeling frame; the contact-map and original Bouguer-grid provenance remain incomplete in the available project files.
