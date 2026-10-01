@@ -54,3 +54,7 @@ data/*.csv
 
 # Reference literature (large binary PDFs)
 literature/
+
+# Local planning artifacts
+/AI_PROJECT_CONTEXT.md
+/RECONCILIATION_REPORT.md
