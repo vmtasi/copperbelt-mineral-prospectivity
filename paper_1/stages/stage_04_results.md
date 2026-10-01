@@ -124,7 +124,7 @@ The primary evaluation compares frozen OOF scores from V11 and M5 across the fou
 Key predictive transferability findings:
 1. **Pooled OOF Discrimination:** Aggregated across the entire strike of the Copperbelt, V11 achieves an out-of-fold ROC-AUC of $0.689$ [0.647, 0.727], substantially outperforming M5 ($0.525$ [0.470, 0.581]), yielding a significant pooled improvement of $\Delta\mathrm{AUC} = +0.164$ with $P(\Delta > 0) = 1.000$.
 2. **Regional Transferability Divergence:** Across individual folds, relative performance is heterogeneous:
-   - In Fold 3, V11 significantly outperforms M5 by $+0.091$ [$+0.024$, $+0.159$].
+   - In Fold 3, the paired row-bootstrap V11-minus-M5 ROC-AUC difference is $+0.091$ [$+0.024$, $+0.159$].
    - In Fold 2, M5 outperforms V11 by $+0.136$ [$+0.020$, $+0.250$].
    - In Folds 1 and 4, the 95% bootstrap intervals for $\Delta\mathrm{AUC}$ span zero ($-0.038$ and $-0.020$, respectively).
 3. **Multiscale Spatial Block-Bootstrap Assessment:** Resampling occupied coordinate blocks at $10\times10$, $15\times15$, $20\times20$, and $25\times25$ grid scales is a separate robustness assessment. Its results apply to the evaluated block definitions and do not replace the fixed-score row-bootstrap intervals in the table or represent cell-level posterior uncertainty.
