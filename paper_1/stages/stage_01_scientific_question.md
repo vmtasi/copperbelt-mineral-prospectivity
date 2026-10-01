@@ -18,7 +18,7 @@ A fundamental challenge in mineral prospectivity modeling is spatial dependence.
 
 Evaluating prospectivity models therefore benefits from **spatially separated predictive validation**, in which contiguous geographical sectors are held out out-of-fold (OOF). The four along-belt folds used here assess transfer among the specified sectors; they reduce local train-test overlap but do not guarantee independence at fold boundaries or establish performance in all unexplored frontier regions.
 
-Geological data are observational, incomplete, and subject to spatial sampling bias. This study quantifies parameter posterior uncertainty and computes draw-wise conditional probabilities for held-out cells, but the frozen OOF table reports posterior means rather than cell-level intervals, and the workflow does not simulate future Bernoulli outcomes. These distinctions constrain what uncertainty the reported outputs represent.
+Geological data are observational, incomplete, and subject to spatial sampling bias. This study quantifies parameter posterior uncertainty and reconstructs the cell-level posterior distribution for held-out cells from the frozen V11 draws; the associated uncertainty artifact reports posterior mean, median, standard deviation, and 95% credible intervals for each cell's conditional occurrence probability $p_i$, while the workflow does not simulate future Bernoulli outcomes. These distinctions constrain what uncertainty the reported outputs represent.
 
 ## 1.3 Spatial heterogeneity and hierarchical Bayesian inference
 

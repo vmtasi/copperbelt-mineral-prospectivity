@@ -2,7 +2,7 @@
 
 ## 6.1 Principal findings and surviving scientific contributions
 
-This study evaluates a hierarchical Bayesian prospectivity model using four along-belt holdout folds and a distance-representation sensitivity analysis. The frozen scores are posterior mean conditional probabilities; no future Bernoulli outcomes are sampled. The results support the following scoped findings:
+This study evaluates a hierarchical Bayesian prospectivity model using four along-belt holdout folds and a distance-representation sensitivity analysis. The frozen OOF scores are posterior mean conditional probabilities, while the reconstructed posterior-uncertainty artifact reports cell-level 95% credible intervals for $p_i$; no future Bernoulli outcomes are sampled. The results support the following scoped findings:
 
 1. **Multivariate Geological Associations:** Copper-cobalt mineralization across the evaluated modeling population is associated with the joint predictor pattern involving fault distance, lithological contact distance, Bouguer gravity anomaly, and host-rock lithology. Proximity effects cannot be interpreted in isolation from this broader multivariate model.
 2. **Fold variation in component dispersion:** SD-normalized shares of additive components in the posterior-mean OOF linear predictor vary across folds (fault-distance share: 86.5% in Fold 1; gravity share: 31.1% in Fold 4). These are not shares of outcome variance, causal effects, or measures of isolated discrimination.
@@ -77,7 +77,7 @@ The findings of this study suggest four concrete methodological recommendations 
 
 ## 6.9 Final synthesis
 
-Paper 1 evaluates a hierarchical Bayesian model for the Central African Copperbelt under a specified four-fold along-belt holdout design. It quantifies parameter posterior uncertainty and computes draw-wise held-out conditional probabilities, while the frozen OOF table contains their posterior means and does not include sampled future outcomes.
+Paper 1 evaluates a hierarchical Bayesian model for the Central African Copperbelt under a specified four-fold along-belt holdout design. It quantifies parameter posterior uncertainty and reconstructs cell-level posterior uncertainty for held-out conditional probabilities; the frozen OOF table contains the posterior mean probabilities, while the accompanying uncertainty artifact provides 95% credible intervals for $p_i$ and does not include sampled future outcomes.
 
 Distance to major faults and distance to lithological contacts provide recurring predictive associations across the evaluated representations, with variable magnitude and transferability. However, the apparent quadratic curvature and derived stationary points (\(D^*\)) observed in raw-distance models are representation-dependent under the evaluated specifications and do not satisfy the pre-registered robustness criteria for representation-robust curvature and stationary-point inference.
 

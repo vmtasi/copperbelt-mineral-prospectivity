@@ -2,7 +2,7 @@
 
 ## 4.1 Multivariate Bayesian posterior structure and coefficient distributions
 
-The V11 hierarchical model jointly estimates the parameters of three continuous geological and geophysical predictors alongside categorical host-rock units. Proximity to faults and proximity to lithological contacts enter with domain-specific linear and quadratic terms, Bouguer gravity anomaly enters through a global linear coefficient, and retained host-rock units enter via a global parameter vector.
+The V11 hierarchical model jointly estimates the parameters of three continuous geological and geophysical predictors alongside categorical host-rock units. Proximity to faults and proximity to lithological contacts enter with domain-specific linear and quadratic terms, Bouguer gravity anomaly enters through a global linear coefficient, and retained host-rock units enter via a global parameter vector. For each held-out cell, the frozen V11 posterior draws support a cell-specific distribution for the conditional occurrence probability $p_i$, and the reconstructed uncertainty artifact reports posterior mean, median, standard deviation, and 95% credible intervals for these cell-level probabilities.
 
 ### Lithology contact distance posterior parameters
 In the mineralized domain NRB_3a, lithology contact distance displays consistent negative linear coefficients and positive quadratic coefficients across all four along-belt spatial folds:
