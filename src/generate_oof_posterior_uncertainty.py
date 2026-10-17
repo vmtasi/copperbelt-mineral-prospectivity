@@ -14,16 +14,16 @@ This script:
    quantiles, 95% interval width).
 4. Validates that reconstructed prob_mean reproduces frozen prob_v11 within
    floating-point tolerance.
-5. Exports a GeoPackage (.gpkg) point layer and CSV.
+5. Validates and reuses the recorded 5 km cell polygons and exports a
+   polygon GeoPackage, CSV, publication map, and a separate uncertainty map.
 
 IMPORTANT: This script does NOT modify any frozen files, refit the model,
 or generate Bernoulli outcome draws. The uncertainty statistics describe
 the posterior distribution of the cell's conditional prospectivity
 probability, not future binary outcomes.
 
-Output files:
-    figures/v11_oof_posterior_uncertainty.gpkg
-    figures/v11_oof_posterior_uncertainty.csv
+The existing uncertainty outputs are preserved. New products are written to
+separately named files, and existing output files are never overwritten.
 """
 
 import sys
@@ -32,10 +32,15 @@ import numpy as np
 import pandas as pd
 import geopandas as gpd
 import arviz as az
-from scipy.special import expit
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+from matplotlib.ticker import FuncFormatter
 from sklearn.preprocessing import StandardScaler
-from shapely.geometry import Point
 from pathlib import Path
+from scipy.spatial import cKDTree
 
 # Setup paths
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,14 +52,17 @@ from src.validation_strategies import get_along_belt_folds
 DATA_DIR = ROOT / 'data'
 FIG_DIR = ROOT / 'figures'
 
-# CRS: EPSG:32735 (WGS 84 / UTM Zone 35S) — verified from manuscript §2.1
-# and coordinate ranges (X: 282k–715k, Y: 8.38M–8.86M)
-CRS_EPSG = 32735
-
-# Output paths — do NOT overwrite any existing file
-OUT_GPKG = FIG_DIR / 'v11_oof_posterior_uncertainty.gpkg'
-OUT_CSV  = FIG_DIR / 'v11_oof_posterior_uncertainty.csv'
-LAYER_NAME = 'v11_oof_uncertainty'
+GRID_GPKG = FIG_DIR / 'figure2_spatial_validation_cells.gpkg'
+GRID_LAYER = 'spatial_validation_cells'
+OUT_GPKG = FIG_DIR / 'v11_oof_posterior_uncertainty_reconstructed.gpkg'
+OUT_CSV = FIG_DIR / 'v11_oof_posterior_uncertainty_reconstructed.csv'
+LAYER_NAME = 'v11_oof_probability_uncertainty'
+MAP_DIR = ROOT / 'paper_1' / 'manuscript' / 'images'
+MAP_PDF = MAP_DIR / 'fig4_oof_prospectivity.pdf'
+MAP_PNG = MAP_DIR / 'fig4_oof_prospectivity.png'
+UNCERTAINTY_MAP_PDF = MAP_DIR / 'fig4_oof_uncertainty.pdf'
+UNCERTAINTY_MAP_PNG = MAP_DIR / 'fig4_oof_uncertainty.png'
+REPRODUCTION_TOLERANCE = 1e-15
 
 # -------------------------------------------------------------------------
 # Frozen file integrity
@@ -67,7 +75,9 @@ PROTECTED_FILES = [
     FIG_DIR / 'v11_oof_predictions.csv',
     ROOT / 'src' / 'v11_spatial_stability_final.py',
     ROOT / 'src' / 'validation_strategies.py',
+    GRID_GPKG,
 ]
+
 
 def hash_file(filepath):
     h = hashlib.sha256()
@@ -76,7 +86,13 @@ def hash_file(filepath):
             h.update(chunk)
     return h.hexdigest()
 
-INITIAL_HASHES = {str(f): hash_file(f) for f in PROTECTED_FILES if f.exists()}
+missing_protected_files = [str(path) for path in PROTECTED_FILES if not path.is_file()]
+if missing_protected_files:
+    raise FileNotFoundError(
+        'Required frozen/source files are missing: '
+        + ', '.join(missing_protected_files)
+    )
+INITIAL_HASHES = {str(f): hash_file(f) for f in PROTECTED_FILES}
 
 def verify_integrity(stage_name):
     for f_str, init_hash in INITIAL_HASHES.items():
@@ -86,6 +102,170 @@ def verify_integrity(stage_name):
                 f"[ABORT] Protected file modified during {stage_name}: {f_str}"
             )
     print(f"  [Integrity PASS] All frozen files unchanged at: {stage_name}")
+
+
+def match_source_cell_geometries(result_df):
+    """Align predictions to the original clipped 5 km polygons by centroid."""
+    cells = gpd.read_file(GRID_GPKG, layer=GRID_LAYER)
+    if cells.crs is None or cells.crs.to_epsg() != 32735:
+        raise ValueError(f"Unexpected modelling-grid CRS: {cells.crs}")
+    if len(cells) != len(result_df):
+        raise ValueError(
+            f"Expected {len(result_df)} source cell polygons, found {len(cells)}"
+        )
+    if not cells.geometry.is_valid.all() or cells.geometry.is_empty.any():
+        raise ValueError("The source grid contains invalid or empty geometries")
+
+    points = result_df[['centroid_x', 'centroid_y']].to_numpy(dtype=float)
+    centers = np.asarray([
+        (geometry.centroid.x, geometry.centroid.y)
+        for geometry in cells.geometry
+    ])
+    distances, indices = cKDTree(centers).query(points, k=1)
+    if len(np.unique(indices)) != len(result_df):
+        raise ValueError("Centroid-to-polygon matching is not one-to-one")
+    max_distance = float(distances.max())
+    if max_distance >= 0.01:
+        raise ValueError(
+            "Source cell geometries do not reproduce the modelling centroids "
+            f"within 1 cm (maximum distance {max_distance:.6f} m)"
+        )
+
+    matched = cells.iloc[indices].reset_index(drop=True)
+    if not np.array_equal(
+        matched['spatial_block'].to_numpy(dtype=int),
+        result_df['spatial_block'].to_numpy(dtype=int),
+    ):
+        raise ValueError("Source polygon fold assignments differ from the V11 folds")
+    if not np.array_equal(
+        matched['daly_domain'].astype(str).to_numpy(),
+        result_df['daly_domain'].astype(str).to_numpy(),
+    ):
+        raise ValueError("Source polygon Daly-domain labels differ from V11")
+    if not np.array_equal(
+        matched['deposit_present'].to_numpy(dtype=int),
+        result_df['deposit_present'].to_numpy(dtype=int),
+    ):
+        raise ValueError("Source polygon deposit labels differ from the model data")
+
+    widths = np.asarray([
+        geometry.bounds[2] - geometry.bounds[0]
+        for geometry in matched.geometry
+    ])
+    heights = np.asarray([
+        geometry.bounds[3] - geometry.bounds[1]
+        for geometry in matched.geometry
+    ])
+    if np.any(widths > 5000.01) or np.any(heights > 5000.01):
+        raise ValueError("A source grid polygon exceeds the 5 km modelling-cell size")
+
+    return matched, cells.crs, max_distance
+
+
+def _format_kilometres(value, _position):
+    return f'{value / 1000:.0f}'
+
+
+def _add_map_decorations(ax, gdf, show_deposits):
+    domain_boundaries = gdf.dissolve(by='daly_domain').boundary
+    domain_boundaries.plot(ax=ax, color='#30343b', linewidth=0.48, zorder=3)
+
+    if show_deposits:
+        deposits = gdf[gdf['deposit_present'] == 1]
+        ax.scatter(
+            deposits['centroid_x'], deposits['centroid_y'],
+            marker='x', s=23, linewidths=1.15, color='#c62828',
+            zorder=5,
+        )
+
+    bounds = gdf.total_bounds
+    xspan = bounds[2] - bounds[0]
+    yspan = bounds[3] - bounds[1]
+    ax.set_xlim(bounds[0] - xspan * 0.025, bounds[2] + xspan * 0.025)
+    ax.set_ylim(bounds[1] - yspan * 0.025, bounds[3] + yspan * 0.025)
+    ax.set_aspect('equal', adjustable='box')
+    ax.xaxis.set_major_formatter(FuncFormatter(_format_kilometres))
+    ax.yaxis.set_major_formatter(FuncFormatter(_format_kilometres))
+    ax.set_xlabel('Easting (km; WGS 84 / UTM zone 35S)')
+    ax.set_ylabel('Northing (km; WGS 84 / UTM zone 35S)')
+    ax.grid(color='#777777', linewidth=0.35, alpha=0.28, zorder=0)
+
+    xmin, xmax = ax.get_xlim()
+    ymin, ymax = ax.get_ylim()
+    scale_x = xmin + (xmax - xmin) * 0.055
+    scale_y = ymin + (ymax - ymin) * 0.045
+    scale_length = 100_000
+    ax.plot(
+        [scale_x, scale_x + scale_length], [scale_y, scale_y],
+        color='white', linewidth=5, solid_capstyle='butt', zorder=6,
+    )
+    ax.plot(
+        [scale_x, scale_x + scale_length], [scale_y, scale_y],
+        color='#202124', linewidth=2.4, solid_capstyle='butt', zorder=7,
+    )
+    ax.text(
+        scale_x + scale_length / 2, scale_y + (ymax - ymin) * 0.012,
+        '100 km', ha='center', va='bottom', fontsize=8, color='#202124',
+        bbox={'facecolor': 'white', 'edgecolor': 'none', 'alpha': 0.85, 'pad': 1.3},
+        zorder=7,
+    )
+    ax.annotate(
+        'N', xy=(0.955, 0.94), xytext=(0.955, 0.84),
+        xycoords='axes fraction', textcoords='axes fraction',
+        ha='center', va='center', fontsize=9, fontweight='bold',
+        arrowprops={'arrowstyle': '-|>', 'color': '#202124', 'lw': 1.1},
+        zorder=8,
+    )
+
+    handles = [
+        Patch(facecolor='none', edgecolor='#30343b', linewidth=0.8,
+              label='Daly-domain edges (cell labels)'),
+    ]
+    if show_deposits:
+        handles.insert(0, Line2D(
+            [], [], marker='x', linestyle='none', markersize=6,
+            markeredgewidth=1.2, color='#c62828',
+            label=(
+                'USGS-record-positive cell centroids '
+                f'(centroid markers; n={int(gdf.deposit_present.sum())})'
+            ),
+        ))
+    ax.legend(
+        handles=handles, loc='upper right', frameon=True, framealpha=0.95,
+        facecolor='white', edgecolor='#c5c7ca', fontsize=7.3,
+    )
+
+
+def render_map(gdf, value_column, title, colorbar_label, output_pdf, output_png,
+               show_deposits):
+    """Render a vector map of cell values and a manuscript-resolution PNG."""
+    values_max = float(gdf[value_column].max())
+    vmax = max(0.05, np.ceil(values_max * 20) / 20)
+    fig, ax = plt.subplots(figsize=(7.6, 7.0), constrained_layout=True)
+    gdf.plot(
+        column=value_column, ax=ax, cmap='viridis', vmin=0, vmax=vmax,
+        linewidth=0, edgecolor='none', zorder=1,
+    )
+    _add_map_decorations(ax, gdf, show_deposits)
+    ax.set_title(title, fontsize=12, pad=9, fontweight='semibold')
+    ax.text(
+        0.015, 0.985,
+        f'{len(gdf):,} held-out 5 km cells',
+        transform=ax.transAxes, ha='left', va='top', fontsize=7.4,
+        color='#202124',
+        bbox={'facecolor': 'white', 'edgecolor': '#d5d7da', 'alpha': 0.93, 'pad': 3},
+        zorder=8,
+    )
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=vmax)
+    scalar_mappable = matplotlib.cm.ScalarMappable(norm=norm, cmap='viridis')
+    colorbar = fig.colorbar(
+        scalar_mappable, ax=ax, fraction=0.043, pad=0.035, shrink=0.88,
+    )
+    colorbar.set_label(colorbar_label, fontsize=8.5)
+    colorbar.ax.tick_params(labelsize=7.5, length=2)
+    fig.savefig(output_pdf, bbox_inches='tight', metadata={'Title': title})
+    fig.savefig(output_png, dpi=350, bbox_inches='tight', facecolor='white')
+    plt.close(fig)
 
 
 # -------------------------------------------------------------------------
@@ -139,11 +319,15 @@ def load_prepared_data():
 # -------------------------------------------------------------------------
 def main():
     print("=" * 70)
-    print("V11 OOF POSTERIOR UNCERTAINTY RECONSTRUCTION")
+    print("V11 OOF POSTERIOR RECONSTRUCTION AND FIGURE 4")
     print("=" * 70)
 
     # Pre-flight checks
-    for p in [OUT_GPKG, OUT_CSV]:
+    output_paths = [
+        OUT_GPKG, OUT_CSV, MAP_PDF, MAP_PNG,
+        UNCERTAINTY_MAP_PDF, UNCERTAINTY_MAP_PNG,
+    ]
+    for p in output_paths:
         if p.exists():
             raise FileExistsError(
                 f"Output already exists — will not overwrite: {p}"
@@ -156,6 +340,10 @@ def main():
     df, unique_domains, all_rock_features = load_prepared_data()
     n_folds = 4
     n_domains = len(unique_domains)
+    if len(df) != 1872:
+        raise ValueError(f"Expected 1,872 complete-case cells, found {len(df)}")
+    if df.duplicated(['centroid_x', 'centroid_y']).any():
+        raise ValueError("Complete-case model coordinates are not unique")
     print(f"  Total cells: {len(df)}")
     print(f"  Domains ({n_domains}): {unique_domains}")
 
@@ -204,6 +392,13 @@ def main():
         # Load frozen trace
         trace_path = FIG_DIR / f'v11_fold_{fold_num}_trace.nc'
         trace = az.from_netcdf(trace_path)
+        trace_draws = int(
+            trace.posterior.sizes['chain'] * trace.posterior.sizes['draw']
+        )
+        if trace_draws != 3000:
+            raise ValueError(
+                f"Fold {fold_num} trace has {trace_draws} draws; expected 3,000"
+            )
 
         # Extract posterior draws — identical to reconstruction script
         alpha_dom = trace.posterior['alpha_dom'].values.reshape(-1, n_domains)
@@ -217,6 +412,10 @@ def main():
         )
 
         n_draws = len(beta_grav)
+        if n_draws != 3000:
+            raise ValueError(
+                f"Fold {fold_num} coefficient arrays contain {n_draws} draws"
+            )
         print(f"  Posterior draws: {n_draws}")
 
         # Build test feature arrays
@@ -242,7 +441,7 @@ def main():
         )
 
         # Draw-wise conditional probabilities
-        p_draws = expit(eta)  # (n_draws, n_test)
+        p_draws = 1 / (1 + np.exp(-eta))  # Match the frozen extraction arithmetic.
 
         # Verify shape
         assert p_draws.shape == (n_draws, n_test), (
@@ -272,6 +471,7 @@ def main():
                 'centroid_y': cy[i],
                 'spatial_block': fold,
                 'daly_domain': domains[i],
+                'deposit_present': int(test_df['deposit_present'].iloc[i]),
                 'prob_mean': prob_mean[i],
                 'prob_median': prob_median[i],
                 'prob_sd': prob_sd[i],
@@ -329,10 +529,14 @@ def main():
     max_diff = prob_diff.max()
     mean_diff = prob_diff.mean()
     print(f"  [QC3] prob_mean vs prob_v11: max_diff={max_diff:.2e}, mean_diff={mean_diff:.2e}")
-    assert max_diff < 1e-10, (
-        f"Reconstruction mismatch exceeds tolerance: max_diff={max_diff}"
+    assert max_diff <= REPRODUCTION_TOLERANCE, (
+        "Reconstruction mismatch exceeds the floating-point tolerance: "
+        f"max_diff={max_diff:.17g}, tolerance={REPRODUCTION_TOLERANCE:.1e}"
     )
-    print(f"  [QC3 PASS] Reconstructed prob_mean reproduces prob_v11 within tolerance")
+    print(
+        "  [QC3 PASS] Reconstructed prob_mean reproduces prob_v11: "
+        f"max_diff={max_diff:.3e}, mean_diff={mean_diff:.3e}"
+    )
 
     # QC4: All 3,000 draws available (verified per fold above)
     print(f"  [QC4 PASS] All draws available (verified during fold processing)")
@@ -351,12 +555,20 @@ def main():
     print("EXPORTING OUTPUTS")
     print("=" * 70)
 
-    # Create GeoDataFrame with point geometry
-    geometry = [
-        Point(row['centroid_x'], row['centroid_y'])
-        for _, row in result_df.iterrows()
-    ]
-    gdf = gpd.GeoDataFrame(result_df, geometry=geometry, crs=f"EPSG:{CRS_EPSG}")
+    # Reuse the exact clipped 5 km source polygons; do not turn points into
+    # assumed cell-sized rectangles.
+    matched_cells, source_crs, max_centroid_distance = (
+        match_source_cell_geometries(result_df)
+    )
+    gdf = gpd.GeoDataFrame(
+        result_df.copy(),
+        geometry=matched_cells.geometry.to_numpy(),
+        crs=source_crs,
+    )
+    print(
+        "  [QC6 PASS] Source polygons align one-to-one with all OOF cells; "
+        f"maximum centroid offset={max_centroid_distance:.6f} m, CRS={source_crs}"
+    )
 
     # Export GeoPackage
     gdf.to_file(OUT_GPKG, layer=LAYER_NAME, driver='GPKG')
@@ -366,6 +578,22 @@ def main():
     # Export CSV
     result_df.to_csv(OUT_CSV, index=False)
     print(f"  [+] CSV: {OUT_CSV}")
+
+    render_map(
+        gdf, 'prob_mean', 'V11 out-of-fold prospectivity',
+        'Posterior mean conditional occurrence probability',
+        MAP_PDF, MAP_PNG, show_deposits=True,
+    )
+    render_map(
+        gdf, 'prob_interval_width95',
+        'V11 posterior uncertainty in conditional probability',
+        '95% credible-interval width',
+        UNCERTAINTY_MAP_PDF, UNCERTAINTY_MAP_PNG, show_deposits=False,
+    )
+    print(f"  [+] Prospectivity map (vector PDF): {MAP_PDF}")
+    print(f"  [+] Prospectivity map (PNG): {MAP_PNG}")
+    print(f"  [+] Uncertainty map (vector PDF): {UNCERTAINTY_MAP_PDF}")
+    print(f"  [+] Uncertainty map (PNG): {UNCERTAINTY_MAP_PNG}")
 
     # =====================================================================
     # FINAL REPORT
@@ -378,10 +606,12 @@ def main():
     print(f"  Layer name:            {LAYER_NAME}")
     print(f"  Number of cells:       {len(gdf)}")
     print(f"  Posterior draws/cell:  {n_draws}")
-    print(f"  CRS:                   EPSG:{CRS_EPSG} (WGS 84 / UTM Zone 35S)")
-    print(f"  Geometry type:         Point (cell centroids)")
+    print(f"  CRS:                   {gdf.crs}")
+    print("  Geometry type:         Original clipped 5 km modelling-cell polygons")
+    print(f"  Max centroid offset:   {max_centroid_distance:.6f} m")
     print(f"  Fields:                {list(result_df.columns)}")
-    print(f"  Validation:            prob_mean reproduces prob_v11 (max diff {max_diff:.2e})")
+    print(f"  Validation:            prob_mean reproduces prob_v11 (max diff {max_diff:.3e})")
+    print(f"  Probability range:     [{gdf.prob_mean.min():.6f}, {gdf.prob_mean.max():.6f}]")
     print()
     print("  Summary statistics:")
     print(result_df[['prob_mean', 'prob_median', 'prob_sd', 'prob_q025',
