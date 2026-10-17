@@ -1,0 +1,45 @@
+\begin{tikzpicture}[x=1mm,y=1mm]
+\definecolor{faultshare}{HTML}{3B6E8F}
+\definecolor{contactshare}{HTML}{D98C3F}
+\definecolor{gravityshare}{HTML}{579B75}
+\definecolor{rockshare}{HTML}{8B78A8}
+\def\barstart{28}
+\def\barscale{1.18}
+\foreach \x/\label in {0/0,25/25,50/50,75/75,100/100}{
+  \draw[black!18] ({\barstart+\x*\barscale},5.5) -- ({\barstart+\x*\barscale},39);
+  \node[font=\scriptsize, text=black!70] at ({\barstart+\x*\barscale},43) {\label};
+}
+\node[font=\scriptsize, rotate=90, anchor=south] at (4,22)
+  {Along-belt fold};
+\node[font=\scriptsize, text=black!70] at (87,48)
+  {SD-normalized component share (\%)};
+
+\foreach \y/\fold in {35/1,27/2,19/3,11/4}{
+  \node[font=\scriptsize, anchor=east] at (24,\y+2) {Fold \fold};
+}
+
+\foreach \y/\fault/\contact/\gravity/\rock in
+  {35/86.5/11.1/2.0/0.4,27/50.3/23.9/5.6/20.3,19/33.1/28.2/15.3/23.4,11/34.9/17.7/31.1/16.3}{
+  \pgfmathsetmacro{\wFault}{\fault*100/( \fault+\contact+\gravity+\rock )}
+  \pgfmathsetmacro{\wContact}{\contact*100/( \fault+\contact+\gravity+\rock )}
+  \pgfmathsetmacro{\wGravity}{\gravity*100/( \fault+\contact+\gravity+\rock )}
+  \pgfmathsetmacro{\xContact}{\barstart+\wFault*\barscale}
+  \pgfmathsetmacro{\xGravity}{\barstart+(\wFault+\wContact)*\barscale}
+  \pgfmathsetmacro{\xRock}{\barstart+(\wFault+\wContact+\wGravity)*\barscale}
+  \pgfmathsetmacro{\xEnd}{\barstart+100*\barscale}
+  \fill[faultshare] (\barstart,\y) rectangle ({\xContact-\wContact*\barscale},{\y+4});
+  \fill[contactshare] ({\xContact-\wContact*\barscale},\y) rectangle (\xContact,\y+4);
+  \fill[gravityshare] (\xContact,\y) rectangle (\xGravity,\y+4);
+  \fill[rockshare] (\xGravity,\y) rectangle (\xEnd,\y+4);
+  \draw[white, line width=0.25pt] (\barstart,\y) rectangle (\xEnd,\y+4);
+}
+
+\fill[faultshare] (28,2) rectangle ++(3,3);
+\node[font=\scriptsize, anchor=west] at (32.5,3.5) {Fault distance};
+\fill[contactshare] (66,2) rectangle ++(3,3);
+\node[font=\scriptsize, anchor=west] at (70.5,3.5) {Lithology-contact distance};
+\fill[gravityshare] (112,2) rectangle ++(3,3);
+\node[font=\scriptsize, anchor=west] at (116.5,3.5) {Bouguer gravity};
+\fill[rockshare] (152,2) rectangle ++(3,3);
+\node[font=\scriptsize, anchor=west] at (156.5,3.5) {Host lithology};
+\end{tikzpicture}

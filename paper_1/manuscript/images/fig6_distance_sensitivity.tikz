@@ -1,0 +1,56 @@
+\begin{tikzpicture}[x=1cm,y=1cm]
+\definecolor{modelA}{HTML}{0072B2}
+\definecolor{modelB}{HTML}{D55E00}
+\definecolor{modelC}{HTML}{009E73}
+\definecolor{modelD}{HTML}{CC79A7}
+\node[font=\small\bfseries, anchor=west] at (1.7,6.1)
+  {Held-out fold ROC-AUC};
+\node[font=\small\bfseries, anchor=west] at (10,6.1)
+  {Mean across folds};
+
+\foreach \v/\y in {0.5/1.9,0.6/2.66,0.7/3.42,0.8/4.18,0.9/4.94}{
+  \draw[black!16] (2, \y) -- (8.8,\y);
+  \node[font=\scriptsize, anchor=east, text=black!70] at (1.9,\y) {\v};
+}
+\draw[->, black!70] (2,1.6) -- (2,5.35);
+\draw[->, black!70] (2,1.6) -- (8.85,1.6);
+\node[font=\scriptsize, rotate=90] at (0.8,3.5) {ROC-AUC};
+\foreach \x/\f in {2.3/1,4.3/2,6.3/3,8.3/4}{
+  \draw[black!50] (\x,1.6) -- (\x,1.53);
+  \node[font=\scriptsize, below] at (\x,1.5) {Fold \f};
+}
+
+\draw[modelA, line width=1pt] (2.3,4.31) -- (4.3,3.33) -- (6.3,3.24) -- (8.3,2.37);
+\draw[modelB, line width=1pt] (2.3,4.22) -- (4.3,3.49) -- (6.3,3.04) -- (8.3,2.15);
+\draw[modelC, line width=1pt] (2.3,4.98) -- (4.3,3.04) -- (6.3,2.92) -- (8.3,1.88);
+\draw[modelD, line width=1pt] (2.3,4.76) -- (4.3,3.24) -- (6.3,3.05) -- (8.3,2.16);
+\foreach \x/\y in {2.3/4.31,4.3/3.33,6.3/3.24,8.3/2.37}
+  \fill[modelA] (\x,\y) circle (1.3pt);
+\foreach \x/\y in {2.3/4.22,4.3/3.49,6.3/3.04,8.3/2.15}
+  \fill[modelB] (\x,\y) circle (1.3pt);
+\foreach \x/\y in {2.3/4.98,4.3/3.04,6.3/2.92,8.3/1.88}
+  \fill[modelC] (\x,\y) circle (1.3pt);
+\foreach \x/\y in {2.3/4.76,4.3/3.24,6.3/3.05,8.3/2.16}
+  \fill[modelD] (\x,\y) circle (1.3pt);
+
+\foreach \x/\c/\t in {2/modelA/Model A,3.7/modelB/Model B,5.4/modelC/Model C,7.1/modelD/Model D}{
+  \draw[\c, line width=1pt] (\x,5.75) -- ++(0.35,0);
+  \fill[\c] (\x+0.17,5.75) circle (1.2pt);
+  \node[font=\scriptsize, anchor=west] at (\x+0.42,5.75) {\t};
+}
+
+\draw[black!45] (9.8,5.65) -- (15.8,5.65);
+\node[font=\scriptsize\bfseries, anchor=west] at (10,5.35) {Model};
+\node[font=\scriptsize\bfseries, anchor=east] at (13.4,5.35) {ROC-AUC};
+\node[font=\scriptsize\bfseries, anchor=east] at (15.5,5.35) {PR-AUC};
+\foreach \y/\m/\r/\p in
+  {4.85/A/0.686/0.107,4.35/B/0.673/0.123,3.85/C/0.671/0.130,3.35/D/0.683/0.145}{
+  \node[font=\scriptsize, anchor=west] at (10,\y) {Model \m};
+  \node[font=\scriptsize, anchor=east] at (13.4,\y) {\r};
+  \node[font=\scriptsize, anchor=east] at (15.5,\y) {\p};
+}
+\draw[black!45] (9.8,3.05) -- (15.8,3.05);
+\node[font=\scriptsize, align=left, text width=5.8cm, anchor=north west]
+  at (10,2.85)
+  {Robustness criteria (48 cases): curvature-sign agreement, 13/48; $D^*$ median agreement, 0/48; support concentration, 15/48; all three criteria, 0/48.};
+\end{tikzpicture}

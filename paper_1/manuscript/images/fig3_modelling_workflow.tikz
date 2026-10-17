@@ -1,0 +1,49 @@
+\tikzset{
+  workflowbox/.style={
+    draw=black!65, rounded corners=2pt, fill=blue!3,
+    text width=34mm, minimum height=14mm, align=center,
+    font=\scriptsize, inner sep=2.5pt
+  },
+  workflowresult/.style={
+    workflowbox, fill=green!5
+  },
+  workflowarrow/.style={-{Stealth[length=2mm]}, thick, black!70}
+}
+\begin{tikzpicture}[x=1mm,y=1mm]
+\node[workflowbox] (inputs) at (18,61)
+  {Geological and geospatial inputs\\structure, contacts, gravity, lithology, occurrences};
+\node[workflowbox] (frame) at (58,61)
+  {Spatial harmonization and feature preparation\\complete-case frame: 1,872 cells, 138 positives};
+\node[workflowbox] (grid) at (98,61)
+  {Prepared $5\,\mathrm{km}\times5\,\mathrm{km}$ grid\\six Daly-domain labels};
+\node[workflowbox] (folds) at (138,61)
+  {Four contiguous along-belt folds\\468 cells per held-out fold};
+\draw[workflowarrow] (inputs.east) -- (frame.west);
+\draw[workflowarrow] (frame.east) -- (grid.west);
+\draw[workflowarrow] (grid.east) -- (folds.west);
+
+\draw[rounded corners=3pt, dashed, draw=black!45]
+  (1,16) rectangle (155,48);
+\node[anchor=west, fill=white, inner sep=1pt, font=\scriptsize\bfseries]
+  at (3,48) {Repeat independently for each fold $k=1,\ldots,4$};
+
+\node[workflowbox] (split) at (138,33)
+  {Training set: three folds\\held-out set: one fold};
+\node[workflowbox] (prepare) at (98,33)
+  {Learn scaling and lithology support from training cells only; transform training and held-out cells consistently; then form $z_f^2$ and $z_l^2$};
+\node[workflowbox] (fit) at (58,33)
+  {Fit on training cells only\\DVHM: partially pooled, domain-varying logistic model\\CGLB: compact global logistic baseline};
+\node[workflowbox] (predict) at (18,33)
+  {Predict held-out cells\\DVHM posterior probabilities and CGLB scores};
+\draw[workflowarrow] (folds.south) -- (split.north);
+\draw[workflowarrow] (split.west) -- (prepare.east);
+\draw[workflowarrow] (prepare.west) -- (fit.east);
+\draw[workflowarrow] (fit.west) -- (predict.east);
+
+\node[workflowresult, text width=52mm] (oof) at (55,1)
+  {Combine held-out predictions across folds\\summarize DVHM conditional-probability uncertainty};
+\node[workflowresult, text width=62mm] (analysis) at (120,1)
+  {Spatial validation and model comparison\\predictor-component analysis and distance-representation sensitivity};
+\draw[workflowarrow] (predict.south) |- (oof.west);
+\draw[workflowarrow] (oof.east) -- (analysis.west);
+\end{tikzpicture}
