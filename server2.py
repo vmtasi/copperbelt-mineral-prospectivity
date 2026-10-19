@@ -52,7 +52,7 @@
 
 #   canonical model definition  -> src/v11_spatial_stability_final.py
 
-#   canonical fitted state      -> figures/v11_fold_{1..4}_trace.nc
+#   canonical fitted state      -> figures/v11_fold_{1..4}_trace.pkl
 
 #   shared validation design    -> src/validation_strategies.py
 
@@ -156,13 +156,13 @@ FROZEN_FILES: frozenset[str] = frozenset({
 
     # Canonical V11 fitted posterior traces (fold-wise)
 
-    "figures/v11_fold_1_trace.nc",
+    "figures/v11_fold_1_trace.pkl",
 
-    "figures/v11_fold_2_trace.nc",
+    "figures/v11_fold_2_trace.pkl",
 
-    "figures/v11_fold_3_trace.nc",
+    "figures/v11_fold_3_trace.pkl",
 
-    "figures/v11_fold_4_trace.nc",
+    "figures/v11_fold_4_trace.pkl",
 
 })
 
@@ -240,15 +240,11 @@ ALLOWLISTED_SCRIPTS: frozenset[str] = frozenset({
 
     "src/phase7_6_sensitivity_analysis.py",
 
-    "src/v11b_model_validation_upgraded.py",
-
     "src/hierachical_spatial_cv.py",
 
     "src/phase_4b.py",
 
     "src/phase3_ablation_suite.py",
-
-    "src/baseline.py",
 
     "src/compute_fold_counts.py",
 

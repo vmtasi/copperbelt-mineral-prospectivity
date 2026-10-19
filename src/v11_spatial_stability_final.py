@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 import warnings
@@ -20,11 +20,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import save_trace
 from src.validation_strategies import get_along_belt_folds
 
-def run_v11_spatial_cv(n_folds=4):
+def run_v11_spatial_cv(n_folds=4, draws=1500, tune=2500, output_dir=None):
     print("--- 1. Loading Datasets ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -61,9 +62,10 @@ def run_v11_spatial_cv(n_folds=4):
     all_rock_features = [col for col in df.columns if col.startswith(f'{lithology_col}_')]
 
     fold_metrics = []
+    fold_rows = []
     posterior_stability_records = []
     
-    output_dir = ROOT / 'figures'
+    output_dir = Path(output_dir) if output_dir is not None else ROOT / 'figures'
     os.makedirs(output_dir, exist_ok=True)
 
     print(f"\n--- 4. Executing V11 Spatial CV (Native C++ Backend) ---")
@@ -163,10 +165,10 @@ def run_v11_spatial_cv(n_folds=4):
             )
             
             y_obs = pm.Bernoulli('y_obs', logit_p=mu, observed=y_train)
-            trace = pm.sample(draws=1500, tune=2500, chains=2, cores=1, target_accept=0.99, progressbar=True, random_seed=42)
+            trace = pm.sample(draws=draws, tune=tune, chains=2, cores=2, target_accept=0.99, progressbar=True, random_seed=42)
             
             trace_path = output_dir / f'v11_fold_{fold+1}_trace.nc'
-            trace.to_netcdf(trace_path)
+            save_trace(trace, trace_path)
             print(f"  -> Fold {fold+1} Trace permanently saved to {trace_path}")
 
         # Out-Of-Sample Prediction Matrix
@@ -193,6 +195,7 @@ def run_v11_spatial_cv(n_folds=4):
 
         fold_auc = roc_auc_score(y_test, mean_probs)
         fold_metrics.append(fold_auc)
+        fold_rows.append({"fold": fold + 1, "n_test": int(len(y_test)), "n_positive_test": int(y_test.sum()), "auc": float(fold_auc)})
         print(f"  -> V11 Block {fold + 1} Out-of-Sample AUC: {fold_auc:.3f}")
 
         # Fold-by-Fold Geological Stability Extraction
@@ -233,6 +236,17 @@ def run_v11_spatial_cv(n_folds=4):
         stability_csv = output_dir / 'v11_geological_stability_matrix.csv'
         stability_df.to_csv(stability_csv, index=False)
         print(f"Geological stability tracked and saved to: {stability_csv}")
+        pd.DataFrame(fold_rows).to_csv(output_dir / "v11_fold_metrics.csv", index=False)
+        return fold_rows
 
 if __name__ == "__main__":
-    run_v11_spatial_cv()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--folds", type=int, default=4)
+    parser.add_argument("--draws", type=int, default=1500)
+    parser.add_argument("--tune", type=int, default=2500)
+    parser.add_argument("--output-dir", type=Path, default=None)
+    args = parser.parse_args()
+    run_v11_spatial_cv(args.folds, args.draws, args.tune, args.output_dir)
+
+

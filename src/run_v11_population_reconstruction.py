@@ -1,4 +1,4 @@
-"""
+﻿"""
 run_v11_population_reconstruction.py
 ====================================
 PHASE 2: V11 Posterior Reconstruction & Fold-Level Heterogeneity Analysis
@@ -30,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import load_trace, resolve_trace_path
 from src.validation_strategies import get_along_belt_folds
 
 DATA_DIR = ROOT / 'data'
@@ -56,7 +57,14 @@ def hash_file(filepath):
             h.update(chunk)
     return h.hexdigest()
 
-INITIAL_HASHES = {str(f): hash_file(f) for f in PROTECTED_FILES if f.exists()}
+def protected_paths():
+    return [
+        resolve_trace_path(f) if f.suffix == '.nc' else f
+        for f in PROTECTED_FILES
+    ]
+
+
+INITIAL_HASHES = {str(f): hash_file(f) for f in protected_paths() if f.exists()}
 
 def verify_integrity(stage_name):
     for f_str, init_hash in INITIAL_HASHES.items():
@@ -70,7 +78,7 @@ def verify_integrity(stage_name):
 # 2. Data Loading & Spatial Partitioning
 # -------------------------------------------------------------------------
 def load_prepared_data():
-    data_path = DATA_DIR / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = DATA_DIR / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -182,7 +190,7 @@ def run_reconstruction():
 
         # Load Frozen Trace
         trace_path = FIG_DIR / f'v11_fold_{fold_num}_trace.nc'
-        trace = az.from_netcdf(trace_path)
+        trace = load_trace(trace_path)
         traces[fold_num] = trace
 
         # Extract posterior draws
@@ -565,7 +573,22 @@ def run_reconstruction():
     ax1.bar(folds_arr, p_grav, width=w, bottom=p_fault + p_lith, label='Bouguer Gravity', color='#ff7f0e')
     ax1.bar(folds_arr, p_rocks, width=w, bottom=p_fault + p_lith + p_grav, label='Lithology Classes', color='#9467bd')
     ax1.set_xticks(folds_arr)
-    ax1.set_xticklabels([f'Fold 1 (AUC=0.817)\n[N=9 ore cells]', f'Fold 2 (AUC=0.688)\n[N=31 ore cells]', f'Fold 3 (AUC=0.676)\n[N=37 ore cells]', f'Fold 4 (AUC=0.561)\n[N=61 ore cells]'], fontsize=9.5)
+    metrics_path = FIG_DIR / 'v11_fold_metrics.csv'
+    if metrics_path.is_file():
+        metrics = pd.read_csv(metrics_path)
+        fold_auc = {int(row.fold): float(row.auc) for row in metrics.itertuples(index=False)}
+    else:
+        fold_auc = {}
+    fold_labels = []
+    for row in df_fold_summary.itertuples(index=False):
+        fold_num = int(row.fold)
+        auc = fold_auc.get(fold_num, float('nan'))
+        auc_text = 'NA' if np.isnan(auc) else f'{auc:.3f}'
+        fold_labels.append(
+            f'Fold {fold_num} (AUC={auc_text})\n'
+            f'[N={int(row.test_deposits)} ore cells]'
+        )
+    ax1.set_xticklabels(fold_labels, fontsize=9.5)
     ax1.set_ylabel('Predictor Variance Contribution Share (%)', fontsize=11)
     ax1.set_title('A. Relative Predictor Variance Share across Folds', fontsize=12, fontweight='bold')
     ax1.set_ylim(0, 100)
@@ -581,7 +604,7 @@ def run_reconstruction():
     ax2.bar(x_pos + 1.5*bw, df_fold_summary['rocks_median_abs'], width=bw, label='Lithology Classes', color='#9467bd')
     ax2.set_xticks(x_pos)
     ax2.set_xticklabels(['Fold 1', 'Fold 2', 'Fold 3', 'Fold 4'], fontsize=10)
-    ax2.set_ylabel('Median Absolute Linear Contribution |η|', fontsize=11)
+    ax2.set_ylabel('Median Absolute Linear Contribution |Î·|', fontsize=11)
     ax2.set_title('B. Median Absolute Predictor Contribution', fontsize=12, fontweight='bold')
     ax2.legend(loc='upper right', framealpha=0.9)
     ax2.grid(axis='y', linestyle='--', alpha=0.4)
@@ -599,9 +622,11 @@ def run_reconstruction():
     all_pop_dstar_f = np.concatenate([d_star_samples_dict['pop_fault'][f] for f in range(1, 5)])
     all_pop_dstar_f_trimmed = all_pop_dstar_f[(all_pop_dstar_f > -100) & (all_pop_dstar_f < 200)]
     ax1.hist(all_pop_dstar_f_trimmed, bins=60, color='#1f77b4', edgecolor='black', alpha=0.7, density=True)
+    fault_p95 = float(np.percentile(df['distance_to_fault'] / 1000.0, 95))
+    f_ci_lo, f_ci_hi = np.percentile(all_pop_dstar_f, [2.5, 97.5])
     ax1.axvline(0, color='red', linestyle='--', label='Lower Bound (0 km)')
-    ax1.axvline(43.6, color='darkgreen', linestyle='--', label='Empirical P95 Support (43.6 km)')
-    ax1.set_title('Population-Level Fault D* Posterior Distribution\n(Truncated [-100, 200] km for visibility; 95% CI spans [-279, +366] km)', fontsize=11, fontweight='bold')
+    ax1.axvline(fault_p95, color='darkgreen', linestyle='--', label=f'Empirical P95 Support ({fault_p95:.1f} km)')
+    ax1.set_title(f'Population-Level Fault D* Posterior Distribution\n(Truncated [-100, 200] km for visibility; 95% CI spans [{f_ci_lo:.0f}, +{f_ci_hi:.0f}] km)', fontsize=11, fontweight='bold')
     ax1.set_xlabel('Quadratic Stationary Point D* (km)', fontsize=10)
     ax1.set_ylabel('Posterior Density', fontsize=10)
     ax1.legend(fontsize=8.5)
@@ -611,9 +636,11 @@ def run_reconstruction():
     all_pop_dstar_l = np.concatenate([d_star_samples_dict['pop_lith'][f] for f in range(1, 5)])
     all_pop_dstar_l_trimmed = all_pop_dstar_l[(all_pop_dstar_l > -100) & (all_pop_dstar_l < 200)]
     ax2.hist(all_pop_dstar_l_trimmed, bins=60, color='#2ca02c', edgecolor='black', alpha=0.7, density=True)
+    lith_p95 = float(np.percentile(df['distance_to_lithology_contact'] / 1000.0, 95))
+    l_ci_lo, l_ci_hi = np.percentile(all_pop_dstar_l, [2.5, 97.5])
     ax2.axvline(0, color='red', linestyle='--', label='Lower Bound (0 km)')
-    ax2.axvline(46.9, color='darkgreen', linestyle='--', label='Empirical P95 Support (46.9 km)')
-    ax2.set_title('Population-Level Lithology D* Posterior Distribution\n(Truncated [-100, 200] km for visibility; 95% CI spans [-161, +209] km)', fontsize=11, fontweight='bold')
+    ax2.axvline(lith_p95, color='darkgreen', linestyle='--', label=f'Empirical P95 Support ({lith_p95:.1f} km)')
+    ax2.set_title(f'Population-Level Lithology D* Posterior Distribution\n(Truncated [-100, 200] km for visibility; 95% CI spans [{l_ci_lo:.0f}, +{l_ci_hi:.0f}] km)', fontsize=11, fontweight='bold')
     ax2.set_xlabel('Quadratic Stationary Point D* (km)', fontsize=10)
     ax2.set_ylabel('Posterior Density', fontsize=10)
     ax2.legend(fontsize=8.5)
@@ -664,4 +691,6 @@ def run_reconstruction():
 
 if __name__ == '__main__':
     run_reconstruction()
+
+
 
