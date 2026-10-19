@@ -19,7 +19,7 @@
 }
 
 \foreach \y/\fault/\contact/\gravity/\rock in
-  {35/86.5/11.1/2.0/0.4,27/50.3/23.9/5.6/20.3,19/33.1/28.2/15.3/23.4,11/34.9/17.7/31.1/16.3}{
+  {1/86.6/11.0/2.0/0.4,2/46.8/28.0/5.6/19.6,3/30.5/32.8/14.4/22.4,4/33.2/23.2/28.7/14.9}{
   \pgfmathsetmacro{\wFault}{\fault*100/( \fault+\contact+\gravity+\rock )}
   \pgfmathsetmacro{\wContact}{\contact*100/( \fault+\contact+\gravity+\rock )}
   \pgfmathsetmacro{\wGravity}{\gravity*100/( \fault+\contact+\gravity+\rock )}

@@ -20,18 +20,26 @@
   \node[font=\scriptsize, below] at (\x,1.5) {Fold \f};
 }
 
-\draw[modelA, line width=1pt] (2.3,4.31) -- (4.3,3.33) -- (6.3,3.24) -- (8.3,2.37);
-\draw[modelB, line width=1pt] (2.3,4.22) -- (4.3,3.49) -- (6.3,3.04) -- (8.3,2.15);
-\draw[modelC, line width=1pt] (2.3,4.98) -- (4.3,3.04) -- (6.3,2.92) -- (8.3,1.88);
-\draw[modelD, line width=1pt] (2.3,4.76) -- (4.3,3.24) -- (6.3,3.05) -- (8.3,2.16);
-\foreach \x/\y in {2.3/4.31,4.3/3.33,6.3/3.24,8.3/2.37}
-  \fill[modelA] (\x,\y) circle (1.3pt);
-\foreach \x/\y in {2.3/4.22,4.3/3.49,6.3/3.04,8.3/2.15}
-  \fill[modelB] (\x,\y) circle (1.3pt);
-\foreach \x/\y in {2.3/4.98,4.3/3.04,6.3/2.92,8.3/1.88}
-  \fill[modelC] (\x,\y) circle (1.3pt);
-\foreach \x/\y in {2.3/4.76,4.3/3.24,6.3/3.05,8.3/2.16}
-  \fill[modelD] (\x,\y) circle (1.3pt);
+\draw[modelA, line width=1pt] (2.3,4.53) -- (4.3,3.49) -- (6.3,3.32) -- (8.3,2.70);
+\draw[modelB, line width=1pt] (2.3,4.40) -- (4.3,3.76) -- (6.3,3.12) -- (8.3,2.52);
+\draw[modelC, line width=1pt] (2.3,5.17) -- (4.3,3.21) -- (6.3,2.96) -- (8.3,1.97);
+\draw[modelD, line width=1pt] (2.3,5.04) -- (4.3,3.61) -- (6.3,3.14) -- (8.3,2.46);
+\fill[modelA] (2.3,4.53) circle (1.3pt);
+\fill[modelA] (4.3,3.49) circle (1.3pt);
+\fill[modelA] (6.3,3.32) circle (1.3pt);
+\fill[modelA] (8.3,2.70) circle (1.3pt);
+\fill[modelB] (2.3,4.40) circle (1.3pt);
+\fill[modelB] (4.3,3.76) circle (1.3pt);
+\fill[modelB] (6.3,3.12) circle (1.3pt);
+\fill[modelB] (8.3,2.52) circle (1.3pt);
+\fill[modelC] (2.3,5.17) circle (1.3pt);
+\fill[modelC] (4.3,3.21) circle (1.3pt);
+\fill[modelC] (6.3,2.96) circle (1.3pt);
+\fill[modelC] (8.3,1.97) circle (1.3pt);
+\fill[modelD] (2.3,5.04) circle (1.3pt);
+\fill[modelD] (4.3,3.61) circle (1.3pt);
+\fill[modelD] (6.3,3.14) circle (1.3pt);
+\fill[modelD] (8.3,2.46) circle (1.3pt);
 
 \foreach \x/\c/\t in {2/modelA/Model A,3.7/modelB/Model B,5.4/modelC/Model C,7.1/modelD/Model D}{
   \draw[\c, line width=1pt] (\x,5.75) -- ++(0.35,0);
@@ -44,7 +52,7 @@
 \node[font=\scriptsize\bfseries, anchor=east] at (13.4,5.35) {ROC-AUC};
 \node[font=\scriptsize\bfseries, anchor=east] at (15.5,5.35) {PR-AUC};
 \foreach \y/\m/\r/\p in
-  {4.85/A/0.686/0.107,4.35/B/0.673/0.123,3.85/C/0.671/0.130,3.35/D/0.683/0.145}{
+  {4.85/A/0.712/0.137,4.35/B/0.704/0.162,3.85/C/0.688/0.179,3.35/D/0.719/0.197}{
   \node[font=\scriptsize, anchor=west] at (10,\y) {Model \m};
   \node[font=\scriptsize, anchor=east] at (13.4,\y) {\r};
   \node[font=\scriptsize, anchor=east] at (15.5,\y) {\p};
@@ -52,5 +60,5 @@
 \draw[black!45] (9.8,3.05) -- (15.8,3.05);
 \node[font=\scriptsize, align=left, text width=5.8cm, anchor=north west]
   at (10,2.85)
-  {Robustness criteria (48 cases): curvature-sign agreement, 13/48; $D^*$ median agreement, 0/48; support concentration, 15/48; all three criteria, 0/48.};
+  {Robustness criteria (48 cases): curvature-probability agreement, 17/48; $D^*$ median agreement, 2/48; support concentration, 17/48; all three criteria, 1/48.};
 \end{tikzpicture}
