@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 
@@ -23,7 +23,7 @@ from src.validation_strategies import get_along_belt_folds
 DATA_PATH = (
     ROOT
     / "data"
-    / "copperbelt_training_v5_with_tectonic_domain.csv"
+    / "copperbelt_training_v13_litho_contact.csv"
 )
 
 OUTPUT_DIR = ROOT / "figures" / "audit"
@@ -645,7 +645,7 @@ def run_phase4_domain_analysis(n_folds=N_FOLDS):
     )
 
     print(
-        "PHASE 4 — FEATURE UTILITY BY DALY DOMAIN"
+        "PHASE 4 â€” FEATURE UTILITY BY DALY DOMAIN"
     )
 
     print(

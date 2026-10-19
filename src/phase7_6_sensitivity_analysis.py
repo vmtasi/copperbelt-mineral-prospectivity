@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ def run_sensitivity_analysis():
 
     print("--- 1. Loading Data & Preparing Folds ---")
 
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     features = [

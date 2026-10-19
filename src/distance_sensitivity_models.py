@@ -1,5 +1,5 @@
-"""
-Distance Representation Sensitivity Analysis — Core Module
+﻿"""
+Distance Representation Sensitivity Analysis â€” Core Module
 ===========================================================
 Supplementary sensitivity analysis for frozen V11 mineral prospectivity model.
 
@@ -40,9 +40,9 @@ if str(ROOT) not in sys.path:
 
 from src.validation_strategies import get_along_belt_folds
 
-# ── Constants ────────────────────────────────────────────────────────────
+# â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-DATA_PATH = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+DATA_PATH = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
 FROZEN_TRACE_DIR = ROOT / 'figures'
 OUTPUT_DIR = ROOT / 'figures' / 'audit' / 'distance_representation_sensitivity'
 TRACE_OUTPUT_DIR = OUTPUT_DIR / 'traces'
@@ -58,12 +58,12 @@ LEGACY_FILTER = 0.05
 MCMC_DRAWS = 1500
 MCMC_TUNE = 2500
 MCMC_CHAINS = 2
-MCMC_CORES = 1
+MCMC_CORES = 2
 MCMC_TARGET_ACCEPT = 0.99
 MCMC_SEED = 42
 
 
-# ── Data loading ─────────────────────────────────────────────────────────
+# â”€â”€ Data loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def map_daly_domain(x):
     s = str(x).lower()
@@ -98,7 +98,7 @@ def calc_pr_auc(y_true, y_prob):
     return auc(recall, precision)
 
 
-# ── Scaler construction ─────────────────────────────────────────────────
+# â”€â”€ Scaler construction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def build_scalers(train_df, representation):
     """
@@ -157,7 +157,7 @@ def transform_distances(df, scalers, representation, include_quadratic):
     df['grav_z'] = sc_grav.transform(df[['bouguer']])
 
 
-# ── PyMC model builder ───────────────────────────────────────────────────
+# â”€â”€ PyMC model builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def build_sensitivity_model(train_df, y_train, train_domain_idx, valid_rocks,
                             include_quadratic, n_domains=N_DOMAINS):
@@ -236,7 +236,7 @@ def build_sensitivity_model(train_df, y_train, train_domain_idx, valid_rocks,
     return model
 
 
-# ── OOF prediction ───────────────────────────────────────────────────────
+# â”€â”€ OOF prediction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def predict_oof(trace, test_df, test_domain_idx, valid_rocks, include_quadratic,
                 n_domains=N_DOMAINS):
@@ -273,7 +273,7 @@ def predict_oof(trace, test_df, test_domain_idx, valid_rocks, include_quadratic,
     return np.mean(prob, axis=0)
 
 
-# ── Response curve computation ───────────────────────────────────────────
+# â”€â”€ Response curve computation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def compute_response_curve(trace, domain_idx, predictor, representation,
                            grid_km, scaler_mu, scaler_sigma,
@@ -331,7 +331,7 @@ def compute_response_curve(trace, domain_idx, predictor, representation,
     }
 
 
-# ── D* computation ───────────────────────────────────────────────────────
+# â”€â”€ D* computation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def compute_dstar_km(trace, domain_idx, predictor, representation,
                      scaler_mu, scaler_sigma, n_domains=N_DOMAINS):
@@ -405,4 +405,5 @@ def compute_support_quantiles(train_df, fold):
             'n_train': len(vals),
         })
     return rows
+
 
