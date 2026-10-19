@@ -1,9 +1,9 @@
-"""
-Distance Representation Sensitivity Analysis — Master Runner
+﻿"""
+Distance Representation Sensitivity Analysis â€” Master Runner
 =============================================================
 Supplementary sensitivity analysis for frozen V11 mineral prospectivity model.
 
-Executes the 4-model × 4-fold sensitivity experiment plus the 8-fit tail
+Executes the 4-model Ã— 4-fold sensitivity experiment plus the 8-fit tail
 diagnostic. Generates all required CSV outputs and a summary report.
 
 This script is SUPPLEMENTARY to frozen V11. It does NOT modify any existing
@@ -34,6 +34,7 @@ from sklearn.metrics import roc_auc_score
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+from src.trace_io import load_trace, save_trace, resolve_trace_path
 
 from src.distance_sensitivity_models import (
     load_modeling_data, build_scalers, transform_distances,
@@ -45,7 +46,7 @@ from src.distance_sensitivity_models import (
 )
 from sklearn.metrics import brier_score_loss
 
-# ── Model specifications ────────────────────────────────────────────────
+# â”€â”€ Model specifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 MODEL_SPECS = {
     'A': {'representation': 'raw', 'quadratic': True,  'label': 'Raw-Quadratic (V11 frozen)'},
@@ -54,7 +55,10 @@ MODEL_SPECS = {
     'D': {'representation': 'log', 'quadratic': False, 'label': 'Log-Linear'},
 }
 
-# ── File integrity checks ───────────────────────────────────────────────
+# â”€â”€ File integrity checks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+AGGREGATE_ONLY = False
+
 
 PROTECTED_FILES = [
     ROOT / 'src' / 'v11_spatial_stability_final.py',
@@ -77,7 +81,11 @@ def compute_file_hash(path):
 
 def snapshot_protected_files():
     """Record hashes of all protected files."""
-    return {str(p): compute_file_hash(p) for p in PROTECTED_FILES if p.exists()}
+    paths = [
+        resolve_trace_path(p) if p.suffix == '.nc' else p
+        for p in PROTECTED_FILES
+    ]
+    return {str(p): compute_file_hash(p) for p in paths if p.exists()}
 
 
 def verify_protected_files(snapshot):
@@ -94,13 +102,13 @@ def verify_protected_files(snapshot):
     print("[SAFETY] All protected files verified unchanged.")
 
 
-# ── Main execution ───────────────────────────────────────────────────────
+# â”€â”€ Main execution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 def main():
     t0 = time.time()
     print("=" * 70)
     print("DISTANCE REPRESENTATION SENSITIVITY ANALYSIS")
-    print("Supplementary to frozen V11 — no V11 files will be modified")
+    print("Supplementary to frozen V11 â€” no V11 files will be modified")
     print("=" * 70)
 
     # Snapshot protected files BEFORE any work
@@ -117,7 +125,7 @@ def main():
     print(f"  Total observations: {len(df)}")
     print(f"  Rock features: {len(all_rock_features)}")
 
-    # ── Phase 0: Support quantiles ───────────────────────────────────────
+    # â”€â”€ Phase 0: Support quantiles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     print("\n--- Computing support quantiles ---")
     support_rows = []
     for fold in range(N_FOLDS):
@@ -126,7 +134,7 @@ def main():
     pd.DataFrame(support_rows).to_csv(OUTPUT_DIR / 'support_quantiles.csv', index=False)
     print(f"  Saved support_quantiles.csv")
 
-    # ── Phase 1: Main model matrix ───────────────────────────────────────
+    # â”€â”€ Phase 1: Main model matrix â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     print("\n" + "=" * 70)
     print("PHASE 1: MAIN MODEL MATRIX (12 new fits + Model A from frozen traces)")
     print("=" * 70)
@@ -165,10 +173,14 @@ def main():
             test_domain_idx = test_df['domain_idx'].values
 
             if model_name == 'A':
-                # Reconstruct from frozen traces — no refitting
+                # Reconstruct from frozen traces (no refitting)
                 trace_path = FROZEN_TRACE_DIR / f'v11_fold_{fold+1}_trace.nc'
                 print(f"  Loading frozen trace: {trace_path.name}")
-                trace = az.from_netcdf(trace_path)
+                trace = load_trace(trace_path)
+            elif AGGREGATE_ONLY:
+                trace_path = TRACE_OUTPUT_DIR / f'model_{model_name}_fold_{fold+1}_trace.nc'
+                print(f"  Loading fitted trace: {trace_path.name}")
+                trace = load_trace(trace_path)
             else:
                 # Fit new model
                 model = build_sensitivity_model(
@@ -184,7 +196,7 @@ def main():
                     )
                 # Save trace
                 trace_path = TRACE_OUTPUT_DIR / f'model_{model_name}_fold_{fold+1}_trace.nc'
-                trace.to_netcdf(trace_path)
+                save_trace(trace, trace_path)
                 print(f"  Saved trace: {trace_path.name}")
 
             traces_cache[(model_name, fold)] = trace
@@ -235,7 +247,7 @@ def main():
                         beta_lin_med = float(np.median(b1_all))
                         beta_sq_med = float(np.median(b2_all))
                     else:
-                        # Linear model — no D*
+                        # Linear model â€” no D*
                         dstar_info = {
                             'd_star_median_km': np.nan,
                             'd_star_ci_lower_km': np.nan,
@@ -297,7 +309,7 @@ def main():
                             'response_ci_upper': float(rc['response_ci_upper'][i]),
                         })
 
-            # Verify protected files after each model×fold
+            # Verify protected files after each modelÃ—fold
             verify_protected_files(snapshot)
 
     # Save Phase 1 outputs
@@ -307,7 +319,7 @@ def main():
     pd.DataFrame(response_lith_rows).to_csv(OUTPUT_DIR / 'response_curves_lithology.csv', index=False)
     print("  Saved sensitivity_summary.csv, response_curves_fault.csv, response_curves_lithology.csv")
 
-    # ── Phase 2: Tail sensitivity ────────────────────────────────────────
+    # â”€â”€ Phase 2: Tail sensitivity â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     print("\n" + "=" * 70)
     print("PHASE 2: TAIL-SENSITIVITY DIAGNOSTIC (8 new fits)")
     print("=" * 70)
@@ -351,24 +363,27 @@ def main():
 
             train_domain_idx = train_df['domain_idx'].values
             test_domain_idx = test_df['domain_idx'].values
-
-            # Fit new model on trimmed training data
-            model = build_sensitivity_model(
-                train_df, y_train, train_domain_idx, valid_rocks,
-                include_quadratic=True, n_domains=N_DOMAINS
-            )
-            with model:
-                trace = pm.sample(
-                    draws=MCMC_DRAWS, tune=MCMC_TUNE,
-                    chains=MCMC_CHAINS, cores=MCMC_CORES,
-                    target_accept=MCMC_TARGET_ACCEPT,
-                    progressbar=True, random_seed=MCMC_SEED
-                )
-
-            # Save trace with clear naming
             trace_path = TRACE_OUTPUT_DIR / f'model_{model_name}_tail_fold_{fold+1}_trace.nc'
-            trace.to_netcdf(trace_path)
-            print(f"  Saved trace: {trace_path.name}")
+            if AGGREGATE_ONLY:
+                print(f"  Loading fitted tail trace: {trace_path.name}")
+                trace = load_trace(trace_path)
+            else:
+                # Fit new model on trimmed training data
+                model = build_sensitivity_model(
+                    train_df, y_train, train_domain_idx, valid_rocks,
+                    include_quadratic=True, n_domains=N_DOMAINS
+                )
+                with model:
+                    trace = pm.sample(
+                        draws=MCMC_DRAWS, tune=MCMC_TUNE,
+                        chains=MCMC_CHAINS, cores=MCMC_CORES,
+                        target_accept=MCMC_TARGET_ACCEPT,
+                        progressbar=True, random_seed=MCMC_SEED
+                    )
+
+                # Save trace with clear naming
+                save_trace(trace, trace_path)
+                print(f"  Saved trace: {trace_path.name}")
 
             # OOF predictions on UNMODIFIED test fold
             mean_probs = predict_oof(trace, test_df, test_domain_idx,
@@ -441,7 +456,7 @@ def main():
     tail_df.to_csv(OUTPUT_DIR / 'tail_sensitivity_summary.csv', index=False)
     print("\n  Saved tail_sensitivity_summary.csv")
 
-    # ── Phase 3: Robustness assessment ───────────────────────────────────
+    # â”€â”€ Phase 3: Robustness assessment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     print("\n" + "=" * 70)
     print("PHASE 3: ROBUSTNESS ASSESSMENT (Section 17.1 criteria)")
     print("=" * 70)
@@ -548,7 +563,7 @@ def main():
             print(f"  Robust (all 3 criteria): {n_robust} ({100*n_robust/n_total:.0f}%)")
             print(f"  Representation-dependent: {n_total - n_robust} ({100*(n_total-n_robust)/n_total:.0f}%)")
 
-    # ── Final safety check ───────────────────────────────────────────────
+    # â”€â”€ Final safety check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     print("\n" + "=" * 70)
     print("FINAL SAFETY CHECK")
     print("=" * 70)
@@ -561,5 +576,17 @@ def main():
 
 
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--aggregate-only',
+        action='store_true',
+        help='Load existing fitted traces and regenerate tables without sampling.',
+    )
+    args = parser.parse_args()
+    AGGREGATE_ONLY = args.aggregate_only
     main()
+
+
 
