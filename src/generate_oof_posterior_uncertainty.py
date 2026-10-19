@@ -1,4 +1,4 @@
-"""
+﻿"""
 generate_oof_posterior_uncertainty.py
 =====================================
 Reconstruct cell-level posterior probability distributions from frozen V11
@@ -27,6 +27,8 @@ separately named files, and existing output files are never overwritten.
 """
 
 import sys
+import sqlite3
+import pyproj  # noqa: F401 - must precede numpy/geopandas in the QGIS runtime
 import hashlib
 import numpy as np
 import pandas as pd
@@ -47,6 +49,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import load_trace, resolve_trace_path
 from src.validation_strategies import get_along_belt_folds
 
 DATA_DIR = ROOT / 'data'
@@ -86,13 +89,20 @@ def hash_file(filepath):
             h.update(chunk)
     return h.hexdigest()
 
-missing_protected_files = [str(path) for path in PROTECTED_FILES if not path.is_file()]
+def protected_paths():
+    paths = []
+    for path in PROTECTED_FILES:
+        paths.append(resolve_trace_path(path) if path.suffix == '.nc' else path)
+    return paths
+
+
+missing_protected_files = [str(path) for path in protected_paths() if not path.is_file()]
 if missing_protected_files:
     raise FileNotFoundError(
         'Required frozen/source files are missing: '
         + ', '.join(missing_protected_files)
     )
-INITIAL_HASHES = {str(f): hash_file(f) for f in PROTECTED_FILES}
+INITIAL_HASHES = {str(f): hash_file(f) for f in protected_paths()}
 
 def verify_integrity(stage_name):
     for f_str, init_hash in INITIAL_HASHES.items():
@@ -107,7 +117,18 @@ def verify_integrity(stage_name):
 def match_source_cell_geometries(result_df):
     """Align predictions to the original clipped 5 km polygons by centroid."""
     cells = gpd.read_file(GRID_GPKG, layer=GRID_LAYER)
-    if cells.crs is None or cells.crs.to_epsg() != 32735:
+    if cells.crs is None:
+        with sqlite3.connect(GRID_GPKG) as connection:
+            row = connection.execute(
+                "select srs_id from gpkg_geometry_columns where table_name = ?",
+                (GRID_LAYER,),
+            ).fetchone()
+        if row is None or int(row[0]) != 32735:
+            raise ValueError(
+                f"GeoPackage CRS metadata is missing or unexpected: {row}"
+            )
+        cells = cells.set_crs("EPSG:32735")
+    if cells.crs.to_epsg() != 32735:
         raise ValueError(f"Unexpected modelling-grid CRS: {cells.crs}")
     if len(cells) != len(result_df):
         raise ValueError(
@@ -269,10 +290,10 @@ def render_map(gdf, value_column, title, colorbar_label, output_pdf, output_png,
 
 
 # -------------------------------------------------------------------------
-# Data loading — identical to v11_spatial_stability_final.py
+# Data loading â€” identical to v11_spatial_stability_final.py
 # -------------------------------------------------------------------------
 def load_prepared_data():
-    data_path = DATA_DIR / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = DATA_DIR / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -317,7 +338,7 @@ def load_prepared_data():
 # -------------------------------------------------------------------------
 # Main reconstruction
 # -------------------------------------------------------------------------
-def main():
+def main(force=False):
     print("=" * 70)
     print("V11 OOF POSTERIOR RECONSTRUCTION AND FIGURE 4")
     print("=" * 70)
@@ -328,9 +349,9 @@ def main():
         UNCERTAINTY_MAP_PDF, UNCERTAINTY_MAP_PNG,
     ]
     for p in output_paths:
-        if p.exists():
+        if p.exists() and not force:
             raise FileExistsError(
-                f"Output already exists — will not overwrite: {p}"
+                f"Output already exists - pass --force to regenerate: {p}"
             )
 
     verify_integrity("Start")
@@ -364,7 +385,7 @@ def main():
 
         print(f"  Train: {len(train_df)} cells, Test: {len(test_df)} cells")
 
-        # Reconstruct training scalers — identical to V11
+        # Reconstruct training scalers â€” identical to V11
         scaler_fault = StandardScaler().fit(train_df[['distance_to_fault']])
         scaler_lith = StandardScaler().fit(
             train_df[['distance_to_lithology_contact']]
@@ -381,7 +402,7 @@ def main():
             d['fault_z_sq'] = d['fault_z'] ** 2
             d['lith_z_sq'] = d['lith_z'] ** 2
 
-        # Filter valid rocks — identical logic
+        # Filter valid rocks â€” identical logic
         valid_rocks = [
             col for col in all_rock_features
             if ((train_df[col] == 1) & (y_train == 1)).sum() > 0
@@ -391,7 +412,7 @@ def main():
 
         # Load frozen trace
         trace_path = FIG_DIR / f'v11_fold_{fold_num}_trace.nc'
-        trace = az.from_netcdf(trace_path)
+        trace = load_trace(trace_path)
         trace_draws = int(
             trace.posterior.sizes['chain'] * trace.posterior.sizes['draw']
         )
@@ -400,7 +421,7 @@ def main():
                 f"Fold {fold_num} trace has {trace_draws} draws; expected 3,000"
             )
 
-        # Extract posterior draws — identical to reconstruction script
+        # Extract posterior draws â€” identical to reconstruction script
         alpha_dom = trace.posterior['alpha_dom'].values.reshape(-1, n_domains)
         bf_lin = trace.posterior['beta_f_lin'].values.reshape(-1, n_domains)
         bf_sq = trace.posterior['beta_f_sq'].values.reshape(-1, n_domains)
@@ -627,4 +648,14 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '--force', action='store_true',
+        help='Overwrite existing reconstructed OOF outputs and Figure 4 files.',
+    )
+    args = parser.parse_args()
+    main(force=args.force)
+
+

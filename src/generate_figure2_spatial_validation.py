@@ -1,10 +1,11 @@
-"""Generate Paper 1 Figure 2 from the frozen V11 spatial-fold artifact.
+﻿"""Generate Paper 1 Figure 2 from the frozen V11 spatial-fold artifact.
 
 Run this script inside an open QGIS session.  It never calls the fold-building
 code and never writes to the V11 model, traces, or frozen validation artifact.
 Instead it copies the recorded ``spatial_block`` values from
-``figures/v11_oof_posterior_uncertainty.gpkg`` to a derived display layer and
-uses the corresponding pre-existing grid polygons for the cartographic cells.
+``figures/v11_oof_posterior_uncertainty_reconstructed.gpkg`` to a derived
+display layer and uses the corresponding pre-existing grid polygons for the
+cartographic cells.
 """
 
 from __future__ import annotations
@@ -49,8 +50,8 @@ from qgis.core import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
-FROZEN_FOLDS = ROOT / "figures" / "v11_oof_posterior_uncertainty.gpkg"
-TRAINING_CSV = ROOT / "data" / "copperbelt_training_v5_with_tectonic_domain.csv"
+FROZEN_FOLDS = ROOT / "figures" / "figure2_spatial_validation_cells.gpkg"
+TRAINING_CSV = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
 OUTPUT_GPKG = ROOT / "figures" / "figure2_spatial_validation_display_cells.gpkg"
 OUTPUT_PNG = ROOT / "paper_1" / "manuscript" / "images" / "fig2_spatial_validation_design.png"
 OUTPUT_PDF = ROOT / "paper_1" / "manuscript" / "images" / "fig2_spatial_validation_design.pdf"
@@ -69,6 +70,19 @@ FOLD_COLORS = {
 def _key(x: float, y: float) -> tuple[float, float]:
     """Coordinate key matching the frozen artifact to the training table."""
     return (round(float(x), 3), round(float(y), 3))
+
+
+def _source_point(feature: QgsFeature):
+    geometry = feature.geometry()
+    if geometry.type() == QgsWkbTypes.PointGeometry:
+        return geometry.asPoint()
+    return geometry.centroid().asPoint()
+
+
+def _source_id(feature: QgsFeature):
+    if feature.fields().indexFromName("cell_id") >= 0:
+        return feature["cell_id"]
+    return feature.id()
 
 
 def _layer(project: QgsProject, name: str) -> QgsVectorLayer:
@@ -157,41 +171,41 @@ def _create_cell_layer(project: QgsProject) -> tuple[QgsVectorLayer, dict]:
     invalid_geometry = 0
     max_match_distance = 0.0
     for source_feature in frozen.getFeatures():
-        point = source_feature.geometry().asPoint()
+        point = _source_point(source_feature)
         nearest = grid_index.nearestNeighbor(point, 1)
         if not nearest:
-            raise RuntimeError(f"No grid polygon found for frozen cell {source_feature['fid']}")
+            raise RuntimeError(f"No grid polygon found for frozen cell {_source_id(source_feature)}")
         grid_feature = grid.getFeature(nearest[0])
         distance = source_feature.geometry().distance(grid_feature.geometry().centroid())
         max_match_distance = max(max_match_distance, distance)
         if distance > 0.01:
-            raise RuntimeError(f"Grid matching tolerance exceeded for frozen cell {source_feature['fid']}: {distance} m")
+            raise RuntimeError(f"Grid matching tolerance exceeded for frozen cell {_source_id(source_feature)}: {distance} m")
         geom = grid_feature.geometry()
         if geom.isEmpty() or not geom.isGeosValid():
             invalid_geometry += 1
-            raise RuntimeError(f"Invalid grid geometry for frozen cell {source_feature['fid']}")
+            raise RuntimeError(f"Invalid grid geometry for frozen cell {_source_id(source_feature)}")
         block = int(source_feature["spatial_block"])
         if block not in EXPECTED_FOLDS:
             raise RuntimeError(f"Unexpected frozen fold identifier {block}")
         dep = deposits_by_coord.get(_key(point.x(), point.y()))
         if dep is None:
             unmatched_training += 1
-            raise RuntimeError(f"No training-row match for frozen cell {source_feature['fid']}")
+            raise RuntimeError(f"No training-row match for frozen cell {_source_id(source_feature)}")
         feature = QgsFeature(fields)
         feature.setGeometry(geom)
         feature.setAttributes([
-            int(source_feature["fid"]), block, f"Fold {block + 1} (held out)",
-            str(source_feature["daly_domain"]), dep, "v11_oof_posterior_uncertainty.gpkg",
+            int(_source_id(source_feature)), block, f"Fold {block + 1} (held out)",
+            str(source_feature["daly_domain"]), dep, str(FROZEN_FOLDS.relative_to(ROOT)).replace("\\", "/"),
         ])
         if not writer.addFeature(feature):
-            raise RuntimeError(f"Could not write derived cell {source_feature['fid']}")
+            raise RuntimeError(f"Could not write derived cell {_source_id(source_feature)}")
         counts[block] += 1
     del writer
 
     if set(counts) != EXPECTED_FOLDS or any(counts[b] != 468 for b in EXPECTED_FOLDS):
         raise RuntimeError(f"Frozen fold count check failed: {dict(counts)}")
 
-    output = QgsVectorLayer(f"{OUTPUT_GPKG}|layername=spatial_validation_cells", "Figure 2 — frozen spatial-validation cells", "ogr")
+    output = QgsVectorLayer(f"{OUTPUT_GPKG}|layername=spatial_validation_cells", "Figure 2 â€” frozen spatial-validation cells", "ogr")
     if not output.isValid() or output.featureCount() != EXPECTED_CELLS:
         raise RuntimeError("Derived Figure 2 cells could not be reopened and verified")
     project.addMapLayer(output)
@@ -210,7 +224,7 @@ def _create_cell_layer(project: QgsProject) -> tuple[QgsVectorLayer, dict]:
     output.setRenderer(QgsCategorizedSymbolRenderer("spatial_block", categories))
 
     verification = {
-        "figure": "Paper 1 Figure 2 — Along-Belt Spatial Validation Design",
+        "figure": "Paper 1 Figure 2 â€” Along-Belt Spatial Validation Design",
         "source_artifact": str(FROZEN_FOLDS.relative_to(ROOT)).replace("\\", "/"),
         "source_artifact_crs": frozen.crs().authid(),
         "cell_geometry_source": "active QGIS project layer: Clipped",
@@ -229,18 +243,18 @@ def _create_cell_layer(project: QgsProject) -> tuple[QgsVectorLayer, dict]:
 
 
 def _style_context(project: QgsProject):
-    boundaries = _clone(project, _layer(project, "Daly_Domain_Boundaries"), "Figure 2 — Daly domain boundaries")
+    boundaries = _clone(project, _layer(project, "Daly_Domain_Boundaries"), "Figure 2 â€” Daly domain boundaries")
     boundaries.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({
         "line_color": "#363636", "line_width": "0.42", "line_width_unit": "MM",
     })))
 
-    tracts = _clone(project, _layer(project, "tract_boundary"), "Figure 2 — assessment tracts")
+    tracts = _clone(project, _layer(project, "tract_boundary"), "Figure 2 â€” assessment tracts")
     tracts.setRenderer(QgsSingleSymbolRenderer(QgsLineSymbol.createSimple({
         "line_color": "#B2182B", "line_width": "0.30", "line_width_unit": "MM",
         "penstyle": "dash",
     })))
 
-    deposits = _clone(project, _layer(project, "deposits_utm"), "Figure 2 — known deposits and prospects")
+    deposits = _clone(project, _layer(project, "deposits_utm"), "Figure 2 â€” known deposits and prospects")
     deposits.setRenderer(QgsSingleSymbolRenderer(QgsMarkerSymbol.createSimple({
         "name": "circle", "color": "#FFD166", "outline_color": "#1F1F1F",
         "outline_width": "0.32", "size": "1.65", "size_unit": "MM",
@@ -250,7 +264,7 @@ def _style_context(project: QgsProject):
 
 def _fold_labels(project: QgsProject, cells: QgsVectorLayer) -> QgsVectorLayer:
     """Create four unobtrusive map labels; one for each already-recorded fold."""
-    name = "Figure 2 — fold labels"
+    name = "Figure 2 â€” fold labels"
     for existing in project.mapLayersByName(name):
         project.removeMapLayer(existing.id())
     labels = QgsVectorLayer("Point?crs=EPSG:32735", name, "memory")
@@ -314,24 +328,24 @@ def _build_layout(project: QgsProject, cells: QgsVectorLayer, verification: dict
     layout.addLayoutItem(map_item)
 
     _add_label(layout, "Four-fold along-belt spatial validation design", 10, 7, 190, 8, 13, True)
-    _add_label(layout, "Frozen V11 assignments: 1,872 modelling cells (5 km × 5 km); each fold held out in turn", 10, 16, 190, 7, 7.2)
+    _add_label(layout, "Frozen V11 assignments: 1,872 modelling cells (5 km Ã— 5 km); each fold held out in turn", 10, 16, 190, 7, 7.2)
     _add_label(layout, "MAP KEY", 166, 32, 38, 6, 8, True)
     _add_label(layout, "Held-out fold", 166, 40, 38, 5, 7.5, True)
 
     # Text swatches create a stable, publication-scale legend without relying on a live legend tree.
     y = 47
     for block in sorted(EXPECTED_FOLDS):
-        _add_label(layout, "■", 166, y, 6, 5, 11, False, FOLD_COLORS[block])
+        _add_label(layout, "â– ", 166, y, 6, 5, 11, False, FOLD_COLORS[block])
         _add_label(layout, f"Fold {block + 1} (n = 468)", 172, y + 0.4, 32, 5, 7.2)
         y += 7
     _add_label(layout, "Context", 166, y + 2, 38, 5, 7.5, True)
-    _add_label(layout, "━", 166, y + 9, 7, 5, 10, False, "#363636")
+    _add_label(layout, "â”", 166, y + 9, 7, 5, 10, False, "#363636")
     _add_label(layout, "Daly domain boundary", 172, y + 9.7, 32, 5, 7.0)
-    _add_label(layout, "╌", 166, y + 16, 7, 5, 11, False, "#B2182B")
+    _add_label(layout, "â•Œ", 166, y + 16, 7, 5, 11, False, "#B2182B")
     _add_label(layout, "Assessment tracts", 172, y + 16.7, 32, 5, 7.0)
-    _add_label(layout, "●", 166, y + 23, 7, 5, 10, False, "#1F1F1F")
+    _add_label(layout, "â—", 166, y + 23, 7, 5, 10, False, "#1F1F1F")
     _add_label(layout, "Known deposit/prospect", 172, y + 23.7, 32, 5, 7.0)
-    _add_label(layout, "North ↑", 176, y + 35, 25, 5, 8, True)
+    _add_label(layout, "North â†‘", 176, y + 35, 25, 5, 8, True)
 
     scale = QgsLayoutItemScaleBar(layout)
     scale.setStyle("Single Box")
@@ -351,7 +365,7 @@ def _build_layout(project: QgsProject, cells: QgsVectorLayer, verification: dict
     layout.addLayoutItem(scale)
 
     _add_label(layout, "Projection: WGS 84 / UTM zone 35S (EPSG:32735)", 166, 164, 38, 11, 6.4)
-    _add_label(layout, "Fold source: frozen V11 OOF posterior-uncertainty artifact. Geological context shown only for orientation.", 166, 177, 38, 17, 5.8)
+    _add_label(layout, "Fold source: reconstructed V11 OOF posterior-uncertainty artifact. Geological context shown only for orientation.", 166, 177, 38, 17, 5.8)
     return layout
 
 
@@ -379,3 +393,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
