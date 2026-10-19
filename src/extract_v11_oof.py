@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import pandas as pd
 import numpy as np
@@ -10,11 +10,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import load_trace, trace_exists
 from src.validation_strategies import get_along_belt_folds
 
 def extract_v11_probabilities():
     print("--- 1. Loading Base Dataset & Folds ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -49,12 +50,12 @@ def extract_v11_probabilities():
     print("--- 2. Reconstructing Out-Of-Fold Probabilities ---")
     for fold in range(4):
         trace_path = output_dir / f'v11_fold_{fold+1}_trace.nc'
-        if not trace_path.exists():
+        if not trace_exists(trace_path):
             print(f"[!] Missing trace for fold {fold+1} at {trace_path}.")
             return
 
         print(f"Loading {trace_path.name}...")
-        trace = az.from_netcdf(trace_path)
+        trace = load_trace(trace_path)
         
         train_df = df[df['spatial_block'] != fold].copy()
         test_df = df[df['spatial_block'] == fold].copy()
@@ -117,3 +118,4 @@ def extract_v11_probabilities():
 
 if __name__ == "__main__":
     extract_v11_probabilities()
+

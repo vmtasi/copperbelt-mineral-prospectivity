@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import numpy as np
 import pandas as pd
@@ -142,7 +142,7 @@ def bootstrap_auc_ci(y_true, y_pred, n_bootstraps=1000, rng_seed=42):
 
 def run_domain_stratified_auc():
     print("--- 1. Loading Data & Preparing Folds ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     df = df.dropna(subset=MODEL_COLUMNS).copy()
