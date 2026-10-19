@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import numpy as np
 import pandas as pd
@@ -77,7 +77,7 @@ def spatial_block_bootstrap(df_target, df_full, n_bins, n_bootstraps=1000, rando
 # ============================================================
 def run_multiscale_robustness():
     print("--- 1. Loading Data & Fitting Baseline M5 ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     features = ['distance_to_fault', 'distance_to_lithology_contact', 'bouguer']

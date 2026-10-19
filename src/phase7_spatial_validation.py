@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import numpy as np
 import pandas as pd
@@ -46,7 +46,7 @@ def bootstrap_fold_metrics(y_true, p_m5, p_m7, p_v11, n_bootstraps=1000, random_
     }
     
     for _ in range(n_bootstraps):
-        idx = resample(indices)
+        idx = resample(indices)[0]
         y_b = y_true[idx]
         
         if sum(y_b) == 0 or sum(y_b) == len(y_b): continue
@@ -81,7 +81,7 @@ def bootstrap_fold_metrics(y_true, p_m5, p_m7, p_v11, n_bootstraps=1000, random_
 # ============================================================
 def run_phase7():
     print("--- 1. Loading Data & Folds ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
