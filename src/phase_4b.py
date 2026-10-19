@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import pandas as pd
 import numpy as np
@@ -19,9 +19,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import save_trace
+
 def run_phase4_heterogeneity():
     print("--- 1. Loading Full Dataset for Inference ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     features = ['distance_to_fault', 'distance_to_lithology_contact', 'bouguer']
@@ -102,14 +104,14 @@ def run_phase4_heterogeneity():
         y_obs = pm.Bernoulli('y_obs', logit_p=mu, observed=y)
         
         print("--- 3. Sampling Posterior ---")
-        trace = pm.sample(draws=1500, tune=2000, chains=2, cores=1, target_accept=0.95, random_seed=42)
+        trace = pm.sample(draws=1500, tune=2000, chains=2, cores=2, target_accept=0.95, random_seed=42)
 
     output_dir = ROOT / 'figures' / 'audit'
     os.makedirs(output_dir, exist_ok=True)
 
     print("--- 4. Exporting Traces and Hyperparameters ---")
     trace_path = output_dir / "phase4_domain_heterogeneity_trace.nc"
-    az.to_netcdf(trace, trace_path)
+    save_trace(trace, trace_path)
     
     hyper_summary = az.summary(
         trace,
@@ -163,3 +165,4 @@ def run_phase4_heterogeneity():
 
 if __name__ == "__main__":
     run_phase4_heterogeneity()
+

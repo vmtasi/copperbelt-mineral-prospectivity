@@ -1,14 +1,25 @@
-from pathlib import Path
+﻿from pathlib import Path
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / 'data'
 
-CSV = DATA / 'copperbelt_training_v5.csv'
+CSV = DATA / 'copperbelt_training_v13_litho_contact.csv'
 if not CSV.exists():
     raise SystemExit(f"Required data file not found: {CSV}")
 
 df = pd.read_csv(CSV)
+MODEL_COLUMNS = [
+    'centroid_x',
+    'centroid_y',
+    'litho_contact_litho_class',
+    'domain',
+    'distance_to_fault',
+    'distance_to_lithology_contact',
+    'bouguer',
+    'deposit_present',
+]
+df = df.dropna(subset=MODEL_COLUMNS).copy()
 
 from src.validation_strategies import (
     get_random_folds,
@@ -29,18 +40,13 @@ def summarize_folds(df, blocks, n_folds=4):
     for i in range(n_folds):
         grp = df2[df2['spatial_block'] == i]
         cells = int(len(grp))
-        deposits = int(grp['deposit_present'].sum()) if 'deposit_present' in grp.columns else int(grp.get('deposit', pd.Series()).sum())
-        # Use exact column name 'Mining_count' as requested
-        if 'Mining_count' not in grp.columns:
-            raise SystemExit("Required column 'Mining_count' not found in CSV")
-        mining_count = float(grp['Mining_count'].sum())
-        deposit_density = deposits / mining_count if mining_count != 0 else float('nan')
+        deposits = int(grp['deposit_present'].sum())
+        deposit_rate = deposits / cells if cells else float('nan')
         rows.append({
             'Fold': i + 1,
             'Cells': cells,
             'Deposits': deposits,
-            'Mining_count': mining_count,
-            'Deposit_density': deposit_density,
+            'Deposit_rate': deposit_rate,
         })
     return pd.DataFrame(rows)
 
@@ -52,7 +58,7 @@ def main(n_folds=4):
         summary_df = summarize_folds(df, blocks, n_folds=n_folds)
         outputs[name] = summary_df
 
-    # Print combined summary — no files are written
+    # Print combined summary â€” no files are written
     for name, table in outputs.items():
         print(f"\n=== Strategy: {name} ===")
         print(table.to_string(index=False))
@@ -60,3 +66,4 @@ def main(n_folds=4):
 
 if __name__ == '__main__':
     main(n_folds=4)
+

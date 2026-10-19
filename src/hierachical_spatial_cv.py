@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 
@@ -38,7 +38,7 @@ def validate_grid_coordinates(df_base):
 def run_spatial_cv(df=None, spatial_blocks=None, n_folds=4, output_prefix='', plot_folds=False):
     print("--- 1. Loading Datasets ---")
     if df is None:
-        data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+        data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
         df = pd.read_csv(data_path)
 
     validate_grid_coordinates(df)
