@@ -1,4 +1,4 @@
-import pandas as pd
+﻿import pandas as pd
 from pathlib import Path
 
 from src.validation_strategies import (
@@ -13,7 +13,7 @@ from src.hierachical_spatial_cv import run_spatial_cv
 def compare_validation_strategies():
     ROOT = Path(__file__).resolve().parents[1]
     data_root = ROOT / 'data'
-    df = pd.read_csv(data_root / 'copperbelt_training_v5.csv')
+    df = pd.read_csv(data_root / 'copperbelt_training_v13_litho_contact.csv')
 
     strategies = [
         ('random', get_random_folds),
@@ -56,3 +56,4 @@ def compare_validation_strategies():
 
 if __name__ == "__main__":
     compare_validation_strategies()
+

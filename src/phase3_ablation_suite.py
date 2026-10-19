@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 
@@ -20,18 +20,26 @@ from src.validation_strategies import get_along_belt_folds
 # CONFIGURATION
 # ============================================================
 
-DATA_PATH = ROOT / "data" / "copperbelt_training_v5_with_tectonic_domain.csv"
+DATA_PATH = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
 OUTPUT_DIR = ROOT / "figures" / "audit"
 
 N_FOLDS = 4
 
-# V11 results already obtained from Bayesian hierarchical model
-V11_RESULTS = {
-    0: 0.817,
-    1: 0.688,
-    2: 0.676,
-    3: 0.561,
-}
+# V11 fold metrics are read from the refitted model, never hardcoded.
+V11_METRICS_PATH = ROOT / "figures" / "v11_fold_metrics.csv"
+
+
+def load_v11_results():
+    if not V11_METRICS_PATH.is_file():
+        raise SystemExit(
+            f"Missing refitted V11 fold metrics: {V11_METRICS_PATH}. "
+            "Run src/v11_spatial_stability_final.py first."
+        )
+    metrics = pd.read_csv(V11_METRICS_PATH)
+    return {
+        int(row.fold) - 1: float(row.auc)
+        for row in metrics.itertuples(index=False)
+    }
 
 
 # ============================================================
@@ -117,6 +125,8 @@ def get_valid_rocks(train_df, y_train, all_rock_features):
 def run_phase3_ablation(n_folds=N_FOLDS):
 
     print("--- 1. Loading Dataset ---")
+
+    v11_results = load_v11_results()
 
     df = pd.read_csv(DATA_PATH)
 
@@ -367,7 +377,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
         # M8: PREVIOUSLY COMPLETED V11
         # ====================================================
 
-        m8_auc = V11_RESULTS[fold]
+        m8_auc = v11_results[fold]
 
         fold_record["M8_V11_Hierarchical_AUC"] = m8_auc
 
@@ -380,7 +390,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
     results_df = pd.DataFrame(fold_records)
 
     # --------------------------------------------------------
-    # Add ΔAUC relative to M0
+    # Add Î”AUC relative to M0
     # --------------------------------------------------------
 
     auc_columns = [
@@ -459,7 +469,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
 
     print("\n")
     print("=" * 80)
-    print("PHASE 3 — FEATURE ABLATION RESULTS")
+    print("PHASE 3 â€” FEATURE ABLATION RESULTS")
     print("=" * 80)
 
     print("\nAUC BY SPATIAL FOLD")
