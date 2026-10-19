@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import numpy as np
 import pandas as pd
@@ -13,13 +13,15 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import load_trace, trace_exists
+
 def run_phase5_robust():
     print("--- 1. Enforcing Exact V10 Domain Mapping ---")
     # HARDCODED to match V10 PyMC index ordering exactly
     unique_domains = ['CRZ', 'MMSB', 'NKB', 'NRB_3a', 'NRB_3b', 'SRB']
     domain_map = {dom: i for i, dom in enumerate(unique_domains)}
 
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     raw_df = pd.read_csv(data_path)
 
     def map_daly_domain(x):
@@ -58,11 +60,11 @@ def run_phase5_robust():
 
     print("--- 3. Loading V10 Posterior Trace ---")
     trace_path = ROOT / 'figures' / 'v10_trace.nc'
-    if not trace_path.exists():
+    if not trace_exists(trace_path):
         print(f"[!] Trace not found: {trace_path}")
         return
 
-    trace = az.from_netcdf(trace_path)
+    trace = load_trace(trace_path)
     alpha = trace.posterior['alpha_dom'].values.reshape(-1, len(domain_map))
     mu_f_lin = trace.posterior['beta_f_lin'].values.reshape(-1, len(domain_map))
     mu_f_sq = trace.posterior['beta_f_sq'].values.reshape(-1, len(domain_map))
@@ -141,3 +143,4 @@ def run_phase5_robust():
 
 if __name__ == "__main__":
     run_phase5_robust()
+

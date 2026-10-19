@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import pandas as pd
 import numpy as np
@@ -13,7 +13,7 @@ from src.validation_strategies import get_along_belt_folds
 # ============================================================
 # CONFIG
 # ============================================================
-DATA_PATH = ROOT / "data" / "copperbelt_training_v5_with_tectonic_domain.csv"
+DATA_PATH = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
 OUTPUT_DIR = ROOT / "figures" / "audit"
 N_FOLDS = 4
 FEATURES = ["distance_to_fault", "distance_to_lithology_contact", "bouguer"]
@@ -110,7 +110,7 @@ def run_phase6_audit():
             
     target_df = pd.DataFrame(target_records)
 
-    # 4. FOLD × DOMAIN MISSINGNESS
+    # 4. FOLD Ã— DOMAIN MISSINGNESS
     fold_domain_records = []
     for (fold, domain), group in df.groupby(["spatial_block", "daly_domain"]):
         total = len(group)

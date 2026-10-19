@@ -1,19 +1,19 @@
-from pathlib import Path
+﻿from pathlib import Path
 import sys
 import numpy as np
 import pandas as pd
-import arviz as az
 from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path: sys.path.insert(0, str(ROOT))
+from src.trace_io import load_trace
 DOMAINS = ['CRZ','MMSB','NKB','NRB_3a','NRB_3b','SRB']
 CASES = [('NRB_3a','fault',1),('NRB_3a','lithology',1),('NRB_3b','fault',2),('NRB_3b','lithology',2)]
 COLS = {'fault':'distance_to_fault','lithology':'distance_to_lithology_contact'}
 NAMES = {'fault':('beta_f_lin','beta_f_sq'),'lithology':('beta_l_lin','beta_l_sq')}
 
 def main():
-    df=pd.read_csv(ROOT/'data/copperbelt_training_v5_with_tectonic_domain.csv').dropna(subset=['centroid_x','centroid_y','domain','litho_contact_litho_class','distance_to_fault','distance_to_lithology_contact','bouguer','deposit_present']).copy()
+    df=pd.read_csv(ROOT/'data/copperbelt_training_v13_litho_contact.csv').dropna(subset=['centroid_x','centroid_y','domain','litho_contact_litho_class','distance_to_fault','distance_to_lithology_contact','bouguer','deposit_present']).copy()
     def md(x):
         s=str(x).lower()
         for token,name in [('3a','NRB_3a'),('3b','NRB_3b'),('crz','CRZ'),('srb','SRB'),('nkb','NKB'),('mmsb','MMSB')]:
@@ -26,7 +26,7 @@ def main():
     for dom,key,fold in CASES:
         train=df[df.spatial_block != fold-1]
         sc=StandardScaler().fit(train[[COLS[key]]]); mu=float(sc.mean_[0]); sig=float(sc.scale_[0])
-        tr=az.from_netcdf(ROOT/f'figures/v11_fold_{fold}_trace.nc')
+        tr=load_trace(ROOT/f'figures/v11_fold_{fold}_trace.nc')
         a,b=NAMES[key]; j=DOMAINS.index(dom)
         b1=tr.posterior[a].values.reshape(-1,6)[:,j]; b2=tr.posterior[b].values.reshape(-1,6)[:,j]
         valid=np.abs(b2)>1e-5
@@ -47,3 +47,5 @@ def main():
     print('[+] Independent algebra checks passed for all four required cases.')
 
 if __name__=='__main__': main()
+
+
