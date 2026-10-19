@@ -10,6 +10,24 @@ The final V11 model is a hierarchical Bayesian logistic regression with partial 
 
 The two distance predictors therefore permit nonlinear fitted response shapes; Bouguer gravity does not have a quadratic term in V11 and consequently has no corresponding D*. This is a property of the model specification, not an indication that gravity is unimportant.
 
+## Lithology-Contact Data Provenance
+
+The active lithology-contact predictor is the minimum Euclidean distance from each grid-cell centroid to the nearest mapped **internal** lithological contact in EPSG:32735; the outer study-area perimeter is excluded. The validated reconstruction is `data/derived/litho_contact_distance_v13.csv` / `.gpkg`, and the canonical modelling table is `data/copperbelt_training_v13_litho_contact.csv` with exactly one row per grid cell. The archived surficial-lithology class is retained only as a secondary categorical attribute and was not reconstructed from the nearest-contact geometry. The superseded many-to-many candidate table and its first-row-per-cell columns are preserved in the read-only archive at `archive/litho_contact_repair_2026-10-18/` and are not read by the active pipeline.
+
+## Current Validation Status (2026-10-18)
+
+The corrected distance has been propagated through the full pipeline. The canonical table contains 1,899 cells (1,872 complete-case; 138 positive; 1,734 background), with four folds of 468 cells and positive counts `[9, 31, 37, 61]`. The V11 refit gives fold ROC-AUC values of 0.846, 0.709, 0.687, and 0.605 (mean 0.712). Pooled OOF ROC-AUC is 0.707 (95% interval 0.667--0.744) versus 0.559 (0.509--0.615) for the compact global baseline, a gain of +0.147 (0.073--0.217); pooled PR-AUC is 0.135 versus 0.114.
+
+Validation entry points:
+
+```powershell
+.runtime_vendor\run_qgis_python.bat src\validate_litho_contact_pipeline.py
+.runtime_vendor\run_qgis_python.bat tests\test_litho_contact_pipeline.py
+.runtime_vendor\run_qgis_python.bat src\run_distance_sensitivity.py --aggregate-only
+```
+
+The aggregate-only sensitivity mode regenerates its tables from the refitted traces without sampling. Ordinary pipeline stages read only the canonical V13 table and never the historical archive.
+
 ## Spatial and Nonlinear Analysis
 
 The primary predictive validation is **four-fold along-belt spatial out-of-fold (OOF) validation**, using geographic separation to assess predictive transferability rather than relying on random cross-validation. The Daly-domain results are a secondary stratification of those frozen spatial OOF predictions, not a separate domain-refitting or independent domain-validation exercise.

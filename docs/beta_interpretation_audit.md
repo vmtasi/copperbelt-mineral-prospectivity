@@ -121,7 +121,7 @@ The regenerated directory was checked after execution. It contains 8 CSV tables 
 
 ## F. Output validation
 
-The output tables use the exact fold-specific training support rather than an arbitrary 0–50 km interval. For example, NRB_3b fault support varies by fold from approximately 62.0 km in Fold 1 to 109.0 km in Fold 2; NRB_3b lithology support is approximately 39.3–45.3 km. The four-case table records these values explicitly.
+The output tables use the exact fold-specific training support rather than an arbitrary 0–50 km interval. For example, NRB_3b fault support varies by fold from approximately 62.0 km in Fold 1 to 109.0 km in Fold 2; NRB_3b lithology support is approximately 39.3–50.1 km. The four-case table records these values explicitly.
 
 The posterior-mean response extrema were computed on 401 grid points spanning the corresponding empirical support. Slope tables use the same support and the exact training-fold scaler parameters.
 
@@ -131,33 +131,33 @@ The old `figures/v11_geological_stability_matrix.csv` was not overwritten and is
 
 ### 1. NRB_3a fault distance
 
-Across folds, `beta_lin` is negative (fold medians approximately -2.68, -1.41, -1.26, -0.70) while `beta_sq` is positive in three folds and sign-uncertain in Fold 2. The fold-median `P(beta_sq>0)` is about 0.943, but Fold 2 has only 0.464 and therefore does not independently support a minimum. `P(beta_sq>0.05)` has a fold median about 0.923, again with Fold 2 only about 0.433.
+Across folds, `beta_lin` is negative (fold medians approximately -2.62, -1.39, -1.27, -0.71) while `beta_sq` is positive in three folds and sign-uncertain in Fold 2. The fold-median `P(beta_sq>0)` is about 0.951, but Fold 2 has only 0.488 and therefore does not independently support a minimum. `P(beta_sq>0.05)` has a fold median about 0.982, again with Fold 2 only about 0.457.
 
-The unfiltered D* medians range roughly from -18.0 to 46.6 km across folds, and the probability that D* lies inside the actual fold-specific empirical support ranges from about 0.126 to 0.938. Posterior-mean curve extrema are approximately 36.6–43.3 km and are minima within support. Thus the response-curve evidence is more coherent than the algebraic D* distribution in Fold 2, but coefficient stability is not strong enough to describe the fault turning point as uniformly identified across folds.
+The unfiltered D* medians range roughly from -10.4 to 46.9 km across folds, and the probability that D* lies inside the actual fold-specific empirical support ranges from about 0.312 to 0.982. Posterior-mean curve extrema are approximately 34.6–43.3 km and are minima within support. Thus the response-curve evidence is more coherent than the algebraic D* distribution in Fold 2, but coefficient stability is not strong enough to describe the fault turning point as uniformly identified across folds.
 
 The appropriate interpretation is therefore: **NRB_3a fault curvature is generally minimum-like but spatially heterogeneous, with one fold showing curvature-sign uncertainty and substantial D* instability.** A single precise geological distance is not strongly identified by the fold-wise posterior.
 
 ### 2. NRB_3a lithology-contact distance
 
-This is the strongest of the four cases. `beta_lin` is negative in all four folds and `beta_sq` is positive with posterior sign probability about 0.993–1.000. `P(beta_sq>0.05)` is about 0.985–0.999. The unfiltered D* medians are approximately 26.2–28.5 km and the posterior probability of lying inside actual training support is about 0.963–1.000.
+This is the strongest of the four cases. `beta_lin` is negative in all four folds and `beta_sq` is positive with posterior sign probability about 0.998–1.000. `P(beta_sq>0.05)` is about 0.996–1.000. The unfiltered D* medians are approximately 26.3–29.7 km and the posterior probability of lying inside actual training support is about 0.982–1.000.
 
-Posterior-mean response-curve extrema are approximately 25.5–28.5 km and are minima. The conditional `beta_sq>0.05` analysis changes D* very little. This is evidence for a relatively well-identified **local minimum** in the fitted lithology-distance response, not a claim that one physical distance should be selected as a target.
+Posterior-mean response-curve extrema are approximately 26.2–29.7 km and are minima. The conditional `beta_sq>0.05` analysis changes D* very little. This is evidence for a relatively well-identified **local minimum** in the fitted lithology-distance response, not a claim that one physical distance should be selected as a target.
 
 Fold-to-fold coefficient differences still have wide credible intervals, so coefficient stability should not be described as perfect. Nevertheless, the sign and response-curve behavior are substantially more consistent than for the NRB_3b cases.
 
 ### 3. NRB_3b fault distance
 
-The fault coefficients are highly sign-uncertain. Across folds, `P(beta_sq>0)` ranges approximately 0.161–0.708 and `P(beta_sq<0)` approximately 0.292–0.839. `P(beta_sq>0.05)` ranges only about 0.109–0.589. No fold meets the strong minimum/maximum-dominant classification used by this audit.
+The fault coefficients are highly sign-uncertain. Across folds, `P(beta_sq>0)` ranges approximately 0.191–0.737 and `P(beta_sq<0)` approximately 0.263–0.809. `P(beta_sq>0.05)` ranges only about 0.126–0.649. No fold meets the strong minimum/maximum-dominant classification used by this audit.
 
-Unfiltered D* medians range approximately 22.8–80.4 km, with broad intervals extending outside the empirical support. The posterior-mean curve extrema vary strongly: about 0.36–22.3 km, including a boundary/monotone result in Fold 2. This discrepancy demonstrates why algebraic D* and posterior-mean curve extrema cannot be substituted for one another.
+Unfiltered D* medians range approximately 22.7–80.1 km, with broad intervals extending outside the empirical support. The posterior-mean curve extrema vary strongly: about 1.2–22.3 km, including a boundary/monotone result in Fold 2. This discrepancy demonstrates why algebraic D* and posterior-mean curve extrema cannot be substituted for one another.
 
 The evidence therefore supports **weak or uncertain quadratic identification** for NRB_3b fault distance. Any single reported fault turning point should be treated as weakly identified and not as a robust geological characteristic.
 
 ### 4. NRB_3b lithology-contact distance
 
-`beta_lin` is negative across folds, and `beta_sq` is positive in the posterior majority of draws, but curvature sign is less secure than in NRB_3a lithology. `P(beta_sq>0)` ranges approximately 0.695–0.865 and `P(beta_sq>0.05)` approximately 0.660–0.845. Thus a minimum is more probable than a maximum, but not decisively so.
+`beta_lin` is negative across folds, and `beta_sq` is positive in the posterior majority of draws, but curvature sign is less secure than in NRB_3a lithology. `P(beta_sq>0)` ranges approximately 0.766–0.896 and `P(beta_sq>0.05)` approximately 0.731–0.881. Thus a minimum is more probable than a maximum, but not decisively so.
 
-Unfiltered D* medians range approximately 26.5–41.3 km, while the probability that D* lies inside actual training support is only about 0.381–0.584. Conditional filtering at 0.05 shifts medians upward and does not remove the support uncertainty. Posterior-mean curve extrema are around 28.1–34.2 km and are minima within support.
+Unfiltered D* medians range approximately 28.7–40.7 km, while the probability that D* lies inside actual training support is only about 0.510–0.634. Conditional filtering at 0.05 shifts medians upward and does not remove the support uncertainty. Posterior-mean curve extrema are around 27.3–33.2 km and are minima within support.
 
 The correct conclusion is **a minimum-like response is suggested, but quadratic/turning-point identification is materially weaker than for NRB_3a lithology, and empirical support for the algebraic D* is uncertain.**
 
@@ -169,7 +169,7 @@ Importantly, `beta_lin` is the slope at the training-fold mean distance (`z=0`),
 
 ## H. Model integrity
 
-**The V11 PyMC model did not change.** No V11 refit was performed. The frozen fitting module and all four frozen posterior traces remained untouched. The new work is strictly downstream/post-fit.
+**The V11 PyMC model specification did not change.** The four V11 posterior traces were refit after the corrected lithology-contact distance replaced the defective feature in the canonical input table. The fitting module, predictors, folds, priors, and evaluation protocol are unchanged; the regenerated traces and downstream diagnostics reflect the corrected input.
 
 The pre-existing V11 equation was internally consistent with the stated quadratic and standardization: `z=(D-mu_train)/sigma_train`, `D*=mu_train+sigma_train*(-beta_lin/(2*beta_sq))`, and `d eta/dD` follows directly from the chain rule. No genuine model implementation bug requiring a V11 change was identified.
 
