@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 import warnings
@@ -20,9 +20,11 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.trace_io import save_trace
+
 def run_v10_final():
     print("--- 1. Loading Datasets ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -125,7 +127,7 @@ def run_v10_final():
         )
         
         y_obs = pm.Bernoulli('y_obs', logit_p=mu, observed=y_train)
-        trace = pm.sample(draws=1500, tune=2500, chains=2, cores=1, target_accept=0.99, progressbar=True, random_seed=42)
+        trace = pm.sample(draws=1500, tune=2500, chains=2, cores=2, target_accept=0.99, progressbar=True, random_seed=42)
 
     output_dir = ROOT / 'figures'
     os.makedirs(output_dir, exist_ok=True)
@@ -134,7 +136,7 @@ def run_v10_final():
     # PERMANENT TRACE SAVE (Never lose the sampler output again)
     # ---------------------------------------------------------
     trace_path = output_dir / 'v10_trace.nc'
-    trace.to_netcdf(trace_path)
+    save_trace(trace, trace_path)
     print(f"\n[+] Raw posterior trace saved permanently to: {trace_path}")
 
     # ---------------------------------------------------------
@@ -245,7 +247,7 @@ def run_v10_final():
             print(f"  P(D* inside 0-50km)  : {p_in_bounds:.2f}")
             
             if d_star_med > max_dist_km:
-                print(f"  ⚠️ WARNING: Median D* ({d_star_med:.1f} km) is extrapolating beyond observed data ({max_dist_km:.1f} km).")
+                print(f"  âš ï¸ WARNING: Median D* ({d_star_med:.1f} km) is extrapolating beyond observed data ({max_dist_km:.1f} km).")
         else:
             print(f"\n[{dom_name}] (Max Observed Data: {max_dist_km:.1f} km)")
             print(f"  Curvature Probability (P(b2 > 0)): {prob_curvature:.2f}")
@@ -253,3 +255,4 @@ def run_v10_final():
 
 if __name__ == "__main__":
     run_v10_final()
+

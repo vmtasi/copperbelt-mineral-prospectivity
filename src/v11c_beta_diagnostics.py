@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 import warnings
@@ -15,7 +15,8 @@ from sklearn.preprocessing import StandardScaler
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
-DATA_PATH = ROOT / "data" / "copperbelt_training_v5_with_tectonic_domain.csv"
+from src.validation_strategies import get_along_belt_folds
+DATA_PATH = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
 TRACE_DIR = ROOT / "figures"
 OUT_DIR = ROOT / "figures" / "audit" / "beta_diagnostics"
 
@@ -78,7 +79,7 @@ def run_beta_diagnostics():
 
     # Reproduce V11 fold construction exactly. This is downstream only; no
     # PyMC model is fitted here.
-    from src.validation_strategies import get_along_belt_folds
+    from src.trace_io import load_trace, trace_exists
     df["spatial_block"] = get_along_belt_folds(df, n_folds=4)
 
     coeff_rows = []
@@ -95,9 +96,9 @@ def run_beta_diagnostics():
     for fold in range(4):
         train = df[df["spatial_block"] != fold].copy()
         trace_path = TRACE_DIR / f"v11_fold_{fold + 1}_trace.nc"
-        if not trace_path.exists():
+        if not trace_exists(trace_path):
             raise FileNotFoundError(f"Missing V11 posterior trace: {trace_path}")
-        trace = az.from_netcdf(trace_path)
+        trace = load_trace(trace_path)
         traces[fold + 1] = trace
 
         scalers[fold + 1] = {}
@@ -397,7 +398,7 @@ def run_beta_diagnostics():
                 ax.plot(grid_km, mean_curve, label=f"Fold {fold_id}")
             ax.set_xlabel(f"Distance ({key}, km)")
             ax.set_ylabel("Posterior mean conditional probability")
-            ax.set_title(f"{dom} — {key} response over fold-specific empirical support")
+            ax.set_title(f"{dom} â€” {key} response over fold-specific empirical support")
             ax.legend()
             ax.grid(True, alpha=0.3)
             fig.tight_layout()
@@ -415,7 +416,7 @@ def run_beta_diagnostics():
             ax.set_ylim(0, 1)
             ax.set_xlabel(f"Distance ({key}, km)")
             ax.set_ylabel("P(slope > 0)")
-            ax.set_title(f"{dom} — {key} posterior slope behavior")
+            ax.set_title(f"{dom} â€” {key} posterior slope behavior")
             ax.legend()
             ax.grid(True, alpha=0.3)
             fig.tight_layout()
@@ -429,3 +430,5 @@ def run_beta_diagnostics():
 
 if __name__ == "__main__":
     run_beta_diagnostics()
+
+

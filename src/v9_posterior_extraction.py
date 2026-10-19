@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 from pathlib import Path
 
@@ -25,7 +25,7 @@ from src.validation_strategies import get_along_belt_folds
 
 def extract_v9_posteriors(n_folds=4):
     print("--- 1. Loading Datasets ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v5_with_tectonic_domain.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
