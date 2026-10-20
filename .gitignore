@@ -12,6 +12,7 @@ __pycache__/
 *.pdb
 .pytensor_cache/
 pytensor_cache/
+.runtime_cache/
 
 # Python packaging
 *.egg-info/
@@ -39,6 +40,11 @@ figures/
 
 # Large/raw research data
 data/*.csv
+/data/derived/litho_contact_distance_v13.csv
+/data/derived/litho_contact_distance_v13.gpkg
+
+# Historical research archive; retained locally, not published
+/archive/
 
 .trash/
 

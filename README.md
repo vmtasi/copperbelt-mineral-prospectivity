@@ -14,6 +14,14 @@ The two distance predictors therefore permit nonlinear fitted response shapes; B
 
 The active lithology-contact predictor is the minimum Euclidean distance from each grid-cell centroid to the nearest mapped **internal** lithological contact in EPSG:32735; the outer study-area perimeter is excluded. The validated reconstruction is `data/derived/litho_contact_distance_v13.csv` / `.gpkg`, and the canonical modelling table is `data/copperbelt_training_v13_litho_contact.csv` with exactly one row per grid cell. The archived surficial-lithology class is retained only as a secondary categorical attribute and was not reconstructed from the nearest-contact geometry. The superseded many-to-many candidate table and its first-row-per-cell columns are preserved in the read-only archive at `archive/litho_contact_repair_2026-10-18/` and are not read by the active pipeline.
 
+The research datasets and historical archive are intentionally kept out of
+GitHub. The canonical CSV is covered by the existing `data/*.csv` ignore rule;
+the V13 distance CSV/GeoPackage and the full `archive/` directory are also
+local-only. The tracked manifest records expected versions and hashes, but
+rebuilding or validating the pipeline requires the corresponding local data
+and archive files. The pipeline test module is skipped when those assets are
+not available.
+
 ## Current Validation Status (2026-10-18)
 
 The corrected distance has been propagated through the full pipeline. The canonical table contains 1,899 cells (1,872 complete-case; 138 positive; 1,734 background), with four folds of 468 cells and positive counts `[9, 31, 37, 61]`. The V11 refit gives fold ROC-AUC values of 0.846, 0.709, 0.687, and 0.605 (mean 0.712). Pooled OOF ROC-AUC is 0.707 (95% interval 0.667--0.744) versus 0.559 (0.509--0.615) for the compact global baseline, a gain of +0.147 (0.073--0.217); pooled PR-AUC is 0.135 versus 0.114.
@@ -27,6 +35,21 @@ Validation entry points:
 ```
 
 The aggregate-only sensitivity mode regenerates its tables from the refitted traces without sampling. Ordinary pipeline stages read only the canonical V13 table and never the historical archive.
+
+The repository's pytest dependency is pinned in `requirements-test.txt`. From
+PowerShell, install it into the project environment and run the reviewed tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-test.txt
+.\.venv\Scripts\python.exe -m pytest -q tests\test_distance_sensitivity_math.py tests\test_litho_contact_pipeline.py tests\test_mcp_server_policy.py
+```
+
+The lithology-contact validator requires an explicit new report path so the
+existing audit report is never replaced:
+
+```powershell
+.\.venv\Scripts\python.exe src\validate_litho_contact_pipeline.py --report figures\audit\litho_contact_pipeline_validation_recheck.json
+```
 
 ## Spatial and Nonlinear Analysis
 
