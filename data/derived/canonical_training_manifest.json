@@ -1,0 +1,26 @@
+{
+  "manifest_schema_version": 1,
+  "dataset_version": "V13",
+  "canonical_file": "data/copperbelt_training_v13_litho_contact.csv",
+  "rows": 1899,
+  "unique_ids": 1899,
+  "base_file": "archive/litho_contact_repair_2026-10-18/data/copperbelt_training_v5_with_tectonic_domain.csv",
+  "base_sha256": "59fa57b107554c0f7742f65ea3a4a306ea7010019ed675beab4a31bb3ef04faa",
+  "distance_file": "data/derived/litho_contact_distance_v13.csv",
+  "distance_sha256": "dda749f927762363c343021b5b9402c551076736f071ab51f35cf29621cb2e08",
+  "canonical_sha256": "ccf8f4c256aebf6039d4ef87a6516ba50a41eeb4ee4100ac5c4aca74d9005af3",
+  "columns": [
+    "id",
+    "litho_contact_litho_class",
+    "distance_to_lithology_contact",
+    "deposit_present",
+    "bouguer",
+    "isostatic",
+    "centroid_x",
+    "centroid_y",
+    "emag",
+    "distance_to_fault",
+    "domain"
+  ],
+  "distance_definition": "minimum Euclidean distance from each grid-cell polygon to the nearest mapped internal lithological contact; outer study-area perimeter excluded; EPSG:32735; metres"
+}
