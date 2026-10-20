@@ -10,11 +10,11 @@
 #
 # 2. Frozen-file enforcement is enforced ONLY at the MCP tool surface, not
 #    at the execution layer. An approved script (or a pytest run) can bypass
-#    it. verify_frozen_intact() provides after-the-fact detection against a
-#    session-start SHA-256 baseline stored outside the project.
+#    it. Execution is gated by a pre-existing SHA-256 baseline stored outside
+#    the project and the baseline is never recaptured by this server.
 #
-# 3. Every mutation and every session-script execution is preceded by a
-#    debounced git-stash snapshot, so any damage is recoverable.
+# 3. Mutations and approved diagnostic executions are preceded by a debounced
+#    tracked-files-only stash snapshot. Untracked and ignored files are excluded.
 #
 # 4. Every tool call is logged to an out-of-band file the agent cannot edit.
 #
@@ -39,11 +39,14 @@ from __future__ import annotations
 
 import functools
 import hashlib
+import inspect
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -58,6 +61,7 @@ from mcp.server import MCPServer
 PROJECT_ROOT = Path(
     r"C:\Users\vanmu\copperbelt-mineral-prospectivity"
 ).resolve()
+PROJECT_PYTHON = PROJECT_ROOT / ".venv" / "Scripts" / "python.exe"
 
 
 # -----------------------------------------------------------------------------
@@ -106,38 +110,25 @@ WRITABLE_PREFIXES: tuple[str, ...] = (
 # -----------------------------------------------------------------------------
 # Curated execution allowlist.
 #
-# Existing analysis scripts the agent may execute by name.
+# Only lightweight, reviewed diagnostics may be executed by name.
 # v11_spatial_stability_final.py is intentionally EXCLUDED: it is frozen, and
 # running it would overwrite the four V11 trace files.
 # -----------------------------------------------------------------------------
 
 ALLOWLISTED_SCRIPTS: frozenset[str] = frozenset({
-    "src/phase5_response_curves.py",
-    "src/extract_v11_oof.py",
-    "src/v11b_spatial_support_audit.py",
-    "src/feature_x_dom_x_target.py",
-    "src/phase6_audit.py",
-    "src/phase7_spatial_validation.py",
-    "src/phase7_final_validation.py",
-    "src/phase7_multiscale_bootstrap.py",
-    "src/phase7_6_sensitivity_analysis.py",
-    "src/v11b_model_validation_upgraded.py",
-    "src/hierachical_spatial_cv.py",
-    "src/phase_4b.py",
-    "src/phase3_ablation_suite.py",
-    "src/baseline.py",
     "src/compute_fold_counts.py",
-    "src/plot_mining_locations_folds.py",
-    "src/compare_validation_strategies.py",
-    "src/phase4_tectonic_heterogeneity.py",
-    "src/ablation_suite.py",
-    "src/v9_posterior_extraction.py",
-    "src/v10_spatail_heterogeneity_upgraded.py",
+    "src/validate_litho_contact_pipeline.py",
 })
 
-# Session-scoped set populated by write_project_file / replace_in_project_file.
-# Cleared on server restart.
-SESSION_SCRIPTS: set[str] = set()
+ALLOWLISTED_TESTS: frozenset[str] = frozenset({
+    "tests/test_distance_sensitivity_math.py",
+    "tests/test_litho_contact_pipeline.py",
+    "tests/test_mcp_server_policy.py",
+})
+
+MAX_SUBPROCESS_OUTPUT_BYTES = 64 * 1024
+MAX_SCRIPT_TIMEOUT_SECONDS = 120
+MAX_PYTEST_TIMEOUT_SECONDS = 120
 
 
 # -----------------------------------------------------------------------------
@@ -184,13 +175,13 @@ mcp = MCPServer(
         "figures/audit/. The files src/v11_spatial_stability_final.py, "
         "src/validation_strategies.py, AI_PROJECT_CONTEXT.md and the four "
         "canonical V11 posterior traces (figures/v11_fold_*_trace.nc) are "
-        "frozen. Script execution is restricted to a curated allowlist of "
-        "existing analysis scripts, plus scripts written in this session. "
-        "IMPORTANT: script execution is a trusted operation — a running "
+        "frozen. Script execution is restricted to a small allowlist of "
+        "reviewed diagnostics; pytest is restricted to named, reviewed test files. "
+        "IMPORTANT: subprocess execution is a trusted operation — a running "
         "Python process can bypass all MCP-level path restrictions. "
-        "Call verify_frozen_intact() to detect frozen-file drift after any "
-        "script execution. Prefer the narrow tools over broad ones. "
-        "Every mutation is preceded by an automatic git-stash snapshot."
+        "Call verify_frozen_intact() to compare against the existing baseline. "
+        "The server never captures or replaces that baseline. "
+        "Every mutation is preceded by a tracked-files-only recovery snapshot."
     ),
 )
 
@@ -207,7 +198,12 @@ def _norm(relative_path: str) -> str:
 
 
 def safe_path(relative_path: str = "") -> Path:
-    target = (PROJECT_ROOT / relative_path).resolve()
+    if not isinstance(relative_path, str):
+        raise ValueError("Requested path must be a relative string.")
+    normalized = relative_path.replace("\\", "/")
+    if normalized.startswith("/") or re.match(r"^[A-Za-z]:", normalized):
+        raise ValueError("Absolute paths are not permitted.")
+    target = (PROJECT_ROOT / Path(normalized)).resolve()
     if target != PROJECT_ROOT and PROJECT_ROOT not in target.parents:
         raise ValueError("Requested path is outside the Copperbelt project.")
     return target
@@ -217,8 +213,20 @@ def relative_to_project(path: Path) -> str:
     return str(path.resolve().relative_to(PROJECT_ROOT)).replace("\\", "/")
 
 
+def _is_internal_path(path: Path) -> bool:
+    try:
+        relative = relative_to_project(path).casefold()
+    except ValueError:
+        return True
+    return relative == ".git" or relative.startswith((".git/", ".trash/"))
+
+
 def guard_write(relative_path: str) -> str | None:
-    p = _norm(relative_path)
+    try:
+        target = safe_path(relative_path)
+        p = relative_to_project(target)
+    except (TypeError, ValueError) as exc:
+        return f"ERROR: {exc}"
 
     if not p:
         return "ERROR: Empty relative path."
@@ -231,10 +239,13 @@ def guard_write(relative_path: str) -> str | None:
         )
 
     for prefix in FROZEN_PREFIXES:
-        if p.startswith(prefix):
+        if p == prefix.rstrip("/") or p.startswith(prefix):
             return f"ERROR: '{relative_path}' is inside a frozen subtree ({prefix})."
 
-    if not any(p.startswith(prefix) for prefix in WRITABLE_PREFIXES):
+    if not any(
+        p == prefix.rstrip("/") or p.startswith(prefix)
+        for prefix in WRITABLE_PREFIXES
+    ):
         return (
             f"ERROR: '{relative_path}' is outside the permitted write areas: "
             f"{list(WRITABLE_PREFIXES)}"
@@ -250,7 +261,10 @@ def guard_exec(relative_path: str) -> str | None:
     Policy gate, not a sandbox. Any script that passes can still do anything
     the user can do.
     """
-    p = _norm(relative_path)
+    try:
+        p = relative_to_project(safe_path(relative_path))
+    except (TypeError, ValueError) as exc:
+        return f"ERROR: {exc}"
 
     if p in FROZEN_FILES:
         return f"ERROR: '{relative_path}' is frozen and cannot be executed."
@@ -266,54 +280,163 @@ def guard_exec(relative_path: str) -> str | None:
     if p in ALLOWLISTED_SCRIPTS:
         return None
 
-    if p in SESSION_SCRIPTS:
-        return None
-
     return (
         f"ERROR: '{relative_path}' is not an approved executable. "
-        "Allowed: scripts in ALLOWLISTED_SCRIPTS, or scripts written via "
-        "write_project_file / replace_in_project_file during this session. "
+        "Only the reviewed scripts in ALLOWLISTED_SCRIPTS may run. "
         "Use list_executables() to see the current set."
     )
 
 
 def guard_test_path(relative_path: str) -> str | None:
-    """Prefix-based check that a pytest target actually lives under tests/."""
-    p = _norm(relative_path).rstrip("/")
-    if p == "tests" or p.startswith("tests/"):
+    """Allow only named, reviewed tests; reject traversal and symlink aliases."""
+    try:
+        p = relative_to_project(safe_path(relative_path))
+    except (TypeError, ValueError) as exc:
+        return f"ERROR: {exc}"
+    if p in ALLOWLISTED_TESTS:
         return None
-    return f"ERROR: Path '{relative_path}' is not under tests/."
+    return f"ERROR: Path '{relative_path}' is not an approved test file."
 
 
 # =============================================================================
 # SUBPROCESS
 # =============================================================================
 
-def run_subprocess(command: list[str], timeout: int = 120) -> str:
+def _python_environment(*, for_pytest: bool = False) -> dict[str, str]:
+    system_root = Path(os.environ.get("SystemRoot", r"C:\Windows"))
+    python_dir = PROJECT_PYTHON.resolve().parent
+    path_entries = [
+        str(python_dir),
+        str(system_root / "System32"),
+        str(system_root),
+    ]
+    environment = {
+        key: os.environ[key]
+        for key in ("SystemRoot", "WINDIR", "TEMP", "TMP", "SystemDrive", "ProgramData", "LOCALAPPDATA", "APPDATA", "USERPROFILE")
+        if key in os.environ
+    }
+    environment.update({
+        "PATH": os.pathsep.join(path_entries),
+        "PYTHONPATH": str(PROJECT_ROOT),
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+    })
+    if for_pytest:
+        environment["PYTEST_DISABLE_PLUGIN_AUTOLOAD"] = "1"
+    return environment
+
+
+def _git_environment() -> dict[str, str]:
+    environment = {
+        key: os.environ[key]
+        for key in ("SystemRoot", "WINDIR", "TEMP", "TMP", "PATH")
+        if key in os.environ
+    }
+    environment.update({
+        "GIT_CONFIG_NOSYSTEM": "1",
+        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_CONFIG_COUNT": "2",
+        "GIT_CONFIG_KEY_0": "core.fsmonitor",
+        "GIT_CONFIG_VALUE_0": "false",
+        "GIT_CONFIG_KEY_1": "core.pager",
+        "GIT_CONFIG_VALUE_1": "cat",
+        "GIT_OPTIONAL_LOCKS": "0",
+        "GIT_PAGER": "cat",
+        "GIT_TERMINAL_PROMPT": "0",
+    })
+    return environment
+
+
+def _project_python() -> str:
+    if not PROJECT_PYTHON.is_file():
+        raise FileNotFoundError(f"Project Python interpreter not found: {PROJECT_PYTHON}")
+    return str(PROJECT_PYTHON)
+
+
+def run_subprocess(
+    command: list[str],
+    timeout: int = 120,
+    *,
+    env: dict[str, str] | None = None,
+    output_limit: int = MAX_SUBPROCESS_OUTPUT_BYTES,
+) -> str:
+    if not command or any(not isinstance(part, str) for part in command):
+        return "ERROR: Command must be a non-empty list of strings."
+    if timeout < 1:
+        return "ERROR: Timeout must be a positive number of seconds."
+    if output_limit < 1:
+        return "ERROR: Output limit must be positive."
+
+    process = None
+    captured = {"stdout": bytearray(), "stderr": bytearray()}
+    state = {"bytes": 0, "truncated": False}
+    lock = threading.Lock()
+
+    def drain(name: str, stream) -> None:
+        while True:
+            chunk = stream.read(8192)
+            if not chunk:
+                return
+            with lock:
+                available = max(0, output_limit - state["bytes"])
+                kept = chunk[:available]
+                captured[name].extend(kept)
+                state["bytes"] += len(kept)
+                if len(kept) < len(chunk):
+                    state["truncated"] = True
+
     try:
-        result = subprocess.run(
-            command, cwd=PROJECT_ROOT, capture_output=True, text=True,
-            timeout=timeout, encoding="utf-8", errors="replace",
+        process = subprocess.Popen(
+            command,
+            cwd=PROJECT_ROOT,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            bufsize=0,
         )
-        output = result.stdout
-        if result.stderr:
-            output += "\n--- STDERR ---\n" + result.stderr
-        output += f"\n--- EXIT CODE: {result.returncode} ---"
+        assert process.stdout is not None and process.stderr is not None
+        readers = [
+            threading.Thread(target=drain, args=("stdout", process.stdout)),
+            threading.Thread(target=drain, args=("stderr", process.stderr)),
+        ]
+        for reader in readers:
+            reader.start()
+        timed_out = False
+        try:
+            return_code = process.wait(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            timed_out = True
+            process.kill()
+            return_code = process.wait()
+        for reader in readers:
+            reader.join()
+        output = captured["stdout"].decode("utf-8", errors="replace")
+        if captured["stderr"]:
+            output += "\n--- STDERR ---\n"
+            output += captured["stderr"].decode("utf-8", errors="replace")
+        if state["truncated"]:
+            output += f"\n--- OUTPUT TRUNCATED AT {output_limit} BYTES ---"
+        if timed_out:
+            output += f"\nERROR: Command timed out after {timeout} seconds."
+        else:
+            output += f"\n--- EXIT CODE: {return_code} ---"
         return output.strip()
-    except subprocess.TimeoutExpired:
-        return f"ERROR: Command timed out after {timeout} seconds."
-    except Exception as exc:
+    except (OSError, ValueError) as exc:
+        if process is not None and process.poll() is None:
+            process.kill()
+            process.wait()
         return f"ERROR: {type(exc).__name__}: {exc}"
 
 
 # =============================================================================
-# SNAPSHOT (auto-invoked before mutations and session-script executions)
+# Snapshot (auto-invoked before mutations and allowlisted executions)
 # =============================================================================
 
 def _run_git(*args: str, timeout: int = 30) -> subprocess.CompletedProcess:
     return subprocess.run(
         ["git", *args], cwd=PROJECT_ROOT, capture_output=True,
         text=True, timeout=timeout, encoding="utf-8", errors="replace",
+        env=_git_environment(),
     )
 
 
@@ -328,20 +451,23 @@ def maybe_snapshot(reason: str) -> str:
     if now - _LAST_SNAPSHOT_TS < _SNAPSHOT_DEBOUNCE_SECONDS:
         return "(snapshot debounced; recent recovery point active)"
 
-    status = _run_git("status", "--porcelain")
+    status = _run_git("status", "--porcelain", "--untracked-files=no")
     if status.returncode != 0:
         return f"(WARN snapshot: git status failed: {status.stderr.strip()[:120]})"
 
     if not status.stdout.strip():
         _LAST_SNAPSHOT_TS = now
-        return "(tree clean; HEAD is the recovery point)"
+        return "(no tracked changes; untracked and ignored files were left untouched)"
 
     ts = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
     msg = f"mcp-snapshot-{ts}-{reason}"[:80]
 
-    push = _run_git("stash", "push", "-u", "-m", msg)
+    push = _run_git("stash", "push", "-m", msg)
     if push.returncode != 0:
         return f"(WARN snapshot: stash push failed: {push.stderr.strip()[:160]})"
+    if "No local changes to save" in push.stdout:
+        _LAST_SNAPSHOT_TS = now
+        return "(no tracked changes to snapshot; untracked and ignored files were left untouched)"
 
     apply = _run_git("stash", "apply", "--index")
     if apply.returncode != 0:
@@ -357,10 +483,9 @@ def maybe_snapshot(reason: str) -> str:
 # =============================================================================
 # FROZEN-FILE INTEGRITY BASELINE
 #
-# run_python_script() and run_pytest() can modify any file the user can write,
-# including the frozen artifacts. The MCP layer cannot prevent this. It can
-# hash the frozen files at the start of every session and let the agent check
-# at any later point whether they have changed.
+# run_python_script() and run_pytest() can modify files the user can write,
+# including frozen artifacts. Execution is gated on the pre-existing baseline,
+# which is checked before and after the subprocess and never recaptured.
 # =============================================================================
 
 def _hash_file(path: Path) -> str | None:
@@ -375,41 +500,81 @@ def _hash_file(path: Path) -> str | None:
         return None
 
 
-def _capture_frozen_baseline() -> dict:
-    """Hash every frozen file that currently exists on disk."""
-    entries: dict[str, dict] = {}
-    for rel in sorted(FROZEN_FILES):
-        try:
-            target = safe_path(rel)
-        except ValueError:
-            entries[rel] = {"exists": False, "sha256": None}
-            continue
-        entries[rel] = {
-            "exists": target.exists(),
-            "sha256": _hash_file(target) if target.exists() else None,
-        }
-    return {
-        "captured_at": datetime.now(timezone.utc).isoformat(),
-        "project_root": str(PROJECT_ROOT),
-        "files": entries,
-    }
-
-
-def _write_frozen_baseline(snapshot: dict) -> None:
-    FROZEN_BASELINE.parent.mkdir(parents=True, exist_ok=True)
-    FROZEN_BASELINE.write_text(
-        json.dumps(snapshot, indent=2, ensure_ascii=False),
-        encoding="utf-8",
-    )
-
-
 def _load_frozen_baseline() -> dict | None:
     if not FROZEN_BASELINE.exists():
         return None
     try:
-        return json.loads(FROZEN_BASELINE.read_text(encoding="utf-8"))
+        baseline = json.loads(FROZEN_BASELINE.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return None
+    if not isinstance(baseline, dict) or not isinstance(baseline.get("files"), dict):
+        return None
+    return baseline
+
+
+def _frozen_integrity_report() -> tuple[bool, str]:
+    baseline = _load_frozen_baseline()
+    if baseline is None:
+        return False, f"ERROR: Existing frozen baseline is missing or invalid: {FROZEN_BASELINE}"
+    if baseline.get("project_root") != str(PROJECT_ROOT):
+        return False, "ERROR: Frozen baseline belongs to a different project root."
+
+    lines = [
+        f"Baseline captured: {baseline.get('captured_at', 'unknown')}",
+        f"Project root:      {baseline.get('project_root', 'unknown')}",
+        "Baseline coverage uses the configured .nc trace paths; .pkl traces are not covered.",
+        "",
+        "FROZEN FILE STATUS:",
+    ]
+    drifted: list[str] = []
+    missing: list[str] = []
+    ok: list[str] = []
+    entries = baseline["files"]
+
+    for rel in sorted(FROZEN_FILES):
+        entry = entries.get(rel)
+        if not isinstance(entry, dict) or "exists" not in entry or "sha256" not in entry:
+            drifted.append(rel)
+            lines.append(f"  {rel}: MISSING BASELINE ENTRY")
+            continue
+        try:
+            target = safe_path(rel)
+        except ValueError:
+            missing.append(rel)
+            lines.append(f"  {rel}: UNREACHABLE")
+            continue
+
+        exists_at_baseline = entry["exists"] is True
+        expected_hash = entry["sha256"]
+        if not target.exists():
+            if exists_at_baseline:
+                missing.append(rel)
+                lines.append(f"  {rel}: MISSING (was present at baseline)")
+            else:
+                ok.append(rel)
+                lines.append(f"  {rel}: absent at baseline and now")
+            continue
+
+        current = _hash_file(target)
+        if exists_at_baseline and current is not None and current == expected_hash:
+            ok.append(rel)
+            lines.append(f"  {rel}: OK")
+        else:
+            drifted.append(rel)
+            lines.append(f"  {rel}: DRIFTED OR CREATED SINCE BASELINE")
+
+    lines.extend([
+        "",
+        f"Summary: {len(ok)} OK, {len(drifted)} drifted, {len(missing)} missing",
+    ])
+    if drifted or missing:
+        lines.extend([
+            "",
+            "ACTION REQUIRED: A frozen artifact differs from the existing "
+            "baseline. Investigate before continuing; this server never "
+            "recaptures or replaces the baseline.",
+        ])
+    return not (drifted or missing), "\n".join(lines)
 
 
 # =============================================================================
@@ -419,33 +584,109 @@ def _load_frozen_baseline() -> dict | None:
 def audited(fn):
     @functools.wraps(fn)
     def wrapper(*args, **kwargs):
-        result = fn(*args, **kwargs)
+        started = time.monotonic()
         try:
-            AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
-            args_summary = [str(a)[:120] for a in args]
-            args_summary += [f"{k}={str(v)[:120]}" for k, v in kwargs.items()]
-            record = {
-                "ts": datetime.now(timezone.utc).isoformat(),
-                "tool": fn.__name__,
-                "args": args_summary,
-                "args_hash": hashlib.sha256(
-                    json.dumps(args_summary, default=str).encode()
-                ).hexdigest()[:16],
-                "status": (
-                    "error"
-                    if isinstance(result, str) and result.startswith("ERROR")
-                    else "ok"
-                ),
-                "summary": (
-                    result[:200] if isinstance(result, str) else str(result)[:200]
-                ),
-            }
-            with AUDIT_LOG.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
+            result = fn(*args, **kwargs)
+        except Exception as exc:
+            record = _audit_record(
+                fn,
+                args,
+                kwargs,
+                started,
+                status="error",
+                error_type=type(exc).__name__,
+            )
+            audit_error = _append_audit_record(record)
+            if audit_error:
+                raise RuntimeError(
+                    f"{fn.__name__} failed and audit logging also failed: "
+                    f"{audit_error}"
+                ) from exc
+            raise
+
+        status = _audit_result_status(result)
+        record = _audit_record(fn, args, kwargs, started, status=status, result=result)
+        audit_error = _append_audit_record(record)
+        if audit_error:
+            message = f"ERROR: Tool completed but audit logging failed: {audit_error}"
+            if isinstance(result, str):
+                return f"{result}\n{message}"
+            raise OSError(message)
         return result
+
     return wrapper
+
+
+def _audit_result_status(result) -> str:
+    if not isinstance(result, str):
+        return "ok"
+    if result.startswith("ERROR") or "ERROR: Command timed out" in result:
+        return "error"
+    match = re.search(r"--- EXIT CODE: (-?\d+) ---", result)
+    if match and int(match.group(1)) != 0:
+        return "error"
+    return "ok"
+
+
+def _audit_record(
+    fn,
+    args: tuple,
+    kwargs: dict,
+    started: float,
+    *,
+    status: str,
+    result=None,
+    error_type: str | None = None,
+) -> dict:
+    bound = inspect.signature(fn).bind_partial(*args, **kwargs)
+    safe_arguments = {}
+    for name, value in bound.arguments.items():
+        lower_name = name.lower()
+        if lower_name in {
+            "content", "old_text", "new_text", "query", "terms",
+            "arguments", "args", "password", "secret", "token",
+        }:
+            if isinstance(value, str):
+                safe_arguments[name] = f"<redacted length={len(value)}>"
+            elif isinstance(value, (list, tuple)):
+                safe_arguments[name] = f"<redacted count={len(value)}>"
+            else:
+                safe_arguments[name] = "<redacted>"
+        elif isinstance(value, str):
+            safe_arguments[name] = value[:120]
+        elif isinstance(value, (bool, int, float)) or value is None:
+            safe_arguments[name] = value
+        elif isinstance(value, (list, tuple)):
+            safe_arguments[name] = f"<list count={len(value)}>"
+        else:
+            safe_arguments[name] = f"<{type(value).__name__}>"
+
+    record = {
+        "ts": datetime.now(timezone.utc).isoformat(),
+        "tool": fn.__name__,
+        "arguments": safe_arguments,
+        "duration_ms": round((time.monotonic() - started) * 1000, 2),
+        "status": status,
+    }
+    if error_type:
+        record["error_type"] = error_type
+    if result is not None:
+        record["output_chars"] = len(result) if isinstance(result, str) else None
+        if isinstance(result, str):
+            match = re.search(r"--- EXIT CODE: (-?\d+) ---", result)
+            if match:
+                record["exit_code"] = int(match.group(1))
+    return record
+
+
+def _append_audit_record(record: dict) -> str | None:
+    try:
+        AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
+        with AUDIT_LOG.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record, ensure_ascii=True) + "\n")
+    except (OSError, TypeError, ValueError) as exc:
+        return f"{type(exc).__name__}: {exc}"
+    return None
 
 
 # =============================================================================
@@ -460,14 +701,15 @@ def project_info() -> str:
         f"Project: Copperbelt Mineral Prospectivity\n"
         f"Root: {PROJECT_ROOT}\n"
         f"Exists: {PROJECT_ROOT.exists()}\n"
-        f"Python: {sys.executable}\n"
+        f"MCP server Python: {sys.executable}\n"
+        f"Diagnostic Python: {PROJECT_PYTHON}\n"
         f"Audit log: {AUDIT_LOG}\n"
         f"Frozen baseline: {FROZEN_BASELINE}\n"
         f"Frozen files: {sorted(FROZEN_FILES)}\n"
         f"Frozen prefixes: {list(FROZEN_PREFIXES)}\n"
         f"Writable prefixes: {list(WRITABLE_PREFIXES)}\n"
         f"Allowlisted executables: {len(ALLOWLISTED_SCRIPTS)}\n"
-        f"Session-written executables: {len(SESSION_SCRIPTS)}\n"
+        f"Allowlisted tests: {sorted(ALLOWLISTED_TESTS)}\n"
     )
 
 
@@ -479,16 +721,11 @@ def project_info() -> str:
 @audited
 def list_executables() -> str:
     """List the scripts the agent is currently permitted to execute."""
-    lines = ["ALLOWLISTED (existing analysis scripts):"]
+    lines = ["ALLOWLISTED DIAGNOSTIC SCRIPTS:"]
     for p in sorted(ALLOWLISTED_SCRIPTS):
         lines.append(f"  {p}")
-    lines.append("")
-    lines.append("SESSION-WRITTEN (created via write_project_file this session):")
-    if SESSION_SCRIPTS:
-        for p in sorted(SESSION_SCRIPTS):
-            lines.append(f"  {p}")
-    else:
-        lines.append("  (none)")
+    lines.extend(["", "ALLOWLISTED TEST FILES:"])
+    lines.extend(f"  {p}" for p in sorted(ALLOWLISTED_TESTS))
     lines.append("")
     lines.append(
         "NOTE: Execution is a trusted boundary. A running script can bypass "
@@ -506,91 +743,18 @@ def list_executables() -> str:
 @audited
 def verify_frozen_intact(recapture: bool = False) -> str:
     """
-    Compare current frozen-file contents against the session baseline.
-
-    - recapture=False (default): report drift since the session baseline.
-    - recapture=True: overwrite the baseline with the current state. Use ONLY
-      at the start of a session, before any script execution.
-
-    This does not prevent modification. It detects it after the fact.
+    Compare frozen-file contents against the existing baseline without changing it.
     """
     if recapture:
-        snapshot = _capture_frozen_baseline()
-        _write_frozen_baseline(snapshot)
-        return (
-            f"Baseline recaptured at {snapshot['captured_at']}.\n"
-            f"Files hashed: {len(snapshot['files'])}\n"
-            f"Baseline: {FROZEN_BASELINE}"
-        )
+        return "ERROR: Baseline recapture is disabled; the existing baseline is immutable."
+    return _frozen_integrity_report()[1]
 
-    baseline = _load_frozen_baseline()
-    if baseline is None:
-        snapshot = _capture_frozen_baseline()
-        _write_frozen_baseline(snapshot)
-        return (
-            f"No baseline found — one has been created now "
-            f"({snapshot['captured_at']}).\n"
-            f"Baseline: {FROZEN_BASELINE}\n"
-            "Re-run verify_frozen_intact() to check for drift."
-        )
 
-    lines = [
-        f"Baseline captured: {baseline.get('captured_at', 'unknown')}",
-        f"Project root:      {baseline.get('project_root', 'unknown')}",
-        "",
-        "FROZEN FILE STATUS:",
-    ]
-
-    drifted, missing, ok = [], [], []
-
-    for rel in sorted(FROZEN_FILES):
-        entry = baseline.get("files", {}).get(rel, {})
-        try:
-            target = safe_path(rel)
-        except ValueError:
-            missing.append(rel)
-            lines.append(f"  {rel}: UNREACHABLE")
-            continue
-
-        if not target.exists():
-            if entry.get("exists"):
-                missing.append(rel)
-                lines.append(f"  {rel}: MISSING (was present at baseline)")
-            else:
-                lines.append(f"  {rel}: (absent at baseline and now)")
-            continue
-
-        current = _hash_file(target)
-        if current == entry.get("sha256"):
-            ok.append(rel)
-            lines.append(f"  {rel}: OK")
-        elif entry.get("sha256") is None:
-            ok.append(rel)
-            lines.append(f"  {rel}: OK (was absent at baseline, now present)")
-        else:
-            drifted.append(rel)
-            lines.append(
-                f"  {rel}: DRIFTED\n"
-                f"    baseline: {entry['sha256']}\n"
-                f"    current:  {current}"
-            )
-
-    lines.append("")
-    lines.append(
-        f"Summary: {len(ok)} OK, {len(drifted)} drifted, {len(missing)} missing"
-    )
-
-    if drifted or missing:
-        lines.append("")
-        lines.append(
-            "ACTION REQUIRED: A frozen artifact has changed. Investigate "
-            "before continuing. If the change was intended, that is a "
-            "model-versioning decision and must be documented in "
-            "AI_PROJECT_CONTEXT.md by a human — this server will not "
-            "recapture the baseline on your behalf in the same session."
-        )
-
-    return "\n".join(lines)
+def _execution_integrity_gate() -> tuple[bool, str]:
+    intact, report = _frozen_integrity_report()
+    if not intact:
+        return False, f"ERROR: Execution refused because frozen integrity is not verified.\n{report}"
+    return True, report
 
 
 # =============================================================================
@@ -651,14 +815,23 @@ def list_project_files(
     try:
         iterator = target.rglob(pattern) if recursive else target.glob(pattern)
         results = []
+        truncated = False
         for item in sorted(iterator):
+            if _is_internal_path(item):
+                continue
             try:
                 rel = item.relative_to(PROJECT_ROOT)
                 suffix = "/" if item.is_dir() else ""
                 results.append(f"{rel}{suffix}")
+                if len(results) >= 1000:
+                    truncated = True
+                    break
             except ValueError:
                 continue
-        return "\n".join(results) if results else "No matching files found."
+        output = "\n".join(results) if results else "No matching files found."
+        if truncated:
+            output += "\n--- RESULT LIMIT (1000) REACHED ---"
+        return output
     except OSError as exc:
         return f"ERROR: {exc}"
 
@@ -686,10 +859,13 @@ def read_project_file(relative_path: str, max_chars: int = 200000) -> str:
 
     allowed = {
         ".py", ".md", ".txt", ".json", ".yaml", ".yml", ".toml",
-        ".csv", ".tsv", ".log", ".ini", ".cfg", ".xml",
+        ".csv", ".tsv", ".log", ".ini", ".cfg", ".xml", ".tex", ".bib",
     }
     if target.suffix.lower() not in allowed:
         return f"ERROR: File type '{target.suffix}' is not enabled for text reading."
+    if _is_internal_path(target):
+        return "ERROR: Internal repository and trash paths are not readable."
+    max_chars = max(1, min(max_chars, 200000))
 
     try:
         text = target.read_text(encoding="utf-8", errors="replace")
@@ -724,8 +900,7 @@ def write_project_file(
     Create or overwrite a UTF-8 text file inside the project.
 
     A recovery snapshot is taken automatically (debounced) before the write.
-    If the file is a .py under an executable root, it is added to the
-    session-scoped execution allowlist.
+    Writing a script does not grant permission to execute it.
     """
     err = guard_write(relative_path)
     if err:
@@ -742,6 +917,8 @@ def write_project_file(
         return "ERROR: Target path is a directory."
     if target.exists() and not overwrite:
         return f"ERROR: File already exists: {relative_path}"
+    if len(content.encode("utf-8")) > 1_000_000:
+        return "ERROR: File content exceeds the 1 MB write limit."
 
     snapshot_note = maybe_snapshot("write")
 
@@ -749,14 +926,6 @@ def write_project_file(
         if create_parents:
             target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(content, encoding="utf-8", newline="")
-
-        p = _norm(relative_path)
-        if (
-            target.suffix.lower() == ".py"
-            and p not in FROZEN_FILES
-            and any(p.startswith(root) for root in ("src/", "scripts/", "tests/"))
-        ):
-            SESSION_SCRIPTS.add(p)
 
         return (
             f"SUCCESS: Wrote {relative_to_project(target)}\n"
@@ -822,10 +991,6 @@ def replace_in_project_file(
     except OSError as exc:
         return f"ERROR writing file: {exc}"
 
-    p = _norm(relative_path)
-    if target.suffix.lower() == ".py" and p in SESSION_SCRIPTS:
-        SESSION_SCRIPTS.add(p)  # idempotent
-
     return (
         f"SUCCESS: Updated {relative_to_project(target)}\n"
         f"Replacements: {replacements}\n"
@@ -864,7 +1029,6 @@ def delete_project_file(relative_path: str) -> str:
     try:
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(target), str(dest))
-        SESSION_SCRIPTS.discard(_norm(relative_path))
         return (
             f"SUCCESS: Archived {relative_to_project(target)} -> "
             f"{dest.relative_to(PROJECT_ROOT)}\n{snapshot_note}"
@@ -894,20 +1058,21 @@ def search_project(
     if not target.exists() or not target.is_dir():
         return f"ERROR: Directory does not exist: {relative_path}"
 
+    max_results = max(1, min(max_results, 500))
     matches = []
     ql = query.lower()
     try:
         for file in target.rglob(pattern):
-            if not file.is_file():
+            if not file.is_file() or _is_internal_path(file):
                 continue
             try:
-                text = file.read_text(encoding="utf-8", errors="replace")
+                text = file.resolve().read_text(encoding="utf-8", errors="replace")
             except OSError:
                 continue
             for n, line in enumerate(text.splitlines(), start=1):
                 if ql in line.lower():
                     matches.append(
-                        f"{file.relative_to(PROJECT_ROOT)}:{n}: {line.strip()}"
+                        f"{file.relative_to(PROJECT_ROOT)}:{n}: {line.strip()[:300]}"
                     )
                     if len(matches) >= max_results:
                         return (
@@ -938,12 +1103,16 @@ def scan_terminology(
     if not terms:
         return "ERROR: Provide at least one term."
 
-    search_roots = paths or ["src", "scripts", "tests", "docs", "figures/audit"]
+    max_results = max(1, min(max_results, 500))
+    search_roots = paths or [
+        "src", "scripts", "tests", "docs", "figures/audit",
+        "paper_1/manuscript", "paper_1/stages",
+    ]
     exts = set(
         (e.lower() if e.startswith(".") else "." + e.lower())
         for e in (extensions or [
             ".py", ".md", ".txt", ".json", ".yaml", ".yml",
-            ".toml", ".csv", ".tsv", ".rst",
+            ".toml", ".csv", ".tsv", ".rst", ".tex", ".bib",
         ])
     )
 
@@ -959,12 +1128,16 @@ def scan_terminology(
             continue
 
         for file in base.rglob("*"):
-            if not file.is_file() or file.suffix.lower() not in exts:
+            if (
+                not file.is_file()
+                or file.suffix.lower() not in exts
+                or _is_internal_path(file)
+            ):
                 continue
             rel = str(file.relative_to(PROJECT_ROOT)).replace("\\", "/")
             frozen_marker = " [FROZEN]" if _norm(rel) in FROZEN_FILES else ""
             try:
-                text = file.read_text(encoding="utf-8", errors="replace")
+                text = file.resolve().read_text(encoding="utf-8", errors="replace")
             except OSError:
                 continue
             for n, line in enumerate(text.splitlines(), start=1):
@@ -1014,7 +1187,7 @@ def inspect_python_module(relative_path: str) -> str:
         return "ERROR: inspect_python_module requires a .py file."
 
     command = [
-        sys.executable, "-c",
+        _project_python(), "-c",
         """
 import ast, sys
 path = sys.argv[1]
@@ -1052,7 +1225,7 @@ for node in ast.walk(tree):
 """,
         str(target),
     ]
-    return run_subprocess(command)
+    return run_subprocess(command, env=_python_environment())
 
 
 # =============================================================================
@@ -1071,7 +1244,19 @@ def validate_python_file(relative_path: str) -> str:
         return f"ERROR: File does not exist: {relative_path}"
     if target.suffix.lower() != ".py":
         return "ERROR: validate_python_file requires a .py file."
-    return run_subprocess([sys.executable, "-m", "py_compile", str(target)])
+    try:
+        python = _project_python()
+    except OSError as exc:
+        return f"ERROR: {exc}"
+    return run_subprocess(
+        [
+            python,
+            "-c",
+            "import pathlib, sys; compile(pathlib.Path(sys.argv[1]).read_text(encoding='utf-8'), sys.argv[1], 'exec')",
+            str(target),
+        ],
+        env=_python_environment(),
+    )
 
 
 # =============================================================================
@@ -1082,14 +1267,17 @@ def validate_python_file(relative_path: str) -> str:
 @audited
 def git_status() -> str:
     """Return the current Git repository status."""
-    return run_subprocess(["git", "status", "--short", "--branch"])
+    return run_subprocess(
+        ["git", "--no-pager", "status", "--short", "--branch"],
+        env=_git_environment(),
+    )
 
 
 @mcp.tool()
 @audited
 def git_diff(staged: bool = False, relative_path: str = "") -> str:
     """Return the current Git diff."""
-    command = ["git", "diff"]
+    command = ["git", "--no-pager", "diff", "--no-ext-diff", "--no-textconv"]
     if staged:
         command.append("--cached")
     if relative_path:
@@ -1098,7 +1286,7 @@ def git_diff(staged: bool = False, relative_path: str = "") -> str:
         except ValueError as exc:
             return f"ERROR: {exc}"
         command.extend(["--", relative_to_project(target)])
-    return run_subprocess(command)
+    return run_subprocess(command, env=_git_environment())
 
 
 @mcp.tool()
@@ -1106,7 +1294,10 @@ def git_diff(staged: bool = False, relative_path: str = "") -> str:
 def git_log(count: int = 10) -> str:
     """Return recent Git commits."""
     count = max(1, min(count, 100))
-    return run_subprocess(["git", "log", f"-{count}", "--oneline", "--decorate"])
+    return run_subprocess(
+        ["git", "--no-pager", "log", f"-{count}", "--oneline", "--decorate"],
+        env=_git_environment(),
+    )
 
 
 # =============================================================================
@@ -1114,7 +1305,7 @@ def git_log(count: int = 10) -> str:
 # =============================================================================
 
 GIT_READONLY_SUBCOMMANDS: frozenset[str] = frozenset({
-    "status", "diff", "log", "show", "rev-parse", "ls-files", "branch", "grep",
+    "status", "diff", "log", "show", "rev-parse", "ls-files",
 })
 
 
@@ -1130,9 +1321,19 @@ def git_command(args: list[str], timeout: int = 30) -> str:
             f"Permitted: {sorted(GIT_READONLY_SUBCOMMANDS)}"
         )
     for arg in args[1:]:
-        if arg == "-C" or arg.startswith("--git-dir") or arg.startswith("--work-tree"):
+        if (
+            arg in {"-C", "-c", "-o", "--output", "--no-index", "--ext-diff", "--textconv"}
+            or arg.startswith((
+                "--git-dir", "--work-tree", "--config-env", "--output=",
+                "--ext-diff=", "--textconv=",
+            ))
+        ):
             return f"ERROR: '{arg}' is not permitted in git_command."
-    return run_subprocess(["git", *args], timeout=timeout)
+    command = ["git", "--no-pager", *args]
+    if args[0] in {"diff", "show", "log"}:
+        command[3:3] = ["--no-ext-diff", "--no-textconv"]
+    timeout = max(1, min(timeout, 120))
+    return run_subprocess(command, timeout=timeout, env=_git_environment())
 
 
 # =============================================================================
@@ -1144,16 +1345,14 @@ def git_command(args: list[str], timeout: int = 30) -> str:
 def run_python_script(
     relative_path: str,
     arguments: list[str] | None = None,
-    timeout: int = 600,
+    timeout: int = MAX_SCRIPT_TIMEOUT_SECONDS,
 ) -> str:
     """
     Execute a Python script from the curated allowlist.
 
-    WARNING: This is a trusted escape hatch. A running script can bypass all
-    MCP-level path restrictions (frozen files, write prefixes, git state).
-    The server takes a recovery snapshot before executing a session-written
-    script so damage is reversible. Call verify_frozen_intact() afterwards
-    to detect frozen-file drift.
+    This remains a trusted operation: a Python process can bypass MCP-level
+    path restrictions. Only reviewed diagnostics are permitted, with fixed
+    arguments and a bounded runtime.
     """
     err = guard_exec(relative_path)
     if err:
@@ -1170,18 +1369,49 @@ def run_python_script(
         return "ERROR: Script path is not a file."
     if script.suffix.lower() != ".py":
         return "ERROR: run_python_script requires a .py file."
+    try:
+        python = _project_python()
+    except OSError as exc:
+        return f"ERROR: {exc}"
 
-    p = _norm(relative_path)
-    snapshot_note = ""
-    if p in SESSION_SCRIPTS:
-        snapshot_note = "\n" + maybe_snapshot(f"exec-{Path(p).stem}")
+    p = relative_to_project(script)
+    arguments = arguments or []
+    if any(not isinstance(argument, str) for argument in arguments):
+        return "ERROR: Script arguments must be strings."
+    if p == "src/validate_litho_contact_pipeline.py":
+        if len(arguments) != 2 or arguments[0] != "--report":
+            return "ERROR: Validator requires --report <new figures/audit/*.json path>."
+        try:
+            report_path = safe_path(arguments[1])
+        except ValueError as exc:
+            return f"ERROR: {exc}"
+        if (
+            report_path.parent != safe_path("figures/audit")
+            or report_path.suffix.lower() != ".json"
+            or report_path.exists()
+        ):
+            return "ERROR: Validator report must be a new .json directly under figures/audit/."
+    elif arguments:
+        return f"ERROR: Arguments are not permitted for {p}."
 
-    command = [sys.executable, str(script)]
-    if arguments:
-        command.extend(arguments)
+    if timeout < 1:
+        return "ERROR: Timeout must be a positive number of seconds."
+    timeout = min(timeout, MAX_SCRIPT_TIMEOUT_SECONDS)
+    intact, report = _execution_integrity_gate()
+    if not intact:
+        return report
 
-    result = run_subprocess(command, timeout=timeout)
-    return result + snapshot_note if snapshot_note else result
+    snapshot_note = maybe_snapshot(f"exec-{Path(p).stem}")
+    result = run_subprocess(
+        [python, str(script), *arguments],
+        timeout=timeout,
+        env=_python_environment(),
+    )
+    still_intact, after_report = _frozen_integrity_report()
+    suffix = f"\n{snapshot_note}"
+    if not still_intact:
+        suffix += f"\n\nFROZEN INTEGRITY CHECK FAILED AFTER EXECUTION:\n{after_report}"
+    return result + suffix
 
 
 # =============================================================================
@@ -1201,26 +1431,33 @@ PYTEST_ALLOWED_FLAGS: frozenset[str] = frozenset({
 def run_pytest(
     path: str = "",
     flags: list[str] | None = None,
-    timeout: int = 900,
+    timeout: int = MAX_PYTEST_TIMEOUT_SECONDS,
 ) -> str:
     """
-    Run pytest against the project's test suite.
+    Run one named, reviewed pytest file.
 
-    Only a curated set of flags is accepted (no plugin-loading flags).
-    A recovery snapshot is taken before execution.
+    Only a curated set of flags is accepted. Plugin autoload is disabled and
+    the subprocess output and duration are bounded.
     """
-    command = [sys.executable, "-m", "pytest"]
+    if not path:
+        return "ERROR: Specify one approved test file."
+    err = guard_test_path(path)
+    if err:
+        return err
 
-    if path:
-        err = guard_test_path(path)
-        if err:
-            return err
-        try:
-            command.append(str(safe_path(path)))
-        except ValueError as exc:
-            return f"ERROR: {exc}"
+    try:
+        python = _project_python()
+    except OSError as exc:
+        return f"ERROR: {exc}"
+    command = [python, "-m", "pytest"]
+    try:
+        command.append(str(safe_path(path)))
+    except ValueError as exc:
+        return f"ERROR: {exc}"
 
     if flags:
+        if len(flags) > 10 or any(not isinstance(flag, str) or len(flag) > 200 for flag in flags):
+            return "ERROR: Pytest flags are invalid or exceed the argument limit."
         i = 0
         while i < len(flags):
             f = flags[i]
@@ -1231,13 +1468,30 @@ def run_pytest(
             if f == "-k":
                 if i + 1 >= len(flags):
                     return "ERROR: -k requires an expression."
+                if flags[i + 1].startswith("-"):
+                    return "ERROR: -k expression cannot be another option."
                 command.append(flags[i + 1])
                 i += 1
             i += 1
 
+    if timeout < 1:
+        return "ERROR: Timeout must be a positive number of seconds."
+    timeout = min(timeout, MAX_PYTEST_TIMEOUT_SECONDS)
+    intact, report = _execution_integrity_gate()
+    if not intact:
+        return report
+
     snapshot_note = maybe_snapshot("pytest")
-    result = run_subprocess(command, timeout=timeout)
-    return result + f"\n{snapshot_note}"
+    result = run_subprocess(
+        command,
+        timeout=timeout,
+        env=_python_environment(for_pytest=True),
+    )
+    still_intact, after_report = _frozen_integrity_report()
+    suffix = f"\n{snapshot_note}"
+    if not still_intact:
+        suffix += f"\n\nFROZEN INTEGRITY CHECK FAILED AFTER TESTS:\n{after_report}"
+    return result + suffix
 
 
 # =============================================================================
@@ -1279,6 +1533,7 @@ def read_audit_output(relative_path: str, max_chars: int = 200000) -> str:
         return f"ERROR: Audit file does not exist: {relative_path}"
     if not target.is_file():
         return "ERROR: Not a file."
+    max_chars = max(1, min(max_chars, 200000))
 
     try:
         text = target.read_text(encoding="utf-8", errors="replace")
@@ -1305,6 +1560,8 @@ def write_audit_output(
     overwrite: bool = True,
 ) -> str:
     """Write a text audit output strictly inside figures/audit."""
+    if len(content.encode("utf-8")) > 1_000_000:
+        return "ERROR: Audit content exceeds the 1 MB write limit."
     audit_root = safe_path("figures/audit")
     full_rel = str(Path("figures/audit") / relative_path)
 
@@ -1344,27 +1601,32 @@ def write_audit_output(
 @audited
 def find_project_references(query: str, max_results: int = 200) -> str:
     """Search major research/project directories for a term."""
-    directories = ["src", "scripts", "tests", "docs", "figures/audit"]
+    directories = [
+        "src", "scripts", "tests", "docs", "figures/audit",
+        "paper_1/manuscript", "paper_1/stages",
+    ]
+    max_results = max(1, min(max_results, 500))
     results = []
     for directory in directories:
         target = safe_path(directory)
         if not target.exists():
             continue
         for file in target.rglob("*"):
-            if not file.is_file():
+            if not file.is_file() or _is_internal_path(file):
                 continue
             if file.suffix.lower() not in {
                 ".py", ".md", ".txt", ".csv", ".json", ".yaml", ".yml", ".log",
+                ".tex", ".bib",
             }:
                 continue
             try:
-                text = file.read_text(encoding="utf-8", errors="replace")
+                text = file.resolve().read_text(encoding="utf-8", errors="replace")
             except OSError:
                 continue
             for n, line in enumerate(text.splitlines(), start=1):
                 if query.lower() in line.lower():
                     results.append(
-                        f"{file.relative_to(PROJECT_ROOT)}:{n}: {line.strip()}"
+                        f"{file.relative_to(PROJECT_ROOT)}:{n}: {line.strip()[:300]}"
                     )
                     if len(results) >= max_results:
                         return (
@@ -1481,10 +1743,16 @@ def _verify_trash_gitignored() -> str | None:
 if __name__ == "__main__":
     AUDIT_LOG.parent.mkdir(parents=True, exist_ok=True)
 
-    # Capture the frozen-file baseline for this session.
-    baseline = _capture_frozen_baseline()
-    _write_frozen_baseline(baseline)
-    present_count = sum(1 for v in baseline["files"].values() if v["exists"])
+    baseline = _load_frozen_baseline()
+    present_count = (
+        sum(
+            1
+            for entry in baseline["files"].values()
+            if isinstance(entry, dict) and entry.get("exists") is True
+        )
+        if baseline is not None
+        else 0
+    )
 
     warn = _verify_trash_gitignored()
 
@@ -1497,9 +1765,16 @@ if __name__ == "__main__":
         f"  Allowlisted scripts: {len(ALLOWLISTED_SCRIPTS)}",
         f"  Audit log:           {AUDIT_LOG}",
         f"  Frozen baseline:     {FROZEN_BASELINE} "
-        f"({present_count}/{len(FROZEN_FILES)} present)",
+        f"({present_count}/{len(FROZEN_FILES)} marked present; unchanged)",
         f"  Snapshot debounce:   {_SNAPSHOT_DEBOUNCE_SECONDS}s",
     ]
+    if baseline is None:
+        startup_lines.append(
+            "  ERROR: Existing frozen baseline is missing or invalid; execution is disabled."
+        )
+    startup_lines.append(
+        "  NOTE: Baseline paths reference .nc traces; any .pkl trace files are not covered."
+    )
     if warn:
         startup_lines.append("  " + warn)
     print("\n".join(startup_lines), flush=True)
