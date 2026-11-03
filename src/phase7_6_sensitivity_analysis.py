@@ -21,7 +21,7 @@ def run_sensitivity_analysis():
 
     print("--- 1. Loading Data & Preparing Folds ---")
 
-    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     features = [
@@ -329,12 +329,12 @@ def run_sensitivity_analysis():
     os.makedirs(output_dir, exist_ok=True)
 
     df_axis_a.to_csv(
-        output_dir / 'phase7_6_axis_a_training_info.csv',
+        output_dir / 'phase7_6_axis_a_training_info_v14_centroid.csv',
         index=False
     )
 
     df_axis_b.to_csv(
-        output_dir / 'phase7_6_axis_b_test_positives.csv',
+        output_dir / 'phase7_6_axis_b_test_positives_v14_centroid.csv',
         index=False
     )
 

@@ -200,7 +200,7 @@ These are SD-normalized shares of dispersion in the decomposed posterior-mean OO
 
 Model performance is evaluated across the four along-belt spatial holdout partitions using three complementary metrics:
 1. **Receiver Operating Characteristic Area Under the Curve (ROC-AUC):** Measures the ranking discrimination across all classification thresholds, independent of class prevalence.
-2. **Precision-Recall Area Under the Curve (PR-AUC):** Evaluates precision across recall levels, providing a stringent assessment under severe class imbalance (138 deposits out of 1,872 cells, ~7.4% base rate).
+2. **Precision-Recall Area Under the Curve (PR-AUC):** Reported as non-interpolated average precision, $\mathrm{AP}=\sum_n (R_n-R_{n-1})P_n$, using the distinct thresholds from the precision-recall curve. This gives a prevalence-sensitive summary under severe class imbalance (138 deposits out of 1,872 cells, ~7.4% base rate) and avoids treating trapezoidal interpolation of the threshold curve as the primary PR metric. Fold means are unweighted descriptive summaries; they are not pooled OOF metrics.
 3. **Brier Score:** Evaluates mean squared probability calibration error: $\frac{1}{N} \sum_{i=1}^N (\hat{p}_i - Y_i)^2$.
 
 The primary pooled and fold-level metric intervals use 1,000 row-bootstrap resamples of fixed OOF scores. Separately, the multiscale spatial block bootstrap resamples occupied coordinate blocks at $10\times10$, $15\times15$, $20\times20$, and $25\times25$ grid-unit scales to assess robustness of performance differences. These procedures quantify metric uncertainty and are distinct from posterior uncertainty in cell-conditional probabilities.

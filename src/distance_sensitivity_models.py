@@ -26,25 +26,27 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import src.runtime_shim  # noqa: F401,E402
+
 import numpy as np
 import pandas as pd
 import pymc as pm
 import arviz as az
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score, precision_recall_curve, auc, brier_score_loss
 from scipy.special import expit
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+from src.numerics import StandardScaler, average_precision_score, brier_score_loss, roc_auc_score
 
 from src.validation_strategies import get_along_belt_folds
 
 # â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-DATA_PATH = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
-FROZEN_TRACE_DIR = ROOT / 'figures'
-OUTPUT_DIR = ROOT / 'figures' / 'audit' / 'distance_representation_sensitivity'
+DATA_PATH = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'
+FROZEN_TRACE_DIR = ROOT / 'figures' / 'v14_centroid_contact'
+OUTPUT_DIR = ROOT / 'figures' / 'audit' / 'distance_representation_sensitivity_v14_centroid'
 TRACE_OUTPUT_DIR = OUTPUT_DIR / 'traces'
 
 DOMAINS = ['CRZ', 'MMSB', 'NKB', 'NRB_3a', 'NRB_3b', 'SRB']
@@ -94,8 +96,7 @@ def load_modeling_data():
 def calc_pr_auc(y_true, y_prob):
     if sum(y_true) == 0 or sum(y_true) == len(y_true):
         return np.nan
-    precision, recall, _ = precision_recall_curve(y_true, y_prob)
-    return auc(recall, precision)
+    return average_precision_score(y_true, y_prob)
 
 
 # â”€â”€ Scaler construction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

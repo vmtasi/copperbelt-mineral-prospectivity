@@ -13,7 +13,7 @@ COLS = {'fault':'distance_to_fault','lithology':'distance_to_lithology_contact'}
 NAMES = {'fault':('beta_f_lin','beta_f_sq'),'lithology':('beta_l_lin','beta_l_sq')}
 
 def main():
-    df=pd.read_csv(ROOT/'data/copperbelt_training_v13_litho_contact.csv').dropna(subset=['centroid_x','centroid_y','domain','litho_contact_litho_class','distance_to_fault','distance_to_lithology_contact','bouguer','deposit_present']).copy()
+    df=pd.read_csv(ROOT/'data/copperbelt_training_v14_centroid_contact.csv').dropna(subset=['centroid_x','centroid_y','domain','litho_contact_litho_class','distance_to_fault','distance_to_lithology_contact','bouguer','deposit_present']).copy()
     def md(x):
         s=str(x).lower()
         for token,name in [('3a','NRB_3a'),('3b','NRB_3b'),('crz','CRZ'),('srb','SRB'),('nkb','NKB'),('mmsb','MMSB')]:
@@ -26,7 +26,7 @@ def main():
     for dom,key,fold in CASES:
         train=df[df.spatial_block != fold-1]
         sc=StandardScaler().fit(train[[COLS[key]]]); mu=float(sc.mean_[0]); sig=float(sc.scale_[0])
-        tr=load_trace(ROOT/f'figures/v11_fold_{fold}_trace.nc')
+        tr=load_trace(ROOT/f'figures/v14_centroid_contact/v14_centroid_fold_{fold}_trace.nc')
         a,b=NAMES[key]; j=DOMAINS.index(dom)
         b1=tr.posterior[a].values.reshape(-1,6)[:,j]; b2=tr.posterior[b].values.reshape(-1,6)[:,j]
         valid=np.abs(b2)>1e-5
@@ -37,7 +37,7 @@ def main():
         slope=(b1[k]+2*b2[k]*((d*1000-mu)/sig))
         rows.append({'Fold':fold,'Domain':dom,'Variable':key,'draw_index':k,'beta_lin':b1[k],'beta_sq':b2[k],'manual_Dstar_km':d,'manual_slope_at_Dstar':slope,'support_min_km':support[0],'support_max_km':support[1],'formula_residual_slope':slope})
     out=pd.DataFrame(rows)
-    gen=pd.read_csv(ROOT/'figures/audit/beta_diagnostics/beta_diagnostics_four_cases_by_fold.csv')
+    gen=pd.read_csv(ROOT/'figures/audit/beta_diagnostics_v14_centroid/beta_diagnostics_four_cases_by_fold.csv')
     for _,r in out.iterrows():
         g=gen[(gen.Fold==r.Fold)&(gen.Domain==r.Domain)&(gen.Variable==r.Variable)].iloc[0]
         # Recompute D* from the generated medians as a second independent algebra check.

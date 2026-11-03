@@ -12,7 +12,7 @@ The two distance predictors therefore permit nonlinear fitted response shapes; B
 
 ## Lithology-Contact Data Provenance
 
-The active lithology-contact predictor is the minimum Euclidean distance from each grid-cell centroid to the nearest mapped **internal** lithological contact in EPSG:32735; the outer study-area perimeter is excluded. The validated reconstruction is `data/derived/litho_contact_distance_v13.csv` / `.gpkg`, and the canonical modelling table is `data/copperbelt_training_v13_litho_contact.csv` with exactly one row per grid cell. The archived surficial-lithology class is retained only as a secondary categorical attribute and was not reconstructed from the nearest-contact geometry. The superseded many-to-many candidate table and its first-row-per-cell columns are preserved in the read-only archive at `archive/litho_contact_repair_2026-10-18/` and are not read by the active pipeline.
+The active lithology-contact predictor is the minimum planar distance from each clipped grid-cell polygon to the nearest mapped **internal** lithological contact in EPSG:32735; it is zero where a contact intersects or touches the cell, and the outer study-area perimeter is excluded. It is therefore a polygon-to-contact feature, not a centroid-to-contact feature. The validated reconstruction is `data/derived/litho_contact_distance_v13.csv` / `.gpkg`, and the canonical modelling table is `data/copperbelt_training_v13_litho_contact.csv` with exactly one row per grid cell. The archived surficial-lithology class is retained only as a secondary categorical attribute and was not reconstructed from the nearest-contact geometry. The superseded many-to-many candidate table and its first-row-per-cell columns are preserved in the read-only archive at `archive/litho_contact_repair_2026-10-18/` and are not read by the active pipeline. The definition mismatch is documented in `figures/audit/contact_distance_definition_check.json`; changing to a centroid definition would require refitting the frozen V11 traces and was not done.
 
 The research datasets and historical archive are intentionally kept out of
 GitHub. The canonical CSV is covered by the existing `data/*.csv` ignore rule;
@@ -24,7 +24,7 @@ not available.
 
 ## Current Validation Status (2026-10-18)
 
-The corrected distance has been propagated through the full pipeline. The canonical table contains 1,899 cells (1,872 complete-case; 138 positive; 1,734 background), with four folds of 468 cells and positive counts `[9, 31, 37, 61]`. The V11 refit gives fold ROC-AUC values of 0.846, 0.709, 0.687, and 0.605 (mean 0.712). Pooled OOF ROC-AUC is 0.707 (95% interval 0.667--0.744) versus 0.559 (0.509--0.615) for the compact global baseline, a gain of +0.147 (0.073--0.217); pooled PR-AUC is 0.135 versus 0.114.
+The corrected distance has been propagated through the full pipeline. The canonical table contains 1,899 cells (1,872 complete-case; 138 positive; 1,734 background), with four folds of 468 cells and positive counts `[9, 31, 37, 61]`. The V11 refit gives fold ROC-AUC values of 0.846, 0.709, 0.687, and 0.605 (mean 0.712). Pooled OOF ROC-AUC is 0.707 (95% row-bootstrap interval 0.667--0.744) versus 0.559 (0.509--0.615) for the compact global baseline, a gain of +0.147 (0.073--0.217). Pooled PR-AUC, defined as non-interpolated average precision, is 0.134 versus 0.113. Fold-level PR-AUC is not interchangeable with pooled PR-AUC because positive prevalence differs.
 
 Validation entry points:
 
@@ -36,19 +36,20 @@ Validation entry points:
 
 The aggregate-only sensitivity mode regenerates its tables from the refitted traces without sampling. Ordinary pipeline stages read only the canonical V13 table and never the historical archive.
 
-The repository's pytest dependency is pinned in `requirements-test.txt`. From
-PowerShell, install it into the project environment and run the reviewed tests:
+The repository's pytest dependency is pinned in `requirements-test.txt`. The
+legacy `.venv` contains pytest but its native scikit-learn build targets
+CPython 3.10, so pytest is loaded by the QGIS Python runner while
+`src.numerics` supplies compatible numerical fallbacks:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements-test.txt
-.\.venv\Scripts\python.exe -m pytest -q tests\test_distance_sensitivity_math.py tests\test_litho_contact_pipeline.py tests\test_mcp_server_policy.py
+.runtime_vendor\run_qgis_python.bat tools\run_pytest_qgis.py -q tests
 ```
 
 The lithology-contact validator requires an explicit new report path so the
 existing audit report is never replaced:
 
 ```powershell
-.\.venv\Scripts\python.exe src\validate_litho_contact_pipeline.py --report figures\audit\litho_contact_pipeline_validation_recheck.json
+.runtime_vendor\run_qgis_python.bat src\validate_litho_contact_pipeline.py --report figures\audit\litho_contact_pipeline_validation_recheck.json
 ```
 
 ## Spatial and Nonlinear Analysis

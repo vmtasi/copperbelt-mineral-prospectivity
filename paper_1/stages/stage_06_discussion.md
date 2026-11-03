@@ -9,7 +9,7 @@ This study evaluates a hierarchical Bayesian prospectivity model using four alon
 3. **Recurring Distance Associations Across Representations:** Proximity to faults and lithological contacts exhibits a recurring predictive association with mineralization log-odds across the evaluated representations, with magnitude and transferability varying by spatial fold.
 4. **Representation sensitivity of curvature:** Posterior support for quadratic curvature differs between raw and log distance representations. The sensitivity analysis establishes this difference for the evaluated specifications but does not identify a unique response form or the geological mechanism behind the difference.
 5. **Diagnostic Limits of $D^*$ as a Physical Quantity:** The derived algebraic stationary point $D^*$ fails the pre-registered operational robustness criteria in 47 of 48 cases; only Fold 1 NRB_3a lithological contact satisfied all three criteria simultaneously (1 of 48, 2.1%). At the population level, $D^*$ suffers from denominator singularity with credible intervals spanning $[-376, +379]\ \mathrm{km}$. Quadratic curvature is representation-dependent, population-level $D^*$ is not identifiable, and domain/fold stationary points should not be interpreted as invariant geological distances.
-6. **Discrimination across evaluated specifications:** Mean OOF ROC-AUC ranges from $0.688$ to $0.719$ across the four distance representations; log-linear Model D has the highest mean ROC-AUC ($0.7188$) and mean PR-AUC ($0.197$). These fold-specific comparisons do not establish a universally preferable model form.
+6. **Discrimination across evaluated specifications:** Mean OOF ROC-AUC ranges from $0.688$ to $0.719$ across the four distance representations; log-linear Model D has the highest mean ROC-AUC ($0.7188$) and mean PR-AUC ($0.201$, average precision). These unweighted fold means are not pooled OOF metrics and do not establish a universally preferable model form.
 
 ## 6.2 Interpreting spatial variation cautiously
 
@@ -27,7 +27,7 @@ Two empirical results motivate this caution:
 1. **Representation change:** Applying $\log(1+x_{\mathrm{km}})$ compresses upper-tail values, and the posterior curvature support differs between Models A and B. This difference does not establish that the log-linear model is the true response function.
 2. **Tail perturbation:** Under the specified $p_{95}$ training-data truncation, Fold 1 AUC changes from $0.846$ to $0.616$ (Model A) and from $0.829$ to $0.656$ (Model B). This demonstrates sensitivity to that perturbation, not a general causal role for distal background cells.
 
-Model D has the highest mean ROC-AUC ($0.7188$) and mean PR-AUC ($0.197$). The two linear specifications bracket the quadratic specifications in mean ROC-AUC, so the comparison supports evaluating simpler forms but does not establish that they are universally preferable.
+Model D has the highest mean ROC-AUC ($0.7188$) and mean PR-AUC ($0.201$, average precision). The two linear specifications bracket the quadratic specifications in mean ROC-AUC, so the comparison supports evaluating simpler forms but does not establish that they are universally preferable.
 
 ## 6.4 The diagnostic limits of $D^*$ and avoidance of false reification
 

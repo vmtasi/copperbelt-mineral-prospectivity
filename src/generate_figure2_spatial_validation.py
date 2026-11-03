@@ -51,7 +51,7 @@ from qgis.core import (
 
 ROOT = Path(__file__).resolve().parents[1]
 FROZEN_FOLDS = ROOT / "figures" / "figure2_spatial_validation_cells.gpkg"
-TRAINING_CSV = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
+TRAINING_CSV = ROOT / "data" / "copperbelt_training_v14_centroid_contact.csv"
 OUTPUT_GPKG = ROOT / "figures" / "figure2_spatial_validation_display_cells.gpkg"
 OUTPUT_PNG = ROOT / "paper_1" / "manuscript" / "images" / "fig2_spatial_validation_design.png"
 OUTPUT_PDF = ROOT / "paper_1" / "manuscript" / "images" / "fig2_spatial_validation_design.pdf"
@@ -328,7 +328,7 @@ def _build_layout(project: QgsProject, cells: QgsVectorLayer, verification: dict
     layout.addLayoutItem(map_item)
 
     _add_label(layout, "Four-fold along-belt spatial validation design", 10, 7, 190, 8, 13, True)
-    _add_label(layout, "Frozen V11 assignments: 1,872 modelling cells (5 km Ã— 5 km); each fold held out in turn", 10, 16, 190, 7, 7.2)
+    _add_label(layout, "Frozen along-belt assignments: 1,872 modelling cells (5 km Ã— 5 km); each fold held out in turn", 10, 16, 190, 7, 7.2)
     _add_label(layout, "MAP KEY", 166, 32, 38, 6, 8, True)
     _add_label(layout, "Held-out fold", 166, 40, 38, 5, 7.5, True)
 
@@ -365,7 +365,7 @@ def _build_layout(project: QgsProject, cells: QgsVectorLayer, verification: dict
     layout.addLayoutItem(scale)
 
     _add_label(layout, "Projection: WGS 84 / UTM zone 35S (EPSG:32735)", 166, 164, 38, 11, 6.4)
-    _add_label(layout, "Fold source: reconstructed V11 OOF posterior-uncertainty artifact. Geological context shown only for orientation.", 166, 177, 38, 17, 5.8)
+    _add_label(layout, "Fold source: recorded stable-ID grid-cell assignments. Geological context shown only for orientation.", 166, 177, 38, 17, 5.8)
     return layout
 
 

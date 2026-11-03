@@ -16,9 +16,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from src.validation_strategies import get_along_belt_folds
-DATA_PATH = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
-TRACE_DIR = ROOT / "figures"
-OUT_DIR = ROOT / "figures" / "audit" / "beta_diagnostics"
+DATA_PATH = ROOT / "data" / "copperbelt_training_v14_centroid_contact.csv"
+TRACE_DIR = ROOT / "figures" / "v14_centroid_contact"
+OUT_DIR = ROOT / "figures" / "audit" / "beta_diagnostics_v14_centroid"
 
 DOMAINS = ["CRZ", "MMSB", "NKB", "NRB_3a", "NRB_3b", "SRB"]
 DISTANCE_VARS = {
@@ -95,9 +95,9 @@ def run_beta_diagnostics():
 
     for fold in range(4):
         train = df[df["spatial_block"] != fold].copy()
-        trace_path = TRACE_DIR / f"v11_fold_{fold + 1}_trace.nc"
+        trace_path = TRACE_DIR / f"v14_centroid_fold_{fold + 1}_trace.nc"
         if not trace_exists(trace_path):
-            raise FileNotFoundError(f"Missing V11 posterior trace: {trace_path}")
+            raise FileNotFoundError(f"Missing V14 posterior trace: {trace_path}")
         trace = load_trace(trace_path)
         traces[fold + 1] = trace
 

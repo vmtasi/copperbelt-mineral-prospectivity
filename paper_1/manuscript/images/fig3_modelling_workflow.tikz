@@ -32,9 +32,9 @@
 \node[workflowbox] (prepare) at (98,33)
   {Learn scaling and lithology support from training cells only; transform training and held-out cells consistently; then form $z_f^2$ and $z_l^2$};
 \node[workflowbox] (fit) at (58,33)
-  {Fit on training cells only\\DVHM: partially pooled, domain-varying logistic model\\CGLB: compact global logistic baseline};
+  {Fit on training cells only\\DVHM: partially pooled, domain-varying logistic model\\Comparator: global logistic model with the same four predictors};
 \node[workflowbox] (predict) at (18,33)
-  {Predict held-out cells\\DVHM posterior probabilities and CGLB scores};
+  {Predict held-out cells\\DVHM posterior probabilities and matched global scores};
 \draw[workflowarrow] (folds.south) -- (split.north);
 \draw[workflowarrow] (split.west) -- (prepare.east);
 \draw[workflowarrow] (prepare.west) -- (fit.east);

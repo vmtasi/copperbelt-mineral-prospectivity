@@ -1,18 +1,18 @@
 ﻿"""
 generate_oof_posterior_uncertainty.py
 =====================================
-Reconstruct cell-level posterior probability distributions from frozen V11
+Reconstruct cell-level posterior probability distributions from the V14 V11-specification
 traces and export QGIS-ready geospatial data with uncertainty statistics.
 
 This script:
-1. Loads the same data and applies the identical preprocessing as the frozen
-   V11 pipeline (v11_spatial_stability_final.py).
+1. Loads the V14 centroid-contact data and applies the identical preprocessing as
+   the frozen V11 specification (v11_spatial_stability_final.py).
 2. For each of 4 spatial folds, loads the frozen trace and reconstructs
    3,000 draw-wise conditional probabilities p_i^(s) = logistic(eta_i^(s))
    for every held-out cell.
 3. Computes posterior summary statistics (mean, median, SD, 2.5%/97.5%
    quantiles, 95% interval width).
-4. Validates that reconstructed prob_mean reproduces frozen prob_v11 within
+4. Validates that reconstructed prob_mean reproduces prob_v14 within
    floating-point tolerance.
 5. Validates and reuses the recorded 5 km cell polygons and exports a
    polygon GeoPackage, CSV, publication map, and a separate uncertainty map.
@@ -28,6 +28,15 @@ separately named files, and existing output files are never overwritten.
 
 import sys
 import sqlite3
+from pathlib import Path
+
+# Setup paths
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import src.runtime_shim  # noqa: F401,E402  (must precede pandas/geopandas)
+
 import pyproj  # noqa: F401 - must precede numpy/geopandas in the QGIS runtime
 import hashlib
 import numpy as np
@@ -40,14 +49,8 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
-from sklearn.preprocessing import StandardScaler
-from pathlib import Path
+from src.numerics import StandardScaler
 from scipy.spatial import cKDTree
-
-# Setup paths
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 from src.trace_io import load_trace, resolve_trace_path
 from src.validation_strategies import get_along_belt_folds
@@ -57,9 +60,9 @@ FIG_DIR = ROOT / 'figures'
 
 GRID_GPKG = FIG_DIR / 'figure2_spatial_validation_cells.gpkg'
 GRID_LAYER = 'spatial_validation_cells'
-OUT_GPKG = FIG_DIR / 'v11_oof_posterior_uncertainty_reconstructed.gpkg'
-OUT_CSV = FIG_DIR / 'v11_oof_posterior_uncertainty_reconstructed.csv'
-LAYER_NAME = 'v11_oof_probability_uncertainty'
+OUT_GPKG = FIG_DIR / 'v14_centroid_oof_posterior_uncertainty.gpkg'
+OUT_CSV = FIG_DIR / 'v14_centroid_oof_posterior_uncertainty.csv'
+LAYER_NAME = 'v14_centroid_oof_probability_uncertainty'
 MAP_DIR = ROOT / 'paper_1' / 'manuscript' / 'images'
 MAP_PDF = MAP_DIR / 'fig4_oof_prospectivity.pdf'
 MAP_PNG = MAP_DIR / 'fig4_oof_prospectivity.png'
@@ -71,11 +74,11 @@ REPRODUCTION_TOLERANCE = 1e-15
 # Frozen file integrity
 # -------------------------------------------------------------------------
 PROTECTED_FILES = [
-    FIG_DIR / 'v11_fold_1_trace.nc',
-    FIG_DIR / 'v11_fold_2_trace.nc',
-    FIG_DIR / 'v11_fold_3_trace.nc',
-    FIG_DIR / 'v11_fold_4_trace.nc',
-    FIG_DIR / 'v11_oof_predictions.csv',
+    FIG_DIR / 'v14_centroid_contact' / 'v14_centroid_fold_1_trace.nc',
+    FIG_DIR / 'v14_centroid_contact' / 'v14_centroid_fold_2_trace.nc',
+    FIG_DIR / 'v14_centroid_contact' / 'v14_centroid_fold_3_trace.nc',
+    FIG_DIR / 'v14_centroid_contact' / 'v14_centroid_fold_4_trace.nc',
+    FIG_DIR / 'v14_centroid_contact' / 'v14_centroid_oof_predictions.csv',
     ROOT / 'src' / 'v11_spatial_stability_final.py',
     ROOT / 'src' / 'validation_strategies.py',
     GRID_GPKG,
@@ -293,7 +296,7 @@ def render_map(gdf, value_column, title, colorbar_label, output_pdf, output_png,
 # Data loading â€” identical to v11_spatial_stability_final.py
 # -------------------------------------------------------------------------
 def load_prepared_data():
-    data_path = DATA_DIR / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = DATA_DIR / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -340,7 +343,7 @@ def load_prepared_data():
 # -------------------------------------------------------------------------
 def main(force=False):
     print("=" * 70)
-    print("V11 OOF POSTERIOR RECONSTRUCTION AND FIGURE 4")
+    print("V14 OOF POSTERIOR RECONSTRUCTION AND FIGURE 4")
     print("=" * 70)
 
     # Pre-flight checks
@@ -357,20 +360,22 @@ def main(force=False):
     verify_integrity("Start")
 
     # Load data
-    print("\n--- Loading data and applying V11 preprocessing ---")
+    print("\n--- Loading data and applying frozen V11-specification preprocessing ---")
     df, unique_domains, all_rock_features = load_prepared_data()
     n_folds = 4
     n_domains = len(unique_domains)
     if len(df) != 1872:
         raise ValueError(f"Expected 1,872 complete-case cells, found {len(df)}")
-    if df.duplicated(['centroid_x', 'centroid_y']).any():
-        raise ValueError("Complete-case model coordinates are not unique")
+    if df['id'].duplicated().any():
+        raise ValueError("Complete-case model ids are not unique")
     print(f"  Total cells: {len(df)}")
     print(f"  Domains ({n_domains}): {unique_domains}")
 
     # Load frozen OOF predictions for validation
-    oof_frozen = pd.read_csv(FIG_DIR / 'v11_oof_predictions.csv')
-    assert len(oof_frozen) == 1872, f"Expected 1872 frozen OOF rows, got {len(oof_frozen)}"
+    oof_frozen = pd.read_csv(
+        FIG_DIR / 'v14_centroid_contact' / 'v14_centroid_oof_predictions.csv'
+    )
+    assert len(oof_frozen) == 1872, f"Expected 1872 V14 OOF rows, got {len(oof_frozen)}"
 
     # Collect results across folds
     all_rows = []
@@ -411,7 +416,7 @@ def main(force=False):
         print(f"  Valid rock features: {len(valid_rocks)}")
 
         # Load frozen trace
-        trace_path = FIG_DIR / f'v11_fold_{fold_num}_trace.nc'
+        trace_path = FIG_DIR / 'v14_centroid_contact' / f'v14_centroid_fold_{fold_num}_trace.nc'
         trace = load_trace(trace_path)
         trace_draws = int(
             trace.posterior.sizes['chain'] * trace.posterior.sizes['draw']
@@ -484,10 +489,12 @@ def main(force=False):
         # Collect per-cell rows
         cx = test_df['centroid_x'].values
         cy = test_df['centroid_y'].values
+        ids = test_df['id'].values
         domains = test_df['daly_domain'].values
 
         for i in range(n_test):
             all_rows.append({
+                'id': ids[i],
                 'centroid_x': cx[i],
                 'centroid_y': cy[i],
                 'spatial_block': fold,
@@ -519,21 +526,26 @@ def main(force=False):
     assert len(result_df) == 1872, f"Expected 1872 cells, got {len(result_df)}"
     print(f"  [QC1 PASS] Exactly {len(result_df)} cells")
 
-    # QC2: Coordinate and row ordering match frozen OOF
-    # Sort both by coordinates for matching (fold order may differ from
-    # frozen CSV row order)
-    result_sorted = result_df.sort_values(
-        ['centroid_x', 'centroid_y']
-    ).reset_index(drop=True)
-    frozen_sorted = oof_frozen.sort_values(
-        ['centroid_x', 'centroid_y']
-    ).reset_index(drop=True)
+    # QC2: Grid-cell identity, coordinates and observed labels match frozen OOF
+    result_indexed = result_df.set_index('id')
+    frozen_indexed = oof_frozen.set_index('id')
+    missing_ids = set(frozen_indexed.index) - set(result_indexed.index)
+    extra_ids = set(result_indexed.index) - set(frozen_indexed.index)
+    assert not missing_ids and not extra_ids, (
+        f"Grid-cell id mismatch: {len(missing_ids)} missing, {len(extra_ids)} extra"
+    )
+    aligned = result_indexed.join(
+        frozen_indexed[['centroid_x', 'centroid_y', 'deposit_present', 'prob_v14']],
+        how='inner',
+        lsuffix='',
+        rsuffix='_frozen',
+    )
 
     coord_diff_x = np.abs(
-        result_sorted['centroid_x'].values - frozen_sorted['centroid_x'].values
+        aligned['centroid_x'].values - aligned['centroid_x_frozen'].values
     )
     coord_diff_y = np.abs(
-        result_sorted['centroid_y'].values - frozen_sorted['centroid_y'].values
+        aligned['centroid_y'].values - aligned['centroid_y_frozen'].values
     )
     assert coord_diff_x.max() < 1e-3, (
         f"X coordinate mismatch: max diff = {coord_diff_x.max()}"
@@ -541,21 +553,29 @@ def main(force=False):
     assert coord_diff_y.max() < 1e-3, (
         f"Y coordinate mismatch: max diff = {coord_diff_y.max()}"
     )
-    print(f"  [QC2 PASS] Coordinates match frozen OOF (max diff X={coord_diff_x.max():.2e}, Y={coord_diff_y.max():.2e})")
+    label_mismatch = int(
+        (aligned['deposit_present'].values != aligned['deposit_present_frozen'].values).sum()
+    )
+    assert label_mismatch == 0, f"{label_mismatch} observed labels disagree with frozen OOF"
+    print(
+        f"  [QC2 PASS] {len(aligned)} cells matched on grid-cell id; "
+        f"coordinates and labels agree (max diff X={coord_diff_x.max():.2e}, "
+        f"Y={coord_diff_y.max():.2e})"
+    )
 
-    # QC3: Reconstructed prob_mean reproduces prob_v11
+    # QC3: Reconstructed prob_mean reproduces prob_v14
     prob_diff = np.abs(
-        result_sorted['prob_mean'].values - frozen_sorted['prob_v11'].values
+        aligned['prob_mean'].values - aligned['prob_v14'].values
     )
     max_diff = prob_diff.max()
     mean_diff = prob_diff.mean()
-    print(f"  [QC3] prob_mean vs prob_v11: max_diff={max_diff:.2e}, mean_diff={mean_diff:.2e}")
+    print(f"  [QC3] prob_mean vs prob_v14: max_diff={max_diff:.2e}, mean_diff={mean_diff:.2e}")
     assert max_diff <= REPRODUCTION_TOLERANCE, (
         "Reconstruction mismatch exceeds the floating-point tolerance: "
         f"max_diff={max_diff:.17g}, tolerance={REPRODUCTION_TOLERANCE:.1e}"
     )
     print(
-        "  [QC3 PASS] Reconstructed prob_mean reproduces prob_v11: "
+        "  [QC3 PASS] Reconstructed prob_mean reproduces prob_v14: "
         f"max_diff={max_diff:.3e}, mean_diff={mean_diff:.3e}"
     )
 
@@ -601,13 +621,13 @@ def main(force=False):
     print(f"  [+] CSV: {OUT_CSV}")
 
     render_map(
-        gdf, 'prob_mean', 'V11 out-of-fold prospectivity',
+        gdf, 'prob_mean', 'Out-of-fold prospectivity',
         'Posterior mean conditional occurrence probability',
         MAP_PDF, MAP_PNG, show_deposits=True,
     )
     render_map(
         gdf, 'prob_interval_width95',
-        'V11 posterior uncertainty in conditional probability',
+        'Posterior uncertainty in conditional probability',
         '95% credible-interval width',
         UNCERTAINTY_MAP_PDF, UNCERTAINTY_MAP_PNG, show_deposits=False,
     )
@@ -631,7 +651,7 @@ def main(force=False):
     print("  Geometry type:         Original clipped 5 km modelling-cell polygons")
     print(f"  Max centroid offset:   {max_centroid_distance:.6f} m")
     print(f"  Fields:                {list(result_df.columns)}")
-    print(f"  Validation:            prob_mean reproduces prob_v11 (max diff {max_diff:.3e})")
+    print(f"  Validation:            prob_mean reproduces prob_v14 (max diff {max_diff:.3e})")
     print(f"  Probability range:     [{gdf.prob_mean.min():.6f}, {gdf.prob_mean.max():.6f}]")
     print()
     print("  Summary statistics:")

@@ -1,0 +1,147 @@
+{
+  "manifest_schema_version": 1,
+  "dataset_version": "V14_CENTROID_CONTACT",
+  "generated_utc": "2026-10-20T16:33:31.781371Z",
+  "generator": "src/rebuild_litho_contact_centroid_features.py",
+  "distance_definition": "Minimum Euclidean distance in metres from each verified grid-cell centroid (centroid_x, centroid_y) to the nearest actual mapped internal lithological-contact line geometry, excluding the outer study-area perimeter.",
+  "distance_column": "distance_to_lithology_contact",
+  "crs_epsg": 32735,
+  "base_training": {
+    "path": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\copperbelt_training_v13_litho_contact.csv",
+    "sha256": "ccf8f4c256aebf6039d4ef87a6516ba50a41eeb4ee4100ac5c4aca74d9005af3",
+    "rows": 1899,
+    "unique_ids": 1899
+  },
+  "source_geometry": {
+    "path": "C:\\Project\\data for projects\\internal_contacts_only.gpkg",
+    "sha256": "0f444bf21a24a1efe87a8fdcbb1403be7dc31b0c9b7f2cd0e41d375620531fb5",
+    "bytes": 327680,
+    "layer": "internal_contacts_only",
+    "feature_count": 259,
+    "geometry_types": [
+      "MultiLineString"
+    ],
+    "crs": "EPSG:32735",
+    "crs_epsg": 32735,
+    "fields": [
+      "fid",
+      "litho_class"
+    ],
+    "bounds_m": [
+      281415.3789077075,
+      8378098.210176006,
+      700659.3789077075,
+      8843377.210176006
+    ],
+    "null_geometry_count": 0,
+    "empty_geometry_count": 0,
+    "invalid_geometry_count": 0,
+    "total_line_length_m": 2201124.0,
+    "litho_class_counts": {
+      "4": 75,
+      "6": 3,
+      "7": 54,
+      "14": 5,
+      "16": 27,
+      "20": 95
+    }
+  },
+  "perimeter_exclusion_evidence": {
+    "perimeter_path": "C:\\Project\\data for projects\\outer_boundary_line.gpkg",
+    "perimeter_available": true,
+    "contacts_perimeter_intersection_length_m": 0.0,
+    "contacts_length_m": 2201124.0,
+    "perimeter_length_m": 13361496.0,
+    "all_lines_length_m": 15562620.0,
+    "length_partition_difference_m": 0.0,
+    "status": "PASS",
+    "perimeter_sha256": "8cc8109398458260038c5373669fed898da4947cda236728de0e4166178daf18",
+    "perimeter_feature_count": 1,
+    "all_lines_path": "C:\\Project\\data for projects\\all_lithology_lines.gpkg",
+    "all_lines_sha256": "d7d4d09150bd555722c86d745f4e01a47b625092de712b90ffe52929603ed4c5"
+  },
+  "outputs": {
+    "distance_csv": {
+      "path": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\derived\\litho_contact_centroid_distance_v14.csv",
+      "sha256": "f982dba4e8a3d893130cf762d4c0b4949ddd771b6157dd5cc231e1f4aea41356",
+      "rows": 1899
+    },
+    "distance_gpkg": {
+      "path": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\derived\\litho_contact_centroid_distance_v14.gpkg",
+      "sha256": "6f5a061a68b4cd7776dcef74ab78e45cb7d12f2a611651138101c43ec8833404",
+      "rows": 1899,
+      "layer": "litho_contact_centroid_distance",
+      "geometry_type": "Point",
+      "crs_epsg": 32735
+    },
+    "training_table": {
+      "path": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\copperbelt_training_v14_centroid_contact.csv",
+      "sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+      "rows": 1899,
+      "unique_ids": 1899
+    }
+  },
+  "distance_summary_m": {
+    "minimum": 11.132992292521521,
+    "median": 11979.614290874857,
+    "mean": 16306.396645280545,
+    "maximum": 70130.56090244139,
+    "zero_distances": 0,
+    "tied_minimum_cells": 1899
+  },
+  "comparison_with_v13_polygon_distance": {
+    "status": "PASS",
+    "path": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\derived\\litho_contact_distance_v13.csv",
+    "sha256": "dda749f927762363c343021b5b9402c551076736f071ab51f35cf29621cb2e08",
+    "matched_rows": 1899,
+    "v13_zero_distance_cells": 270,
+    "v14_zero_distance_cells": 0,
+    "changed_over_1e-9_m": 1899,
+    "minimum_change_m": 1.565729984419022,
+    "maximum_change_m": 5392.7829840722825,
+    "mean_change_m": 2004.1112996326283,
+    "change_quantiles_m": {
+      "0.0": 1.565729984419022,
+      "0.01": 66.98899900876098,
+      "0.05": 252.94927936981696,
+      "0.25": 1085.1393238325475,
+      "0.5": 2213.583678931761,
+      "0.75": 2851.0548928348517,
+      "0.95": 3482.133706632789,
+      "0.99": 3812.1622019165393,
+      "1.0": 5392.7829840722825
+    }
+  },
+  "invariants": {
+    "rows": 1899,
+    "unique_ids": 1899,
+    "missing_ids": 0,
+    "duplicate_ids": 0,
+    "nonfinite_distances": 0,
+    "negative_distances": 0,
+    "non_distance_columns_unchanged": true,
+    "labels_domains_classes_folds_unchanged": true
+  },
+  "validation": {
+    "status": "PASS",
+    "validator": "src/validate_centroid_contact_pipeline.py",
+    "validated_utc": "2026-10-20T20:38:42.584292Z",
+    "report_path": "figures/audit/centroid_contact_pipeline_validation_pre_refit_20261020_233833.json",
+    "independent_geometry_max_abs_diff_m": 7.275957614183426e-12,
+    "csv_gpkg_max_abs_diff_m": 7.275957614183426e-12,
+    "complete_case_rows": 1872,
+    "complete_case_positives": 138,
+    "fold_sizes": [
+      468,
+      468,
+      468,
+      468
+    ],
+    "fold_positives": [
+      9,
+      31,
+      37,
+      61
+    ]
+  }
+}

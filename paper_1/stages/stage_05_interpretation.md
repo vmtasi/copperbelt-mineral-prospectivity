@@ -41,7 +41,7 @@ In contrast to the recurring predictive distance associations, quadratic curvatu
 - Under Model B, the log transform compresses upper-tail distances and posterior curvature support changes. For NRB_3a contact distance, positive-curvature support drops from $\ge 0.998$ under Model A to $0.674$--$0.930$ under Model B; fault-curvature support also changes. These are representation differences and do not show that the transform identifies the uniquely correct response shape.
 
 ### 3. Model parsimony and predictive transferability
-Across the evaluated specifications, mean spatial OOF ROC-AUC ranges from $0.688$ to $0.719$. Model D has the highest mean ROC-AUC ($0.7188$) and mean PR-AUC ($0.1967$), compared with $0.1365$ mean PR-AUC for Model A; Model C's Fold 1 ROC-AUC is $0.9298$, a single-fold result. The quadratic term improved mean ROC-AUC under raw distance (Model A $0.7116$ vs Model C $0.6876$) but not under log distance (Model B $0.7042$ vs Model D $0.7188$). These comparisons do not establish universal superiority of any functional form.
+Across the evaluated specifications, mean spatial OOF ROC-AUC ranges from $0.688$ to $0.719$. Model D has the highest mean ROC-AUC ($0.7188$) and mean PR-AUC ($0.2007$), compared with $0.1199$ mean PR-AUC for Model A; PR-AUC here is non-interpolated average precision, and these are unweighted fold means. Model C's Fold 1 ROC-AUC is $0.9298$, a single-fold result. The quadratic term improved mean ROC-AUC under raw distance (Model A $0.7116$ vs Model C $0.6876$) but not under log distance (Model B $0.7042$ vs Model D $0.7188$). These comparisons do not establish universal superiority of any functional form.
 
 ## 5.4 Diagnostic status and unidentifiability of $D^*$
 

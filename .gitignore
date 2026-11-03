@@ -64,3 +64,11 @@ literature/
 # Local planning artifacts
 /AI_PROJECT_CONTEXT.md
 /RECONCILIATION_REPORT.md
+
+# Local runtime vendor and scratch
+/.runtime_vendor/
+/.cache/
+/.tmp/
+
+# PyTensor compiledir leaks (flattened absolute-path cache dirs)
+*runtime_cachepytensor*

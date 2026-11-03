@@ -1,10 +1,9 @@
-import os
+﻿import os
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
+
+from src.numerics import PCA
 
 
 def get_random_folds(df, n_folds=4, random_state=42):
@@ -25,7 +24,14 @@ def get_random_folds(df, n_folds=4, random_state=42):
 
 
 def get_kmeans_spatial_folds(df, n_folds=4, random_state=42):
-    """Assign spatial folds using KMeans clustering on centroids."""
+    """Assign spatial folds using KMeans clustering on centroids.
+
+    This alternative fold scheme is not part of the frozen V11 design and is
+    kept for comparison only, so it requires scikit-learn explicitly rather
+    than the NumPy fallbacks in ``src.numerics``.
+    """
+    from sklearn.cluster import KMeans
+
     coords = df[['centroid_x', 'centroid_y']].values
     kmeans = KMeans(n_clusters=n_folds, random_state=random_state, n_init=10)
     return kmeans.fit_predict(coords)
@@ -52,7 +58,13 @@ def get_along_belt_folds(df, n_folds=4):
 
 
 def plot_spatial_folds(df, spatial_blocks, output_path, title=None):
-    """Save a scatter plot showing spatial fold assignment on centroid coordinates."""
+    """Save a scatter plot showing spatial fold assignment on centroid coordinates.
+
+    Matplotlib is imported lazily because importing it after SciPy crashes the
+    QGIS-bundled interpreter used in this environment.
+    """
+    import matplotlib.pyplot as plt
+
     plt.figure(figsize=(8, 8))
     plt.scatter(df.centroid_x, df.centroid_y, c=spatial_blocks, cmap='tab10', s=8)
     plt.axis('equal')

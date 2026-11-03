@@ -35,7 +35,8 @@ from src.validation_strategies import get_along_belt_folds
 
 DATA_DIR = ROOT / 'data'
 FIG_DIR = ROOT / 'figures'
-OUT_DIR = FIG_DIR / 'audit' / 'v11_population_reconstruction'
+V14_DIR = FIG_DIR / 'v14_centroid_contact'
+OUT_DIR = FIG_DIR / 'audit' / 'v14_centroid_population_reconstruction'
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # -------------------------------------------------------------------------
@@ -44,10 +45,10 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 PROTECTED_FILES = [
     ROOT / 'src' / 'v11_spatial_stability_final.py',
     ROOT / 'src' / 'validation_strategies.py',
-    FIG_DIR / 'v11_fold_1_trace.nc',
-    FIG_DIR / 'v11_fold_2_trace.nc',
-    FIG_DIR / 'v11_fold_3_trace.nc',
-    FIG_DIR / 'v11_fold_4_trace.nc',
+    V14_DIR / 'v14_centroid_fold_1_trace.nc',
+    V14_DIR / 'v14_centroid_fold_2_trace.nc',
+    V14_DIR / 'v14_centroid_fold_3_trace.nc',
+    V14_DIR / 'v14_centroid_fold_4_trace.nc',
 ]
 
 def hash_file(filepath):
@@ -78,7 +79,7 @@ def verify_integrity(stage_name):
 # 2. Data Loading & Spatial Partitioning
 # -------------------------------------------------------------------------
 def load_prepared_data():
-    data_path = DATA_DIR / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = DATA_DIR / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -189,7 +190,7 @@ def run_reconstruction():
         ]
 
         # Load Frozen Trace
-        trace_path = FIG_DIR / f'v11_fold_{fold_num}_trace.nc'
+        trace_path = V14_DIR / f'v14_centroid_fold_{fold_num}_trace.nc'
         trace = load_trace(trace_path)
         traces[fold_num] = trace
 
@@ -573,7 +574,7 @@ def run_reconstruction():
     ax1.bar(folds_arr, p_grav, width=w, bottom=p_fault + p_lith, label='Bouguer Gravity', color='#ff7f0e')
     ax1.bar(folds_arr, p_rocks, width=w, bottom=p_fault + p_lith + p_grav, label='Lithology Classes', color='#9467bd')
     ax1.set_xticks(folds_arr)
-    metrics_path = FIG_DIR / 'v11_fold_metrics.csv'
+    metrics_path = V14_DIR / 'v14_centroid_fold_metrics.csv'
     if metrics_path.is_file():
         metrics = pd.read_csv(metrics_path)
         fold_auc = {int(row.fold): float(row.auc) for row in metrics.itertuples(index=False)}

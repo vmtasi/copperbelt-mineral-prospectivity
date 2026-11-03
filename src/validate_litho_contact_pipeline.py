@@ -19,12 +19,14 @@ import sqlite3
 import sys
 from pathlib import Path
 
-import numpy as np
-import pandas as pd
-
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+
+import src.runtime_shim  # noqa: F401,E402  (must precede pandas)
+
+import numpy as np
+import pandas as pd
 CANONICAL = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
 DISTANCE_CSV = ROOT / "data" / "derived" / "litho_contact_distance_v13.csv"
 DISTANCE_GPKG = ROOT / "data" / "derived" / "litho_contact_distance_v13.gpkg"

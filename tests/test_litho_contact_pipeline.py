@@ -9,13 +9,19 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import src.runtime_shim  # noqa: F401,E402
 
 import numpy as np
 import pandas as pd
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
 DISTANCE_CSV = ROOT / "data" / "derived" / "litho_contact_distance_v13.csv"
 DISTANCE_GPKG = ROOT / "data" / "derived" / "litho_contact_distance_v13.gpkg"
@@ -270,15 +276,101 @@ def test_model_loader_consumes_canonical_distance():
 
 def test_no_active_pipeline_reads_historical_archive():
     exempt = {
-        "build_corrected_training_table.py",
-        "validate_litho_contact_pipeline.py",
+        'build_corrected_training_table.py',
+        'validate_litho_contact_pipeline.py',
+        'audit_contact_distance_definition.py',
+        'audit_v11_trace_provenance.py',
     }
+    markers = (
+        'litho_contact_repair_2026-10-18',
+        'paper1_provenance_2026-10-20',
+    )
     offenders = []
-    for path in (ROOT / "src").rglob("*.py"):
+    for path in (ROOT / 'src').rglob('*.py'):
         if path.name in exempt:
             continue
+        text = path.read_text(encoding='utf-8', errors='ignore')
+        offenders.extend(
+            f'{path.relative_to(ROOT).as_posix()}:{marker}'
+            for marker in markers
+            if marker in text
+        )
+    assert not offenders, offenders
+
+def test_contact_distance_definition_audit_matches_current_files():
+    audit_path = ROOT / "figures" / "audit" / "contact_distance_definition_check.json"
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+    assert audit["status"] == "VERIFIED_POLYGON_TO_CONTACT"
+    assert audit["rows"] == 1899
+    assert audit["zero_distance_cells_with_off_contact_centroid"] == audit["cells_with_zero_distance"]
+    assert audit["files"]["data\\derived\\litho_contact_distance_v13.csv"] == hashlib.sha256(
+        DISTANCE_CSV.read_bytes()
+    ).hexdigest()
+    assert audit["files"]["data\\copperbelt_training_v13_litho_contact.csv"] == hashlib.sha256(
+        CANONICAL.read_bytes()
+    ).hexdigest()
+
+
+def test_trace_and_oof_provenance_milestone_passes():
+    manifest_path = ROOT / "figures" / "audit" / "trace_provenance_manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    assert manifest['status'] == 'PASS'
+    assert not (ROOT / 'figures' / 'audit' / 'run_provenance_manifest.json').exists()
+    assert manifest["canonical_dataset"]["sha256"] == hashlib.sha256(CANONICAL.read_bytes()).hexdigest()
+    assert manifest["canonical_dataset"]["rows"] == 1872
+    for fold in manifest["folds"].values():
+        assert fold["status"] == "PASS"
+        assert fold["chains"] == 2
+        assert fold["draws_per_chain"] == 1500
+        assert fold["divergences"] == 0
+        assert fold["y_obs_check"]["labels_identical"] is True
+    assert manifest["oof_reproduction"]["status"] == "PASS"
+    launch = manifest["launch_evidence"]
+    assert launch["launch_utc"] == "2026-10-18T13:12:45.190Z"
+    assert launch["status"] == "PASS"
+    rejected = launch["rejected_later_or_non_executing_launches"]
+    assert any(item["reason"] == "help invocation" for item in rejected)
+
+
+def test_oof_uses_unique_grid_ids_and_fold_labels_agree():
+    from src.validation_strategies import get_along_belt_folds
+
+    oof = pd.read_csv(ROOT / "figures" / "v11_oof_predictions.csv")
+    canonical = pd.read_csv(CANONICAL)
+    complete = _complete_case_frame(canonical)
+    complete['spatial_block'] = get_along_belt_folds(complete, n_folds=4)
+    assert list(oof.columns) == [
+        "id",
+        "fold",
+        "deposit_present",
+        "daly_domain",
+        "centroid_x",
+        "centroid_y",
+        "prob_v11",
+    ]
+    assert oof["id"].is_unique
+    assert len(oof) == len(complete) == 1872
+    assert set(oof["id"]) == set(complete["id"])
+    merged = oof.merge(
+        complete[["id", "deposit_present", "spatial_block"]],
+        on="id",
+        suffixes=("_oof", "_canonical"),
+        validate="one_to_one",
+    )
+    assert np.array_equal(merged["deposit_present_oof"], merged["deposit_present_canonical"])
+    assert np.array_equal(merged["fold"], merged["spatial_block"])
+    assert oof["prob_v11"].between(0.0, 1.0).all()
+
+
+def test_active_scripts_do_not_merge_oof_by_centroid_coordinates():
+    offenders = []
+    for path in (ROOT / "src").rglob("*.py"):
         text = path.read_text(encoding="utf-8", errors="ignore")
-        if "litho_contact_repair_2026-10-18" in text:
+        compact = text.replace(" ", "").replace("\n", "")
+        if (
+            "on=['centroid_x','centroid_y']" in compact
+            or 'on=["centroid_x","centroid_y"]' in compact
+        ):
             offenders.append(path.relative_to(ROOT).as_posix())
     assert not offenders, offenders
 

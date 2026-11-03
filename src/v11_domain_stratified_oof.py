@@ -1,20 +1,23 @@
 ﻿import os
 import sys
-import numpy as np
-import pandas as pd
 from pathlib import Path
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score
-import warnings
-
-warnings.filterwarnings('ignore')
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import src.runtime_shim  # noqa: F401,E402  (must precede pandas)
+
+import warnings
+
+import numpy as np
+import pandas as pd
+
+from src.numerics import LogisticRegression, StandardScaler, roc_auc_score
+from src.oof_provenance import V14_OOF_PATH, load_v14_oof, merge_v14_oof
 from src.validation_strategies import get_along_belt_folds
+
+warnings.filterwarnings('ignore')
 
 VALID_DOMAINS = ['CRZ', 'NKB', 'SRB', 'MMSB', 'NRB_3a', 'NRB_3b']
 FEATURES = ['distance_to_fault', 'distance_to_lithology_contact', 'bouguer']
@@ -42,66 +45,26 @@ def map_daly_domain(value):
     return 'Unknown'
 
 
-def load_phase7_v11_oof(model_df):
-    """Load and strictly align the artifact created by extract_v11_oof.py."""
-    v11_oof_path = ROOT / 'figures' / 'v11_oof_predictions.csv'
-    if not v11_oof_path.exists():
-        raise FileNotFoundError(
-            'The frozen Phase 7 V11 OOF artifact was not found: '
-            f'{v11_oof_path}. Run extract_v11_oof.py before this analysis.'
-        )
-
-    v11_df = pd.read_csv(v11_oof_path)
-    required_columns = {'centroid_x', 'centroid_y', 'prob_v11'}
-    missing_columns = required_columns.difference(v11_df.columns)
-    if missing_columns:
-        raise ValueError(
-            f'{v11_oof_path} is missing required columns: {sorted(missing_columns)}'
-        )
-
-    key = ['centroid_x', 'centroid_y']
-    duplicate_model = model_df.duplicated(key, keep=False)
-    duplicate_oof = v11_df.duplicated(key, keep=False)
-    duplicate_model_count = int(duplicate_model.sum())
-    duplicate_oof_count = int(duplicate_oof.sum())
-    if duplicate_model_count or duplicate_oof_count:
-        raise ValueError(
-            'Coordinate alignment is unsafe because the observation key is not '
-            f'unique (model duplicate rows={duplicate_model_count}, '
-            f'OOF duplicate rows={duplicate_oof_count}).'
-        )
-
-    model_keys = set(map(tuple, model_df[key].to_numpy()))
-    oof_keys = set(map(tuple, v11_df[key].to_numpy()))
-    unmatched_model = len(model_keys - oof_keys)
-    unmatched_oof = len(oof_keys - model_keys)
-    merged = model_df.merge(
-        v11_df[key + ['prob_v11']],
-        on=key,
-        how='left',
-        validate='one_to_one',
-        indicator=True,
-    )
-    aligned = int((merged['_merge'] == 'both').sum())
-    missing_predictions = int(merged['prob_v11'].isna().sum())
-    merged = merged.drop(columns='_merge')
+def load_phase7_v14_oof(model_df):
+    """Load and strictly align the artifact created by extract_v14_oof.py."""
+    v14_df = load_v14_oof()
+    merged, report = merge_v14_oof(model_df, v14_df)
 
     print('\n--- 2. Provenance & Data Alignment ---')
-    print(f'Phase 7 V11 OOF artifact: {v11_oof_path}')
-    print(f'Modeling rows:            {len(model_df)}')
-    print(f'Artifact rows:            {len(v11_df)}')
-    print(f'Aligned rows:             {aligned}')
-    print(f'Unmatched model rows:     {unmatched_model}')
-    print(f'Unmatched artifact rows:  {unmatched_oof}')
-    print(f'Duplicated model rows:    {duplicate_model_count}')
-    print(f'Duplicated artifact rows: {duplicate_oof_count}')
-    print(f'Missing V11 predictions:  {missing_predictions}')
-
-    if unmatched_model or unmatched_oof:
-        raise ValueError('Observation alignment is incomplete; no AUCs were calculated.')
-
+    print(f'Phase 7 V14 OOF artifact: {V14_OOF_PATH}')
+    print(f'Modeling rows:            {report["rows"]}')
+    print(f'Artifact rows:            {len(v14_df)}')
+    print(f'Aligned rows:             {report["rows"]}')
+    print(f'Unmatched model rows:     0')
+    print(f'Unmatched artifact rows:  0')
+    print(f'Duplicated model rows:    0')
+    print(f'Duplicated artifact rows: 0')
+    print(f'Missing V14 predictions:  0')
+    print(f'Linkage key:              {report["linkage"]}')
+    print(f'Fold counts:              {report["fold_counts"]}')
+    print(f'Fold mismatches:          {report["fold_mismatches"]}')
+    print(f'Label mismatches:         {report["label_mismatches"]}')
     return merged
-
 
 def auc_record(y_true, predictions, prefix):
     valid = predictions.notna()
@@ -142,15 +105,15 @@ def bootstrap_auc_ci(y_true, y_pred, n_bootstraps=1000, rng_seed=42):
 
 def run_domain_stratified_auc():
     print("--- 1. Loading Data & Preparing Folds ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     df = df.dropna(subset=MODEL_COLUMNS).copy()
     df['daly_domain'] = df['domain'].map(map_daly_domain)
     df = df[df['daly_domain'].isin(VALID_DOMAINS)].copy()
     df['spatial_block'] = get_along_belt_folds(df, n_folds=4)
-    df = load_phase7_v11_oof(df)
-    print('[+] Phase 7 provenance: extract_v11_oof.py assigns each prediction from the held-out fold trace.')
+    df = load_phase7_v14_oof(df)
+    print('[+] Phase 7 provenance: extract_v14_oof.py assigns each prediction from the held-out fold trace.')
     print('[+] Fold integrity: the aligned artifact covers the same four-fold modeling frame; no in-sample predictions are used.')
 
     print("\n--- 3. Generating M5 Spatial OOF Predictions (Baseline Comparison) ---")
@@ -192,32 +155,32 @@ def run_domain_stratified_auc():
         n_non_deposits = len(domain_df) - n_deposits
         
         m5 = auc_record(domain_df['deposit_present'], domain_df['M5_OOF_prob'], 'M5')
-        v11 = auc_record(domain_df['deposit_present'], domain_df['prob_v11'], 'V11')
-        delta = v11['V11_AUC'] - m5['M5_AUC']
+        v14 = auc_record(domain_df['deposit_present'], domain_df['prob_v14'], 'V14')
+        delta = v14['V14_AUC'] - m5['M5_AUC']
             
         results.append({
             'Daly_Domain': domain,
             'Total_Cells': len(domain_df),
             'Deposits': n_deposits,
             'Non_Deposits': n_non_deposits,
-            'Aligned_Rows': int(domain_df['prob_v11'].notna().sum()),
+            'Aligned_Rows': int(domain_df['prob_v14'].notna().sum()),
             'Unmatched_Rows': 0,
             'Duplicated_Rows': 0,
             'M5_OOF_AUC': m5['M5_AUC'],
             'M5_CI_Lower': m5['M5_CI_Lower'],
             'M5_CI_Upper': m5['M5_CI_Upper'],
-            'V11_OOF_AUC': v11['V11_AUC'],
-            'V11_CI_Lower': v11['V11_CI_Lower'],
-            'V11_CI_Upper': v11['V11_CI_Upper'],
-            'V11_Minus_M5_Delta_AUC': delta,
-            'V11_Excluded_Rows': v11['V11_Excluded'],
+            'V14_OOF_AUC': v14['V14_AUC'],
+            'V14_CI_Lower': v14['V14_CI_Lower'],
+            'V14_CI_Upper': v14['V14_CI_Upper'],
+            'V14_Minus_M5_Delta_AUC': delta,
+            'V14_Excluded_Rows': v14['V14_Excluded'],
         })
 
     df_results = pd.DataFrame(results)
     
     output_dir = ROOT / 'figures' / 'audit'
     os.makedirs(output_dir, exist_ok=True)
-    out_path = output_dir / 'domain_stratified_auc.csv'
+    out_path = output_dir / 'domain_stratified_auc_v14_centroid.csv'
     df_results.to_csv(out_path, index=False)
     
     print("\n" + "="*110)

@@ -20,22 +20,22 @@ from src.validation_strategies import get_along_belt_folds
 # CONFIGURATION
 # ============================================================
 
-DATA_PATH = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
+DATA_PATH = ROOT / "data" / "copperbelt_training_v14_centroid_contact.csv"
 OUTPUT_DIR = ROOT / "figures" / "audit"
 
 N_FOLDS = 4
 
-# V11 fold metrics are read from the refitted model, never hardcoded.
-V11_METRICS_PATH = ROOT / "figures" / "v11_fold_metrics.csv"
+# V14 fold metrics are read from the refitted model, never hardcoded.
+V14_METRICS_PATH = ROOT / "figures" / "v14_centroid_contact" / "v14_centroid_fold_metrics.csv"
 
 
-def load_v11_results():
-    if not V11_METRICS_PATH.is_file():
+def load_v14_results():
+    if not V14_METRICS_PATH.is_file():
         raise SystemExit(
-            f"Missing refitted V11 fold metrics: {V11_METRICS_PATH}. "
-            "Run src/v11_spatial_stability_final.py first."
+            f"Missing refitted V14 fold metrics: {V14_METRICS_PATH}. "
+            "Run src/v14_centroid_spatial_stability.py --execute first."
         )
-    metrics = pd.read_csv(V11_METRICS_PATH)
+    metrics = pd.read_csv(V14_METRICS_PATH)
     return {
         int(row.fold) - 1: float(row.auc)
         for row in metrics.itertuples(index=False)
@@ -126,7 +126,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
 
     print("--- 1. Loading Dataset ---")
 
-    v11_results = load_v11_results()
+    v14_results = load_v14_results()
 
     df = pd.read_csv(DATA_PATH)
 
@@ -141,6 +141,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
     required_columns = [
         "centroid_x",
         "centroid_y",
+        "domain",
         "deposit_present",
         lithology_col,
     ] + continuous_features
@@ -374,12 +375,12 @@ def run_phase3_ablation(n_folds=N_FOLDS):
             )
 
         # ====================================================
-        # M8: PREVIOUSLY COMPLETED V11
+        # M8: V14 refit of the frozen hierarchical specification
         # ====================================================
 
-        m8_auc = v11_results[fold]
+        m8_auc = v14_results[fold]
 
-        fold_record["M8_V11_Hierarchical_AUC"] = m8_auc
+        fold_record["M8_V14_Hierarchical_AUC"] = m8_auc
 
         fold_records.append(fold_record)
 
@@ -407,11 +408,11 @@ def run_phase3_ablation(n_folds=N_FOLDS):
 
     # --------------------------------------------------------
     # Add key comparison:
-    # M8 V11 vs M7 global
+    # M8 V14 vs M7 global
     # --------------------------------------------------------
 
-    results_df["V11_minus_M7_AUC"] = (
-        results_df["M8_V11_Hierarchical_AUC"]
+    results_df["V14_minus_M7_AUC"] = (
+        results_df["M8_V14_Hierarchical_AUC"]
         - results_df["M7_All_Global_AUC"]
     )
 
@@ -430,7 +431,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
         "M5_Grav_Lith_AUC",
         "M6_Fault_Lith_AUC",
         "M7_All_Global_AUC",
-        "M8_V11_Hierarchical_AUC",
+        "M8_V14_Hierarchical_AUC",
     ]
 
     for col in model_auc_columns:
@@ -457,8 +458,8 @@ def run_phase3_ablation(n_folds=N_FOLDS):
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    fold_path = OUTPUT_DIR / "phase3_ablation_fold_results.csv"
-    summary_path = OUTPUT_DIR / "phase3_ablation_summary.csv"
+    fold_path = OUTPUT_DIR / "phase3_ablation_fold_results_v14_centroid.csv"
+    summary_path = OUTPUT_DIR / "phase3_ablation_summary_v14_centroid.csv"
 
     results_df.to_csv(fold_path, index=False)
     summary_df.to_csv(summary_path, index=False)
@@ -485,7 +486,7 @@ def run_phase3_ablation(n_folds=N_FOLDS):
                 "M5_Grav_Lith_AUC",
                 "M6_Fault_Lith_AUC",
                 "M7_All_Global_AUC",
-                "M8_V11_Hierarchical_AUC",
+                "M8_V14_Hierarchical_AUC",
             ]
         ]
         .round(3)
@@ -506,14 +507,14 @@ def run_phase3_ablation(n_folds=N_FOLDS):
         .to_string(index=False)
     )
 
-    print("\nV11 vs M7")
+    print("\nV14 vs M7")
     print(
         results_df[
             [
                 "Fold",
                 "M7_All_Global_AUC",
-                "M8_V11_Hierarchical_AUC",
-                "V11_minus_M7_AUC",
+                "M8_V14_Hierarchical_AUC",
+                "V14_minus_M7_AUC",
             ]
         ]
         .round(3)

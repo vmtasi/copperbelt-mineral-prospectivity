@@ -23,7 +23,7 @@ from src.validation_strategies import get_along_belt_folds
 DATA_PATH = (
     ROOT
     / "data"
-    / "copperbelt_training_v13_litho_contact.csv"
+    / "copperbelt_training_v14_centroid_contact.csv"
 )
 
 OUTPUT_DIR = ROOT / "figures" / "audit"
@@ -603,12 +603,12 @@ def run_phase4_domain_analysis(n_folds=N_FOLDS):
 
     domain_path = (
         OUTPUT_DIR
-        / "phase4_feature_by_daly_domain.csv"
+        / "phase4_feature_by_daly_domain_v14_centroid.csv"
     )
 
     prediction_path = (
         OUTPUT_DIR
-        / "phase4_oof_predictions.csv"
+        / "phase4_oof_predictions_v14_centroid.csv"
     )
 
     domain_results.to_csv(

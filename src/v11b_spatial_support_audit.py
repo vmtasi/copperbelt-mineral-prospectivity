@@ -16,7 +16,7 @@ CELL_AREA_KM2 = 25.0
 
 def run_spatial_support_audit(n_folds=4):
     print("--- 1. Loading Datasets ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     lithology_col = 'litho_contact_litho_class'
@@ -83,8 +83,8 @@ def run_spatial_support_audit(n_folds=4):
     
     domain_summary = generate_summary('daly_domain')
     
-    fold_summary.to_csv(output_dir / 'fold_summary.csv', index=False)
-    domain_summary.to_csv(output_dir / 'domain_summary.csv', index=False)
+    fold_summary.to_csv(output_dir / 'fold_summary_v14_centroid.csv', index=False)
+    domain_summary.to_csv(output_dir / 'domain_summary_v14_centroid.csv', index=False)
 
     print("--- 2b. Deposit vs Non-Deposit Feature Statistics ---")
     target_feature_summary = []
@@ -120,7 +120,7 @@ def run_spatial_support_audit(n_folds=4):
 
             target_feature_summary.append(row)
             
-    pd.DataFrame(target_feature_summary).to_csv(output_dir / 'feature_by_target_summary.csv', index=False)
+    pd.DataFrame(target_feature_summary).to_csv(output_dir / 'feature_by_target_summary_v14_centroid.csv', index=False)
     
     print("--- 2c. Domain Training Support per Held-Out Fold ---")
     training_support = []
@@ -144,7 +144,7 @@ def run_spatial_support_audit(n_folds=4):
                 'Test_Non_Deposits': int((test_domain['deposit_present'] == 0).sum())
             })
             
-    pd.DataFrame(training_support).to_csv(output_dir / 'domain_training_support_by_fold.csv', index=False)
+    pd.DataFrame(training_support).to_csv(output_dir / 'domain_training_support_by_fold_v14_centroid.csv', index=False)
 
     print("--- 3. Generating Fold x Domain Overlap Matrix ---")
     overlap_df = df.groupby(['spatial_block', 'daly_domain']).agg(
@@ -168,8 +168,8 @@ def run_spatial_support_audit(n_folds=4):
     overlap_df['Cell_Text'] = overlap_df.apply(lambda x: f"Area: {x['Area_km2']} km2 | D: {x['Deposits']} | {x['Percent_of_Fold']:.1f}%", axis=1)
     heatmap_table = overlap_df.pivot(index='spatial_block', columns='daly_domain', values='Cell_Text').fillna("None")
     
-    overlap_df.to_csv(output_dir / 'fold_domain_overlap.csv', index=False)
-    heatmap_table.to_csv(output_dir / 'fold_domain_heatmap_visual.csv')
+    overlap_df.to_csv(output_dir / 'fold_domain_overlap_v14_centroid.csv', index=False)
+    heatmap_table.to_csv(output_dir / 'fold_domain_heatmap_visual_v14_centroid.csv')
     
     print("--- 4. Calculating Feature Extrapolation Metrics ---")
     support_metrics = []
@@ -201,7 +201,7 @@ def run_spatial_support_audit(n_folds=4):
                 'Percent_Outside_1_99': round(p_extrap_robust, 2)
             })
             
-    pd.DataFrame(support_metrics).to_csv(output_dir / 'feature_support.csv', index=False)
+    pd.DataFrame(support_metrics).to_csv(output_dir / 'feature_support_v14_centroid.csv', index=False)
     print(f"\n[+] Audit Complete. 6 CSVs saved to: {output_dir}")
 
 if __name__ == "__main__":

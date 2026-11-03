@@ -54,14 +54,14 @@ Out-of-fold predictive performance across all four spatial folds is summarized b
 
 | Model Specification | Distance Transform | Functional Form | Fold 1 OOF AUC | Fold 2 OOF AUC | Fold 3 OOF AUC | Fold 4 OOF AUC | Mean OOF ROC-AUC | Mean OOF PR-AUC | Pooled OOF ROC-AUC |
 | :--- | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Model A** (V11) | Raw ($z$) | Quadratic | 0.8456 | 0.7092 | 0.6870 | 0.6048 | **0.7116 (~0.712)** | **0.1365 (~0.136)** | 0.7066 |
-| **Model B** | Log ($z_{\log}$) | Quadratic | 0.8293 | 0.7447 | 0.6608 | 0.5818 | **0.7042 (~0.704)** | **0.1619 (~0.162)** | 0.7256 |
-| **Model C** | Raw ($z$) | Linear | 0.9298 | 0.6726 | 0.6393 | 0.5087 | **0.6876 (~0.688)** | **0.1791 (~0.179)** | 0.6783 |
-| **Model D** | Log ($z_{\log}$) | Linear | 0.9133 | 0.7248 | 0.6636 | 0.5735 | **0.7188 (~0.719)** | **0.1967 (~0.197)** | 0.7251 |
+| **Model A** (V11) | Raw ($z$) | Quadratic | 0.8456 | 0.7092 | 0.6870 | 0.6048 | **0.7116 (~0.712)** | **0.1199 (~0.120)** | 0.7066 |
+| **Model B** | Log ($z_{\log}$) | Quadratic | 0.8293 | 0.7447 | 0.6608 | 0.5818 | **0.7042 (~0.704)** | **0.1499 (~0.150)** | 0.7256 |
+| **Model C** | Raw ($z$) | Linear | 0.9298 | 0.6726 | 0.6393 | 0.5087 | **0.6876 (~0.688)** | **0.1818 (~0.182)** | 0.6783 |
+| **Model D** | Log ($z_{\log}$) | Linear | 0.9133 | 0.7248 | 0.6636 | 0.5735 | **0.7188 (~0.719)** | **0.2007 (~0.201)** | 0.7251 |
 
 Key findings from the representation grid:
 1. **Mean ROC-AUC Across Specifications:** Mean spatial OOF ROC-AUC ranges from $0.688$ to $0.719$. Model D (log-linear) has the highest mean ($0.7188$), followed by Model A ($0.7116$); the difference is modest and does not establish universal superiority of a functional form.
-2. **Mean PR-AUC:** Model D has the highest mean PR-AUC ($0.1967$), compared with $0.1365$ for Model A and $0.1619$ for Model B. This is a descriptive comparison across the evaluated folds.
+2. **Mean PR-AUC:** Model D has the highest mean PR-AUC ($0.2007$), compared with $0.1199$ for Model A and $0.1499$ for Model B. PR-AUC is non-interpolated average precision. This is a descriptive comparison across the evaluated folds; the values are unweighted fold means, not pooled metrics.
 3. **Fold 1 Model C Result:** Raw-linear Model C achieves OOF ROC-AUC $0.9298$ in Fold 1; its mean OOF ROC-AUC is $0.6876$, so the single-fold result should not be generalized to all sectors.
 
 ### Curvature sensitivity to logarithmic transformation
@@ -115,11 +115,11 @@ The primary evaluation compares frozen OOF scores from V11 and M5 across the fou
 
 | Spatial Evaluation Partition | M5 ROC-AUC [95% CI] | V11 ROC-AUC [95% CI] | Difference ($\Delta$AUC) [95% CI] | V11 PR-AUC | V11 Brier Score | M5 Brier Score |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Fold 1** (Northern) | 0.890 [0.765, 0.984] | 0.846 [0.801, 0.887] | $-0.044$ [$-0.124$, $+0.056$] | 0.110 | 0.019 | 0.024 |
-| **Fold 2** (North-Central) | 0.827 [0.759, 0.891] | 0.709 [0.631, 0.782] | $-0.118$ [$-0.224$, $-0.011$] | 0.126 | 0.063 | 0.059 |
-| **Fold 3** (Central-South) | 0.631 [0.537, 0.716] | 0.687 [0.616, 0.758] | $+0.056$ [$-0.002$, $+0.112$] | 0.147 | 0.077 | 0.077 |
-| **Fold 4** (Southern) | 0.625 [0.557, 0.693] | 0.605 [0.544, 0.666] | $-0.020$ [$-0.080$, $+0.040$] | 0.163 | 0.118 | 0.119 |
-| **Pooled Spatial OOF** | 0.559 [0.509, 0.615] | 0.707 [0.667, 0.744] | $\mathbf{+0.147}$ [$+0.073$, $+0.217$] | 0.135 | 0.069 | 0.070 |
+| **Fold 1** (Northern) | 0.890 [0.765, 0.984] | 0.846 [0.801, 0.887] | $-0.044$ [$-0.124$, $+0.056$] | 0.061 | 0.019 | 0.024 |
+| **Fold 2** (North-Central) | 0.827 [0.759, 0.891] | 0.709 [0.631, 0.782] | $-0.118$ [$-0.224$, $-0.011$] | 0.115 | 0.063 | 0.059 |
+| **Fold 3** (Central-South) | 0.631 [0.537, 0.716] | 0.687 [0.616, 0.758] | $+0.056$ [$-0.002$, $+0.112$] | 0.141 | 0.077 | 0.077 |
+| **Fold 4** (Southern) | 0.625 [0.557, 0.693] | 0.605 [0.544, 0.666] | $-0.020$ [$-0.080$, $+0.040$] | 0.162 | 0.118 | 0.119 |
+| **Pooled Spatial OOF** | 0.559 [0.509, 0.615] | 0.707 [0.667, 0.744] | $\mathbf{+0.147}$ [$+0.073$, $+0.217$] | 0.134 | 0.069 | 0.070 |
 
 Key predictive transferability findings:
 1. **Pooled OOF Discrimination:** Aggregated across the entire strike of the Copperbelt, V11 achieves an out-of-fold ROC-AUC of $0.707$ [0.667, 0.744], outperforming M5 ($0.559$ [0.509, 0.615]), yielding a pooled improvement of $\Delta\mathrm{AUC} = +0.147$ with $P(\Delta > 0) = 1.000$.

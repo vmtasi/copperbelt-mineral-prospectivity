@@ -1,20 +1,23 @@
 ﻿import os
 import sys
-import numpy as np
-import pandas as pd
 from pathlib import Path
-from sklearn.linear_model import LogisticRegression
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import roc_auc_score
-import warnings
-
-warnings.filterwarnings('ignore')
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+import src.runtime_shim  # noqa: F401,E402  (must precede pandas)
+
+import warnings
+
+import numpy as np
+import pandas as pd
+
+from src.numerics import LogisticRegression, StandardScaler, roc_auc_score
+from src.oof_provenance import load_v14_oof, merge_v14_oof
 from src.validation_strategies import get_along_belt_folds
+
+warnings.filterwarnings('ignore')
 
 # ============================================================
 # SPATIAL BOOTSTRAP FUNCTION
@@ -53,9 +56,9 @@ def spatial_block_bootstrap(df_target, df_full, n_bins, n_bootstraps=1000, rando
             continue
             
         m5_auc = roc_auc_score(y_b, boot_sample['prob_m5'].values)
-        v11_auc = roc_auc_score(y_b, boot_sample['prob_v11'].values)
+        v14_auc = roc_auc_score(y_b, boot_sample['prob_v14'].values)
         
-        delta_aucs.append(v11_auc - m5_auc)
+        delta_aucs.append(v14_auc - m5_auc)
         valid_draws += 1
         
     if valid_draws < n_bootstraps:
@@ -77,7 +80,7 @@ def spatial_block_bootstrap(df_target, df_full, n_bins, n_bootstraps=1000, rando
 # ============================================================
 def run_multiscale_robustness():
     print("--- 1. Loading Data & Fitting Baseline M5 ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     features = ['distance_to_fault', 'distance_to_lithology_contact', 'bouguer']
@@ -103,23 +106,16 @@ def run_multiscale_robustness():
         clf_m5 = LogisticRegression(max_iter=1000, random_state=42).fit(train[feats_m5].values, train['deposit_present'].values)
         df.loc[test_idx, 'prob_m5'] = clf_m5.predict_proba(test[feats_m5].values)[:, 1]
 
-    print("--- 2. Integrating V11 Predictions & Validating Integrity ---")
-    v11_path = ROOT / 'figures' / 'v11_oof_predictions.csv'
-    v11_df = pd.read_csv(v11_path)
+    print("--- 2. Integrating V11 Predictions by Grid-Cell ID ---")
+    v14_df = load_v14_oof()
+    df, oof_report = merge_v14_oof(df, v14_df)
+    print(
+        f"    linkage={oof_report['linkage']}; rows={oof_report['rows']}; "
+        f"fold_counts={oof_report['fold_counts']}; "
+        f"label_counts={oof_report['label_counts']}"
+    )
     
-    # Strict pandas merge integrity checks
-    assert not df.duplicated(['centroid_x', 'centroid_y']).any(), "CRITICAL: Duplicates found in base dataframe."
-    assert not v11_df.duplicated(['centroid_x', 'centroid_y']).any(), "CRITICAL: Duplicates found in V11 dataframe."
-    
-    n_before = len(df)
-    df = df.merge(v11_df[['centroid_x', 'centroid_y', 'prob_v11']], 
-                  on=['centroid_x', 'centroid_y'], 
-                  how='left', 
-                  validate='one_to_one')
-    
-    assert len(df) == n_before, "CRITICAL: Merge altered the row count."
-    
-    valid_df = df.dropna(subset=['deposit_present', 'prob_m5', 'prob_v11']).copy()
+    valid_df = df.dropna(subset=['deposit_present', 'prob_m5', 'prob_v14']).copy()
 
     print("--- 3. Executing Multi-Scale Spatial Bootstrapping ---")
     scales = [10, 15, 20, 25]
@@ -137,7 +133,7 @@ def run_multiscale_robustness():
             fold_df = valid_df[valid_df['spatial_block'] == fold]
             if sum(fold_df['deposit_present']) == 0: continue
             
-            obs_delta = roc_auc_score(fold_df['deposit_present'], fold_df['prob_v11']) - \
+            obs_delta = roc_auc_score(fold_df['deposit_present'], fold_df['prob_v14']) - \
                         roc_auc_score(fold_df['deposit_present'], fold_df['prob_m5'])
             
             med, low, high, p_gt, nb, db = spatial_block_bootstrap(fold_df, valid_df, scale)
@@ -157,7 +153,7 @@ def run_multiscale_robustness():
             })
             
         # Pooled Global
-        obs_delta_G = roc_auc_score(valid_df['deposit_present'], valid_df['prob_v11']) - \
+        obs_delta_G = roc_auc_score(valid_df['deposit_present'], valid_df['prob_v14']) - \
                       roc_auc_score(valid_df['deposit_present'], valid_df['prob_m5'])
         
         medG, lowG, highG, p_gtG, nbG, dbG = spatial_block_bootstrap(valid_df, valid_df, scale)
@@ -178,7 +174,7 @@ def run_multiscale_robustness():
 
     results_df = pd.DataFrame(records)
     output_dir = ROOT / 'figures' / 'audit'
-    results_df.to_csv(output_dir / 'phase7_multiscale_robustness.csv', index=False)
+    results_df.to_csv(output_dir / 'phase7_multiscale_robustness_v14_centroid.csv', index=False)
     
     print("\n" + "="*140)
     print("PHASE 7.5: MULTI-SCALE SPATIAL ROBUSTNESS CHECK (Block Bootstrap)")
@@ -187,7 +183,7 @@ def run_multiscale_robustness():
     pd.set_option('display.width', 1500)
     print(results_df.to_string(index=False))
     print("="*140)
-    print(f"\n[+] Final robustness matrix frozen and saved to {output_dir / 'phase7_multiscale_robustness.csv'}")
+    print(f"\n[+] Final robustness matrix saved to {output_dir / 'phase7_multiscale_robustness_v14_centroid.csv'}")
     print("[+] Phase 7 is closed. Model execution for Paper 1 is complete.")
 
 if __name__ == "__main__":

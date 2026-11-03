@@ -23,7 +23,7 @@ from src.trace_io import save_trace
 
 def run_phase4_heterogeneity():
     print("--- 1. Loading Full Dataset for Inference ---")
-    data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'
+    data_path = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'
     df = pd.read_csv(data_path)
 
     features = ['distance_to_fault', 'distance_to_lithology_contact', 'bouguer']
@@ -110,7 +110,7 @@ def run_phase4_heterogeneity():
     os.makedirs(output_dir, exist_ok=True)
 
     print("--- 4. Exporting Traces and Hyperparameters ---")
-    trace_path = output_dir / "phase4_domain_heterogeneity_trace.nc"
+    trace_path = output_dir / "phase4_domain_heterogeneity_trace_v14_centroid.nc"
     save_trace(trace, trace_path)
     
     hyper_summary = az.summary(
@@ -118,7 +118,7 @@ def run_phase4_heterogeneity():
         var_names=["mu_f", "sigma_f", "mu_l", "sigma_l", "mu_g", "sigma_g"],
         hdi_prob=0.95
     )
-    hyper_summary.to_csv(output_dir / "phase4_heterogeneity_hyperparameters.csv")
+    hyper_summary.to_csv(output_dir / "phase4_heterogeneity_hyperparameters_v14_centroid.csv")
 
     print("--- 5. Extracting Domain Coefficients & Probabilities ---")
     summary = az.summary(trace, var_names=['beta_f', 'beta_l', 'beta_g'], hdi_prob=0.95)
@@ -155,7 +155,7 @@ def run_phase4_heterogeneity():
         })
         
     res_df = pd.DataFrame(records)
-    res_df.to_csv(output_dir / 'phase4_domain_coefficients.csv', index=False)
+    res_df.to_csv(output_dir / 'phase4_domain_coefficients_v14_centroid.csv', index=False)
     
     print("\n[+] Phase 4 Complete. Domain-Specific Feature Slopes:")
     print(res_df.round(3).to_string(index=False))

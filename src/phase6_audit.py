@@ -13,8 +13,9 @@ from src.validation_strategies import get_along_belt_folds
 # ============================================================
 # CONFIG
 # ============================================================
-DATA_PATH = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
+DATA_PATH = ROOT / "data" / "copperbelt_training_v14_centroid_contact.csv"
 OUTPUT_DIR = ROOT / "figures" / "audit"
+OUTPUT_SUFFIX = "_v14_centroid"
 N_FOLDS = 4
 FEATURES = ["distance_to_fault", "distance_to_lithology_contact", "bouguer"]
 
@@ -149,11 +150,11 @@ def run_phase6_audit():
     # ========================================================
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     
-    domain_df.to_csv(OUTPUT_DIR / "phase6_missingness_by_domain.csv", index=False)
-    fold_df.to_csv(OUTPUT_DIR / "phase6_missingness_by_fold.csv", index=False)
-    target_df.to_csv(OUTPUT_DIR / "phase6_missingness_by_target.csv", index=False)
-    fold_domain_df.to_csv(OUTPUT_DIR / "phase6_missingness_fold_domain.csv", index=False)
-    feature_df.to_csv(OUTPUT_DIR / "phase6_feature_observation_support.csv", index=False)
+    domain_df.to_csv(OUTPUT_DIR / f"phase6_missingness_by_domain{OUTPUT_SUFFIX}.csv", index=False)
+    fold_df.to_csv(OUTPUT_DIR / f"phase6_missingness_by_fold{OUTPUT_SUFFIX}.csv", index=False)
+    target_df.to_csv(OUTPUT_DIR / f"phase6_missingness_by_target{OUTPUT_SUFFIX}.csv", index=False)
+    fold_domain_df.to_csv(OUTPUT_DIR / f"phase6_missingness_fold_domain{OUTPUT_SUFFIX}.csv", index=False)
+    feature_df.to_csv(OUTPUT_DIR / f"phase6_feature_observation_support{OUTPUT_SUFFIX}.csv", index=False)
 
     print("--- DOMAIN SUMMARY ---")
     print(domain_df.to_string(index=False))

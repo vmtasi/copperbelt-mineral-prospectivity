@@ -8,7 +8,7 @@ DATA = ROOT / 'data'
 FIGURES = ROOT / 'figures'
 FIGURES.mkdir(exist_ok=True)
 
-CSV = DATA / 'copperbelt_training_v13_litho_contact.csv'
+CSV = DATA / 'copperbelt_training_v14_centroid_contact.csv'
 if not CSV.exists():
     raise SystemExit(f"Data file not found: {CSV}")
 

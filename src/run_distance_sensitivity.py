@@ -25,15 +25,17 @@ os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+import src.runtime_shim  # noqa: F401,E402
+
 import numpy as np
 import pandas as pd
 import pymc as pm
 import arviz as az
-from sklearn.metrics import roc_auc_score
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+from src.numerics import brier_score_loss, roc_auc_score
 from src.trace_io import load_trace, save_trace, resolve_trace_path
 
 from src.distance_sensitivity_models import (
@@ -44,12 +46,11 @@ from src.distance_sensitivity_models import (
     MCMC_DRAWS, MCMC_TUNE, MCMC_CHAINS, MCMC_CORES, MCMC_TARGET_ACCEPT, MCMC_SEED,
     OUTPUT_DIR, TRACE_OUTPUT_DIR, FROZEN_TRACE_DIR,
 )
-from sklearn.metrics import brier_score_loss
 
 # â”€â”€ Model specifications â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 MODEL_SPECS = {
-    'A': {'representation': 'raw', 'quadratic': True,  'label': 'Raw-Quadratic (V11 frozen)'},
+    'A': {'representation': 'raw', 'quadratic': True,  'label': 'Raw-Quadratic (V11 specification, V14 data)'},
     'B': {'representation': 'log', 'quadratic': True,  'label': 'Log-Quadratic'},
     'C': {'representation': 'raw', 'quadratic': False, 'label': 'Raw-Linear'},
     'D': {'representation': 'log', 'quadratic': False, 'label': 'Log-Linear'},
@@ -63,10 +64,10 @@ AGGREGATE_ONLY = False
 PROTECTED_FILES = [
     ROOT / 'src' / 'v11_spatial_stability_final.py',
     ROOT / 'src' / 'validation_strategies.py',
-    ROOT / 'figures' / 'v11_fold_1_trace.nc',
-    ROOT / 'figures' / 'v11_fold_2_trace.nc',
-    ROOT / 'figures' / 'v11_fold_3_trace.nc',
-    ROOT / 'figures' / 'v11_fold_4_trace.nc',
+    ROOT / 'figures' / 'v14_centroid_contact' / 'v14_centroid_fold_1_trace.nc',
+    ROOT / 'figures' / 'v14_centroid_contact' / 'v14_centroid_fold_2_trace.nc',
+    ROOT / 'figures' / 'v14_centroid_contact' / 'v14_centroid_fold_3_trace.nc',
+    ROOT / 'figures' / 'v14_centroid_contact' / 'v14_centroid_fold_4_trace.nc',
     ROOT / 'AI_PROJECT_CONTEXT.md',
 ]
 
@@ -174,7 +175,7 @@ def main():
 
             if model_name == 'A':
                 # Reconstruct from frozen traces (no refitting)
-                trace_path = FROZEN_TRACE_DIR / f'v11_fold_{fold+1}_trace.nc'
+                trace_path = FROZEN_TRACE_DIR / f'v14_centroid_fold_{fold+1}_trace.nc'
                 print(f"  Loading frozen trace: {trace_path.name}")
                 trace = load_trace(trace_path)
             elif AGGREGATE_ONLY:
