@@ -255,19 +255,20 @@ def test_two_oof_maps_are_distinct_and_domain_named():
         assert domain in uncertainty_caption
 
 
-def test_regional_context_figure_names_all_lithology_codes():
+def test_regional_context_figure_names_all_lithology_classes():
     tex = _manuscript()
     figure_start = tex.index("images/fig1_study_area_context_annotated.pdf")
     caption_start = tex.index(r"\caption{", figure_start)
     caption_end = tex.index(r"\label{", caption_start)
     caption = tex[caption_start:caption_end]
-    expected = {
-        "4": "metasedimentary",
-        "6": "silicic",
-        "7": "metaigneous",
-        "14": "alluvium-fluvial",
-        "16": "alluvium-saline",
-        "20": "water",
-    }
-    for code, name in expected.items():
-        assert f"{code} {name}" in caption.lower()
+    expected = (
+        "metasedimentary",
+        "silicic",
+        "metaigneous",
+        "alluvium-fluvial",
+        "alluvium-saline",
+        "water",
+    )
+    for name in expected:
+        assert name in caption.lower()
+    assert "class code" not in caption.lower()
