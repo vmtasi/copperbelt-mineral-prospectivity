@@ -1,6 +1,9 @@
 # Python environment
 .venv/
 
+# Node dependencies (accidental tracked tree; preserved locally)
+node_modules/
+
 # Secrets / environment
 .env
 
