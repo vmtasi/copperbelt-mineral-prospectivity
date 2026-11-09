@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Central African Copperbelt major structural linework digitisation",
+  "target_crs": "EPSG:32735",
+  "source": {
+    "raster": "data/raw/daly_2025/Daly_Figure14_Tectonic_Domains_FULL_modified.tif",
+    "figure": "Daly et al. (2025) Figure 14",
+    "doi": "10.1029/2025TC008955",
+    "reference": "Daly, M. C., Zimba, M., Purkiss, M., & Chibesakunda, F. (2025). The Inter-Cratonic Neoproterozoic Katangan Basin of Central Africa: Rift Basin Formation, Orogenic Inversion and Potential Fluid Pathways. Tectonics, 44, e2025TC008955.",
+    "caption_basis": "Figure 12 caption: Regionally significant fault zones and bedding trends are marked. Emboldened are the major fault zones of the basin. Figure 14 is based on Figures 12-13 and retains the same emboldened structural linework.",
+    "licence": "CC BY 4.0 (article); figure reused with attribution",
+    "foundation_config": "configs/geology_foundation.json",
+    "domain_gpkg": "data/processed/geology_foundation/daly_tectonic_domains_v1.gpkg",
+    "boundary_gpkg": "data/processed/geology_foundation/daly_domain_boundaries_v1.gpkg",
+    "v14_training_csv": "data/copperbelt_training_v14_centroid_contact.csv",
+    "v14_training_sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878"
+  },
+  "extraction": {
+    "dark_max_rgb": 100,
+    "core_distance_px": 2.2,
+    "min_component_pixels": 8,
+    "min_polyline_pixels": 4,
+    "simplify_tolerance_px": 0.8,
+    "stroke_width_rule": "A dark pixel is retained as a ribbon core when its Euclidean distance to non-dark pixels is at least 2.2 pixels. This selects strokes approximately 4.4 pixels wide or thicker and rejects the 1-2 pixel bedding/form lines.",
+    "exclusion_rectangles_px": [
+      {"name": "left legend", "x0": 0, "y0": 0, "x1": 660, "y1": 520},
+      {"name": "right legend", "x0": 1280, "y0": 0, "x1": 1924, "y1": 600},
+      {"name": "NKB map label", "x0": 985, "y0": 480, "x1": 1100, "y1": 535},
+      {"name": "MMSB west map label", "x0": 415, "y0": 695, "x1": 560, "y1": 745},
+      {"name": "NRB map label", "x0": 795, "y0": 795, "x1": 910, "y1": 840},
+      {"name": "CRZ map label", "x0": 580, "y0": 940, "x1": 705, "y1": 1025},
+      {"name": "SRB map label", "x0": 330, "y0": 1235, "x1": 465, "y1": 1290},
+      {"name": "MSB map label", "x0": 1005, "y0": 1428, "x1": 1135, "y1": 1505},
+      {"name": "MMSB east map label", "x0": 1620, "y0": 860, "x1": 1780, "y1": 952}
+    ]
+  },
+  "outputs": {
+    "directory": "data/processed/geology_foundation",
+    "gpkg": "daly_major_structures_v1.gpkg",
+    "layer": "daly_major_structures",
+    "attributes_csv": "daly_major_structures_attributes_v1.csv",
+    "summary_json": "daly_major_structures_summary_v1.json",
+    "manifest_json": "daly_major_structures_manifest_v1.json",
+    "overlay_png": "outputs/geology_foundation/daly_major_structures_overlay.png",
+    "segments_png": "outputs/geology_foundation/daly_major_structures_segments.png",
+    "overlay_detail_png": "outputs/geology_foundation/daly_major_structures_overlay_detail.png",
+    "map_png": "outputs/geology_foundation/daly_major_structures_map.png"
+  }
+}

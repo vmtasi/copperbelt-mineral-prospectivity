@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "project_crs": "EPSG:32735",
+  "protected_hashes": {
+    "v1_gpkg": "8b816736b6571be68a2c6bec07307144d0f6fedef1cace9a2e2562220a921ab8",
+    "v1_attributes_csv": "58f131f69652493251ae1b07e3b25db664f81fb71e01babe77550d02a0436fde",
+    "v1_manifest": "5ef256f253553467f3fbcb22047dcd3e5d8eb333bb7e147b21a1927d8cdb6bcd",
+    "v14_training_csv": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878"
+  },
+  "protected_files": {
+    "v1_gpkg": "data/processed/geology_foundation/daly_major_structures_v1.gpkg",
+    "v1_attributes_csv": "data/processed/geology_foundation/daly_major_structures_attributes_v1.csv",
+    "v1_manifest": "data/processed/geology_foundation/daly_major_structures_manifest_v1.json",
+    "v14_training_csv": "data/copperbelt_training_v14_centroid_contact.csv"
+  },
+  "support": {
+    "support_type": "equal_area_hexagon_quadrature",
+    "nominal_cell_area_km2": 10.0,
+    "orientation": "flat_top",
+    "centroid_inside_frame": true,
+    "full_support_threshold": 0.99,
+    "edge_overlap_threshold": 0.80,
+    "expected_n_support": 2193,
+    "expected_n_full_support": 1019,
+    "expected_n_overlap_ge_80pct": 1447
+  },
+  "frame": {
+    "path": "data/derived/litho_contact_distance_v13.gpkg",
+    "layer": "litho_contact_distance",
+    "id_field": "id",
+    "expected_sha256": "ee9c975f2bf1fad5738d65d256fc142c61f6622ab75a086f0e18591f2fa24a33",
+    "role": "tract-clipped 5 km cell footprint; geometry only, no occurrence labels"
+  },
+  "v14_crosswalk": {
+    "path": "data/copperbelt_training_v14_centroid_contact.csv",
+    "usecols": ["id", "centroid_x", "centroid_y"],
+    "n_folds": 4,
+    "expected_sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+    "role": "nearest-cell and fold crosswalk only; deposit_present is never read"
+  },
+  "structures": {
+    "path": "data/processed/geology_foundation/daly_major_structures_named_v2.gpkg",
+    "expected_sha256": "10ba59c7bbe771f3e74dfe0e6db3263718f292f95efe394d39a5fcd73413e330",
+    "segments_layer": "v1_segments_attributed",
+    "centrelines_layer": "named_structure_centrelines",
+    "bridges_layer": "bridge_connectors",
+    "catalogue_layer": "named_structure_catalogue"
+  },
+  "domains": {
+    "path": "data/processed/geology_foundation/daly_tectonic_domains_v1.gpkg",
+    "layer": "daly_domains",
+    "id_field": "domain_id",
+    "abbreviation_field": "abbreviation",
+    "name_field": "domain_name",
+    "expected_sha256": "ed01d7e639203e01fdc472cd3a1797e63c7e99bb35df08dc7d960b380124c497"
+  },
+  "boundaries": {
+    "path": "data/processed/geology_foundation/daly_domain_boundaries_v1.gpkg",
+    "layer": "daly_domain_boundaries",
+    "exclude_boundary_type": "external",
+    "expected_sha256": "631608a1fcf3e43b63ed218c1b3b39babb4d604c0bf381790a36577088d6c9f9",
+    "role": "internal Daly colour-class boundaries only; cartographic context, not mapped faults"
+  },
+  "feature_parameters": {
+    "density_radii_km": [10, 25, 50],
+    "intersection_radius_km": 25,
+    "system_count_radius_km": 25
+  },
+  "outputs": {
+    "directory": "data/processed/structural_predictors",
+    "figure_directory": "outputs/structural_predictors",
+    "geopackage": "structural_predictors_v1.gpkg",
+    "feature_table": "structural_predictors_v1.csv",
+    "feature_dictionary": "structural_feature_dictionary_v1.csv",
+    "feature_support": "structural_feature_support_v1.csv",
+    "feature_by_domain": "structural_feature_by_domain_v1.csv",
+    "feature_by_fold": "structural_feature_by_v14_fold_v1.csv",
+    "correlations": "structural_feature_correlations_v1.csv",
+    "candidate_intersections_csv": "structural_candidate_intersections_v1.csv",
+    "bridge_sensitivity": "structural_bridge_sensitivity_by_system_v1.csv",
+    "confidence_sensitivity": "structural_confidence_sensitivity_v1.csv",
+    "v14_crosswalk": "v14_crosswalk_v1.csv",
+    "shortlist": "structural_predictor_shortlist_v1.csv",
+    "manifest": "structural_predictor_manifest_v1.json",
+    "validation": "structural_predictor_validation_v1.json",
+    "layers": {
+      "support_polygons": "structural_support_polygons",
+      "support_points": "structural_support_points",
+      "candidate_intersections": "structural_candidate_intersections"
+    },
+    "figures": {
+      "support_coverage": "structural_support_coverage.png",
+      "distance_hm": "structural_distance_hm.png",
+      "density_named_25km": "structural_density_named_25km.png",
+      "intersection_distance": "structural_intersection_distance.png",
+      "domain_boundary_distance": "structural_domain_boundary_distance.png",
+      "unnamed_density_25km": "structural_unnamed_density_25km.png",
+      "feature_distributions": "structural_feature_distributions.png",
+      "correlation_heatmap": "structural_correlation_heatmap.png"
+    }
+  }
+}

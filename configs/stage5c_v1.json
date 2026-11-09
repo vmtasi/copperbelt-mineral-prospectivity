@@ -1,0 +1,139 @@
+{
+  "schema_version": "1.0.0",
+  "project_crs": "EPSG:32735",
+  "purpose": "Stage 5C residual spatial dependence, buffered transfer diagnostics and bounded spatial-trend comparisons",
+  "stage5": {
+    "config": "configs/stage5_v1.json",
+    "inventory_manifest": "data/processed/stage5/stage5_inventory_manifest_v1.json",
+    "inventory_validation": "data/processed/stage5/stage5_inventory_validation_v1.json"
+  },
+  "stage5b": {
+    "manifest": "data/processed/stage5b/stage5b_manifest_v1.json",
+    "validation": "data/processed/stage5b/stage5b_validation_v1.json",
+    "report": "outputs/stage5b/stage5b_support_sensitivity_report_v1.md"
+  },
+  "reference": {
+    "model_id": "S0_NO_GRAVITY",
+    "outcome": "n_records",
+    "offset": "log_tract_area_km2",
+    "predictors": [
+      "BASE_DIST_FAULT_KM",
+      "BASE_DIST_CONTACT_KM",
+      "BASE_CONTACT_CLASS"
+    ],
+    "ridge_lambda": 1.0
+  },
+  "residuals": {
+    "k_neighbors": [6, 12, 24],
+    "distance_bands_km": [10.0, 25.0, 50.0],
+    "n_permutations": 999,
+    "seed": 20261107,
+    "primary_weight": "knn_12",
+    "local_fdr": 0.05,
+    "local_permutations": 999,
+    "rqr_seed": 20261107,
+    "boundary_thresholds_km": [1.0, 2.0, 5.0, 10.0],
+    "area_classes_km2": [0.0, 5.0, 10.0, 15.0, 25.0],
+    "informative_fold_min_positive_cells": 5
+  },
+  "partitions": [
+    {
+      "id": "BELT10",
+      "label": "Accepted belt-axis folds, 10 km buffer",
+      "family": "belt_axis",
+      "n_folds": 4,
+      "buffer_km": 10.0,
+      "role": "reference"
+    },
+    {
+      "id": "BELT25",
+      "label": "Accepted belt-axis folds, 25 km buffer",
+      "family": "belt_axis",
+      "n_folds": 4,
+      "buffer_km": 25.0,
+      "role": "buffer_sensitivity"
+    },
+    {
+      "id": "BELT50",
+      "label": "Accepted belt-axis folds, 50 km buffer",
+      "family": "belt_axis",
+      "n_folds": 4,
+      "buffer_km": 50.0,
+      "role": "buffer_sensitivity"
+    },
+    {
+      "id": "BLOCK50",
+      "label": "50 km checkerboard blocks, 10 km buffer",
+      "family": "checkerboard",
+      "n_folds": 4,
+      "buffer_km": 10.0,
+      "block_size_km": 50.0,
+      "role": "interleaved_block_sensitivity"
+    }
+  ],
+  "spatial_models": [
+    {
+      "id": "S0_REFERENCE",
+      "label": "Accepted S0 without spatial terms",
+      "terms": []
+    },
+    {
+      "id": "S0_BELT_LINEAR",
+      "label": "S0 plus linear along-belt trend",
+      "terms": ["SPATIAL_BELT"]
+    },
+    {
+      "id": "S0_BELT_CUBIC",
+      "label": "S0 plus cubic along-belt trend",
+      "terms": ["SPATIAL_BELT", "SPATIAL_BELT2", "SPATIAL_BELT3"]
+    },
+    {
+      "id": "S0_2D_QUADRATIC",
+      "label": "S0 plus quadratic two-dimensional trend",
+      "terms": ["SPATIAL_X", "SPATIAL_Y", "SPATIAL_X2", "SPATIAL_XY", "SPATIAL_Y2"]
+    },
+    {
+      "id": "S0_2D_RBF12",
+      "label": "S0 plus 12 fixed radial-basis spatial terms",
+      "terms": [
+        "SPATIAL_RBF_01", "SPATIAL_RBF_02", "SPATIAL_RBF_03", "SPATIAL_RBF_04",
+        "SPATIAL_RBF_05", "SPATIAL_RBF_06", "SPATIAL_RBF_07", "SPATIAL_RBF_08",
+        "SPATIAL_RBF_09", "SPATIAL_RBF_10", "SPATIAL_RBF_11", "SPATIAL_RBF_12"
+      ]
+    }
+  ],
+  "rbf": {
+    "n_belt_centres": 4,
+    "n_cross_centres": 3,
+    "bandwidth_km": 75.0
+  },
+  "outputs": {
+    "processed_dir": "data/processed/stage5c",
+    "figure_dir": "outputs/stage5c",
+    "partition_definitions": "stage5c_partition_definitions_v1.csv",
+    "partition_fold_metrics": "stage5c_partition_fold_metrics_v1.csv",
+    "partition_summary": "stage5c_partition_summary_v1.csv",
+    "partition_predictions": "stage5c_partition_predictions_v1.csv",
+    "spatial_model_metrics": "stage5c_spatial_model_metrics_v1.csv",
+    "spatial_model_fold_metrics": "stage5c_spatial_model_fold_metrics_v1.csv",
+    "spatial_model_predictions": "stage5c_spatial_model_predictions_v1.csv",
+    "spatial_model_coefficients": "stage5c_spatial_model_coefficients_v1.csv",
+    "spatial_feature_diagnostics": "stage5c_spatial_feature_diagnostics_v1.csv",
+    "moran_tests": "stage5c_moran_tests_v1.csv",
+    "moran_summary": "stage5c_moran_summary_v1.csv",
+    "local_moran": "stage5c_local_moran_v1.csv",
+    "residual_summary": "stage5c_residual_summary_v1.csv",
+    "observation_context": "stage5c_observation_context_v1.csv",
+    "reference_reproduction": "stage5c_reference_reproduction_v1.json",
+    "partition_figure": "stage5c_partition_maps.png",
+    "partition_transfer_figure": "stage5c_partition_transfer.png",
+    "moran_figure": "stage5c_moran_scales.png",
+    "local_cluster_figure": "stage5c_local_clusters.png",
+    "residual_diagnostic_figure": "stage5c_residual_diagnostics.png",
+    "spatial_model_figure": "stage5c_spatial_model_comparison.png",
+    "residual_maps_figure": "stage5c_residual_maps.png",
+    "report": "stage5c_residual_diagnostics_report_v1.md",
+    "manifest": "stage5c_manifest_v1.json",
+    "validation": "stage5c_validation_v1.json"
+  }
+}

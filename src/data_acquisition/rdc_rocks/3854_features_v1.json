@@ -1,0 +1,252 @@
+{
+  "document": {
+    "id": "RDC_3854",
+    "source_raster": "data/raw/rdc_rocks/derived/ocr/pages/RDC_3854_p001.png",
+    "title": "Facies et epaisseurs du Groupe R.4",
+    "scale": "1:500,000"
+  },
+  "coordinate_space": "map_grid_metres_unresolved_datum",
+  "features": [
+    {
+      "id": "3854-L001",
+      "class": "r4_luankonko",
+      "name_fr": "R.4 de facies Luankonko - bande nord",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[230000, 324000], [238000, 323000], [246000, 322000], [254000, 321000], [262000, 320000], [270000, 319000], [278000, 318000], [286000, 317000], [294000, 316000], [302000, 314000], [302000, 312000], [294000, 314000], [286000, 315000], [278000, 316000], [270000, 317000], [262000, 318000], [254000, 319000], [246000, 320000], [238000, 321000], [230000, 322000]],
+      "notes": "Envelope of the northern double-line Luankonko belt. Digitised from the printed symbol band, not a contact-traced polygon."
+    },
+    {
+      "id": "3854-L002",
+      "class": "r4_luankonko",
+      "name_fr": "R.4 de facies Luankonko - bande centrale",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[232000, 312000], [240000, 311000], [248000, 310000], [256000, 308000], [264000, 306000], [272000, 304000], [280000, 302000], [288000, 300000], [296000, 298000], [300000, 296000], [294000, 297000], [286000, 299000], [278000, 301000], [270000, 303000], [262000, 305000], [254000, 307000], [246000, 308000], [238000, 309000], [232000, 310000]],
+      "notes": "Envelope of the central double-line Luankonko belt between Kakanda and Kalabi."
+    },
+    {
+      "id": "3854-L003",
+      "class": "r4_luankonko",
+      "name_fr": "R.4 de facies Luankonko - bande sud",
+      "geometry": "polygon",
+      "confidence": "low",
+      "vertices": [[225000, 293000], [233000, 292000], [241000, 290000], [249000, 288000], [257000, 286000], [265000, 284000], [273000, 282000], [281000, 280000], [289000, 278000], [297000, 276000], [300000, 274000], [292000, 276000], [284000, 278000], [276000, 280000], [268000, 282000], [260000, 284000], [252000, 286000], [244000, 288000], [236000, 290000], [228000, 291000]],
+      "notes": "Southern belt is cut by the Kambove-Likasi thrust and is only partly legible."
+    },
+    {
+      "id": "3854-K001",
+      "class": "r4_kabul",
+      "name_fr": "R.4 de facies Kabul - Tenke-Fungurume",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[203000, 316000], [206000, 318000], [210000, 320000], [214000, 322000], [219000, 323000], [224000, 322000], [224000, 319000], [220000, 317000], [216000, 316000], [211000, 315000], [206000, 314000], [203000, 314000]],
+      "notes": "Envelope of the open-circle Kabul chains north of Tenke and Fungurume."
+    },
+    {
+      "id": "3854-K002",
+      "class": "r4_kabul",
+      "name_fr": "R.4 de facies Kabul - Chabara-Kabulungu",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[149000, 305000], [153000, 307000], [158000, 310000], [163000, 312000], [168000, 311000], [170000, 308000], [166000, 306000], [161000, 304000], [155000, 303000], [151000, 303000]],
+      "notes": "Envelope of the Kabul circle chains near Chabara and Kabulungu."
+    },
+    {
+      "id": "3854-K003",
+      "class": "r4_kabul",
+      "name_fr": "R.4 de facies Kabul - Kabolela-Kambove",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[245000, 303000], [248000, 302000], [251000, 300000], [254000, 298000], [257000, 295000], [257000, 293000], [254000, 294000], [251000, 296000], [248000, 298000], [245000, 300000]],
+      "notes": "North-south Kabul chain along the Kabolela-Kambove belt."
+    },
+    {
+      "id": "3854-K004",
+      "class": "r4_kabul",
+      "name_fr": "R.4 de facies Kabul - Kalabi-Likasi",
+      "geometry": "polygon",
+      "confidence": "low",
+      "vertices": [[274000, 300000], [278000, 299000], [282000, 297000], [286000, 294000], [290000, 291000], [294000, 288000], [297000, 284000], [294000, 283000], [290000, 286000], [286000, 289000], [282000, 292000], [278000, 295000], [274000, 297000]],
+      "notes": "Eastern Kabul chain; partly obscured by thrust ornament near Likasi."
+    },
+    {
+      "id": "3854-C001",
+      "class": "r4_chabara",
+      "name_fr": "R.4 de facies Chabara - Kakonge",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[258000, 319000], [264000, 318000], [270000, 317000], [276000, 316000], [282000, 315000], [288000, 314000], [293000, 313000], [293000, 311000], [287000, 312000], [281000, 313000], [275000, 314000], [269000, 315000], [263000, 316000], [258000, 317000]],
+      "notes": "Envelope of the brick-symbol Chabara belt through Kakonge."
+    },
+    {
+      "id": "3854-C002",
+      "class": "r4_chabara",
+      "name_fr": "R.4 de facies Chabara - Kalabi",
+      "geometry": "polygon",
+      "confidence": "medium",
+      "vertices": [[276000, 309000], [282000, 308000], [288000, 306000], [294000, 305000], [300000, 303000], [302000, 301000], [296000, 302000], [290000, 303000], [284000, 304000], [278000, 305000], [274000, 307000]],
+      "notes": "Envelope of the Kalabi Chabara band; boundary with Kabul is approximate."
+    },
+    {
+      "id": "3854-C003",
+      "class": "r4_chabara",
+      "name_fr": "R.4 de facies Chabara - Kambove-Likasi",
+      "geometry": "polygon",
+      "confidence": "low",
+      "vertices": [[250000, 296000], [254000, 294000], [258000, 291000], [262000, 288000], [266000, 284000], [268000, 281000], [265000, 280000], [261000, 283000], [257000, 286000], [253000, 289000], [249000, 292000]],
+      "notes": "Narrow belt between Kambove and Likasi; class assignment is from the printed brick ornament."
+    },
+    {
+      "id": "3854-A001",
+      "class": "r4_absent",
+      "name_fr": "R.4 absent - Kakanda",
+      "geometry": "polygon",
+      "confidence": "low",
+      "vertices": [[256000, 315000], [260000, 317000], [265000, 316000], [270000, 314000], [268000, 312000], [263000, 311000], [258000, 312000]],
+      "notes": "Dotted R.4-absent patch near Kakanda; outline partly inferred from broken dotted line."
+    },
+    {
+      "id": "3854-A002",
+      "class": "r4_absent",
+      "name_fr": "R.4 absent - Kambove Sud",
+      "geometry": "polygon",
+      "confidence": "low",
+      "vertices": [[270000, 289000], [275000, 291000], [280000, 289000], [283000, 285000], [279000, 283000], [274000, 285000]],
+      "notes": "Small absent zone south of Kambove; class assignment from the dotted boundary symbol."
+    },
+    {
+      "id": "3854-B001",
+      "class": "facies_boundary",
+      "name_fr": "Limite entre facies - nord",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[238000, 322000], [248000, 320000], [258000, 319000], [268000, 317000], [278000, 316000], [288000, 315000], [298000, 314000]],
+      "notes": "Boundary between the northern Luankonko and Chabara belts; approximate."
+    },
+    {
+      "id": "3854-B002",
+      "class": "facies_boundary",
+      "name_fr": "Limite entre facies - centre",
+      "geometry": "line",
+      "confidence": "medium",
+      "vertices": [[240000, 310000], [250000, 308000], [260000, 306000], [270000, 304000], [280000, 302000], [290000, 300000], [300000, 298000]],
+      "notes": "Boundary along the central Luankonko belt, drawn between the printed belts."
+    },
+    {
+      "id": "3854-B003",
+      "class": "facies_boundary",
+      "name_fr": "Limite entre facies - sud",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[240000, 290000], [250000, 288000], [260000, 286000], [270000, 284000], [280000, 282000], [290000, 280000], [300000, 278000]],
+      "notes": "Approximate southern facies boundary, partly coincident with thrust traces."
+    },
+    {
+      "id": "3854-B004",
+      "class": "facies_boundary",
+      "name_fr": "Limite entre facies - ouest",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[150000, 303000], [156000, 306000], [162000, 309000], [168000, 311000]],
+      "notes": "Short boundary between Kabul and adjacent undifferentiated R.4 near Chabara."
+    },
+    {
+      "id": "3854-F001",
+      "class": "thrust_fault",
+      "name_fr": "Faille de charriage - nord-ouest",
+      "geometry": "line",
+      "confidence": "medium",
+      "vertices": [[146000, 351000], [151000, 347000], [156000, 343000], [161000, 339000], [166000, 335000], [172000, 333000], [178000, 331000], [182000, 330000]],
+      "notes": "Thrust trace with teeth on the northern margin of the KIBARIEN block."
+    },
+    {
+      "id": "3854-F002",
+      "class": "thrust_fault",
+      "name_fr": "Faille de charriage - Chabara",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[120000, 309000], [133000, 309000], [146000, 310000], [159000, 311000], [172000, 313000], [184000, 315000], [191000, 316000]],
+      "notes": "Thrust-like boundary north of Chabara; ornament is faint and partly overlain by facies symbols."
+    },
+    {
+      "id": "3854-F003",
+      "class": "thrust_fault",
+      "name_fr": "Faille de charriage - Kakanda",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[244000, 312000], [250000, 311000], [256000, 309000], [262000, 307000], [268000, 305000], [274000, 303000]],
+      "notes": "Short thrust trace near Kakanda; distinguished from the nearby facies boundary only with difficulty."
+    },
+    {
+      "id": "3854-F004",
+      "class": "thrust_fault",
+      "name_fr": "Faille de charriage - Kambove-Likasi",
+      "geometry": "line",
+      "confidence": "medium",
+      "vertices": [[251000, 298000], [256000, 295000], [261000, 291000], [266000, 287000], [270000, 283000], [273000, 280000]],
+      "notes": "Main Kambove-Likasi thrust trace; teeth point toward the north-west."
+    },
+    {
+      "id": "3854-F005",
+      "class": "thrust_fault",
+      "name_fr": "Faille de charriage - est",
+      "geometry": "line",
+      "confidence": "medium",
+      "vertices": [[282000, 302000], [288000, 299000], [294000, 296000], [300000, 292000], [306000, 288000], [310000, 284000]],
+      "notes": "Eastern thrust trace near Kalabi and Likasi."
+    },
+    {
+      "id": "3854-D001",
+      "class": "discordance",
+      "name_fr": "Discordance - Tenke",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[207000, 318000], [217000, 313000], [227000, 309000], [237000, 305000], [247000, 301000]],
+      "notes": "Dash-dot discordance trace north of Tenke-Fungurume."
+    },
+    {
+      "id": "3854-D002",
+      "class": "discordance",
+      "name_fr": "Discordance - sud",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[232000, 292000], [248000, 290000], [264000, 288000], [280000, 287000], [300000, 286000]],
+      "notes": "Long dash-dot discordance trace across the southern part of the sheet."
+    },
+    {
+      "id": "3854-D003",
+      "class": "discordance",
+      "name_fr": "Discordance - Kambove",
+      "geometry": "line",
+      "confidence": "low",
+      "vertices": [[160000, 302000], [174000, 295000], [188000, 289000], [202000, 283000], [212000, 281000]],
+      "notes": "Discordance trace west and south of Kambove; partly cut by the map frame."
+    }
+  ],
+  "isopachs": [
+    {"id": "3854-T001", "px": 2522.5, "py": 640.5, "text": "80/80", "confidence": "medium", "note": "NE of Tenke; label in map body."},
+    {"id": "3854-T002", "px": 2440.0, "py": 669.0, "text": "80/150", "confidence": "medium", "note": "North of Fungurume."},
+    {"id": "3854-T003", "px": 2143.0, "py": 712.5, "text": "75/150", "confidence": "medium", "note": "North-west of Fungurume."},
+    {"id": "3854-T004", "px": 2254.0, "py": 821.0, "text": "100/150", "confidence": "medium", "note": "North of Fungurume."},
+    {"id": "3854-T005", "px": 2352.5, "py": 869.0, "text": "200/100", "confidence": "medium", "note": "Fungurume belt."},
+    {"id": "3854-T006", "px": 2722.5, "py": 952.0, "text": "250/100", "confidence": "medium", "note": "Kakonge area."},
+    {"id": "3854-T007", "px": 2215.0, "py": 959.5, "text": "200/100", "confidence": "medium", "note": "South of Fungurume."},
+    {"id": "3854-T008", "px": 2355.0, "py": 967.5, "text": "120/50", "confidence": "medium", "note": "Fungurume-Kakanda belt."},
+    {"id": "3854-T009", "px": 2376.0, "py": 1042.5, "text": "50/100", "confidence": "medium", "note": "South-east of Fungurume."},
+    {"id": "3854-T010", "px": 2048.0, "py": 1166.5, "text": "130/80", "confidence": "medium", "note": "Kakanda area."},
+    {"id": "3854-T011", "px": 2621.5, "py": 1187.5, "text": "130/100", "confidence": "medium", "note": "Kalabi belt."},
+    {"id": "3854-T012", "px": 2948.0, "py": 1237.5, "text": "250/200", "confidence": "medium", "note": "Kikonge-Kalabi area."},
+    {"id": "3854-T013", "px": 1838.5, "py": 1414.5, "text": "200/120", "confidence": "medium", "note": "Milebi area."},
+    {"id": "3854-T014", "px": 2568.5, "py": 1449.5, "text": "300/100", "confidence": "medium", "note": "Kambove area."},
+    {"id": "3854-T015", "px": 2174.5, "py": 1521.0, "text": "125/150", "confidence": "medium", "note": "Katinda area."},
+    {"id": "3854-T016", "px": 2583.5, "py": 1592.5, "text": "350/150", "confidence": "medium", "note": "South of Kambove."},
+    {"id": "3854-T017", "px": 1911.5, "py": 1603.0, "text": "400/125", "confidence": "low", "note": "Kamonga area; OCR of 400 is partly uncertain."},
+    {"id": "3854-T018", "px": 2376.5, "py": 1711.5, "text": "150/60", "confidence": "medium", "note": "West of Shinkolobwe."},
+    {"id": "3854-T019", "px": 1591.0, "py": 1726.0, "text": "50/125", "confidence": "medium", "note": "South-west of Kamonga."},
+    {"id": "3854-T020", "px": 3230.5, "py": 1743.0, "text": "170/120", "confidence": "medium", "note": "Likasi area."},
+    {"id": "3854-T021", "px": 1872.5, "py": 1790.5, "text": "20/150", "confidence": "medium", "note": "Mindigi area."},
+    {"id": "3854-T022", "px": 3255.5, "py": 1856.0, "text": "190/140", "confidence": "medium", "note": "Luishia area."},
+    {"id": "3854-T023", "px": 2012.0, "py": 1768.0, "text": "0/150", "confidence": "low", "note": "Mindigi area; leading zero may indicate eroded R.4.2."}
+  ]
+}

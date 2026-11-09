@@ -1,0 +1,193 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Central African Copperbelt geological foundation",
+  "target_crs": "EPSG:32735",
+  "daly": {
+    "source_raster": "data/raw/daly_2025/Daly_Figure14_Tectonic_Domains_FULL_modified.tif",
+    "upstream_locator": "H:\\My Drive\\Research\\GeoMining\\Data\\Daly_Figure14_Tectonic_Domains_FULL_modified.tif",
+    "source_reference": "Daly et al. (2025), Figure 14",
+    "source_doi": "10.1029/2025TC008955",
+    "source_citation": "Daly, M. C., Zimba, M., Purkiss, M., & Chibesakunda, F. (2025). The Inter-Cratonic Neoproterozoic Katangan Basin of Central Africa: Rift Basin Formation, Orogenic Inversion and Potential Fluid Pathways. Tectonics, 44, e2025TC008955.",
+    "source_license": "CC BY 4.0 (article); figure reused with attribution",
+    "classification_method": "RGB palette classification of the published Figure 14 map panel, followed by a small seed-connection closing to bridge black cartographic linework, map-envelope closure, nearest-colour seed assignment, median smoothing, and categorical polygonization.",
+    "pixel_parameters": {
+      "color_tolerance_rgb": 18,
+      "legend_exclusion_zones_px": [
+        {"name": "left legend", "x0": 0, "y0": 0, "x1": 250, "y1": 450},
+        {"name": "right legend", "x0": 1500, "y0": 0, "x1": 1924, "y1": 650}
+      ],
+      "legend_component_max_pixels": 60000,
+      "envelope_component_min_pixels": 4000,
+      "seed_connect_radius_px": 2,
+      "envelope_close_radius_px": 25,
+      "envelope_keep_min_pixels": 5000,
+      "class_seed_min_pixels": 30,
+      "class_seed_min_side_px": 2,
+      "domain_6_seed_min_pixels": 1000,
+      "domain_6_seed_min_side_px": 20,
+      "median_filter_px": 5,
+      "min_domain_component_pixels": 50,
+      "output_resolution_m": 600
+    },
+    "classes": [
+      {
+        "class_value": 1,
+        "domain_id": "1",
+        "domain_number": "1",
+        "is_subdomain": false,
+        "abbreviation": "NKB",
+        "name": "Northeastern Katangan Basin",
+        "parent_domain_id": null,
+        "figure_legend_text": "N Katangan basin, NKB",
+        "rgb": [227, 241, 254],
+        "notes": "Single map class; northern and northeastern Katangan basin."
+      },
+      {
+        "class_value": 2,
+        "domain_id": "2",
+        "domain_number": "2",
+        "is_subdomain": false,
+        "abbreviation": "MMSB",
+        "name": "Mwashia marginal sub-basins",
+        "parent_domain_id": null,
+        "figure_legend_text": "Mwashia marginal sub-basin, MMSB",
+        "rgb": [255, 171, 85],
+        "notes": "Multiple separated map bodies are retained as a multipart domain."
+      },
+      {
+        "class_value": 3,
+        "domain_id": "3a",
+        "domain_number": "3",
+        "is_subdomain": true,
+        "abbreviation": "NRB",
+        "name": "Inverted Northern Rift Basin: salt-driven fold belt with basement fault inversion",
+        "parent_domain_id": "3",
+        "figure_legend_text": "Inverted salt province (NRB)",
+        "rgb": [170, 171, 254],
+        "notes": "Sub-domain 3a."
+      },
+      {
+        "class_value": 4,
+        "domain_id": "3b",
+        "domain_number": "3",
+        "is_subdomain": true,
+        "abbreviation": "NRB",
+        "name": "Inverted Northern Rift Basin: Kafue platform, major basement fault inversion and minor salt tectonics",
+        "parent_domain_id": "3",
+        "figure_legend_text": "Kafue platform (NRB)",
+        "rgb": [170, 213, 255],
+        "notes": "Sub-domain 3b."
+      },
+      {
+        "class_value": 5,
+        "domain_id": "4a",
+        "domain_number": "4",
+        "is_subdomain": true,
+        "abbreviation": "CRZ",
+        "name": "Central Rift Zone and later orogen: high-strain, high-grade metamorphic zone with basement domes",
+        "parent_domain_id": "4",
+        "figure_legend_text": "HP/HT Orogen (CRZ)",
+        "rgb": [113, 255, 183],
+        "notes": "Sub-domain 4a. CRZ follows the published figure and paper usage; it is not synonymous with the whole Domain 4 label in isolation."
+      },
+      {
+        "class_value": 6,
+        "domain_id": "4b",
+        "domain_number": "4",
+        "is_subdomain": true,
+        "abbreviation": "CRZ",
+        "name": "Central Rift Zone and later orogen: high-strain, low-grade metamorphic zone",
+        "parent_domain_id": "4",
+        "figure_legend_text": "Hi-strain, LP/LT (CRZ)",
+        "rgb": [213, 255, 171],
+        "notes": "Sub-domain 4b."
+      },
+      {
+        "class_value": 7,
+        "domain_id": "5",
+        "domain_number": "5",
+        "is_subdomain": false,
+        "abbreviation": "SRB",
+        "name": "Inverted Southern Rift Basin",
+        "parent_domain_id": null,
+        "figure_legend_text": "Inverted basin (SRB)",
+        "rgb": [254, 227, 198],
+        "notes": "Single map class."
+      },
+      {
+        "class_value": 8,
+        "domain_id": "6",
+        "domain_number": "6",
+        "is_subdomain": false,
+        "abbreviation": "MSB",
+        "name": "Mumbwa Sub-Basin (MSB)",
+        "parent_domain_id": null,
+        "figure_legend_text": "Mumbwa sub-basin (MSB)",
+        "rgb": [215, 215, 215],
+        "notes": "The grey class requires stricter seed filtering because small grey cartographic text shares the same RGB range. MSB is distinct from MMSB (Mwashia marginal sub-basins) and from the Mwinilunga Fault Zone."
+      },
+      {
+        "class_value": 9,
+        "domain_id": "7",
+        "domain_number": "7",
+        "is_subdomain": false,
+        "abbreviation": "GRANITE",
+        "name": "Hook Granite Batholith and associated early/syn-tectonic granites",
+        "parent_domain_id": null,
+        "figure_legend_text": "Early & Syn tectonic granites",
+        "rgb": [254, 28, 29],
+        "notes": "Main batholith and all retained red outlier components from the published figure."
+      }
+    ]
+  },
+  "structure": {
+    "source_gpkg": "data/raw/selley_2005/Selley_2005_faults_shear_zones_compilation.gpkg",
+    "source_layer": "faults_shear_zones",
+    "upstream_locator": "C:\\Project\\data for projects\\CACB_Structures.gpkg#faults_shear_zones",
+    "source_reference": "Selley et al. (2005), Figure 1, as represented by the existing CACB_Structures compilation",
+    "source_license_status": "unverified; local research use only; do not redistribute without confirming rights",
+    "tier": 3,
+    "attribution_status": "anonymous_linework_only",
+    "allowed_use": "baseline or sensitivity feature only",
+    "prohibited_use": "do not assign named faults, fault hierarchy, fault type, tectonic role, displacement, or mineralisation association"
+  },
+  "v14_reference": {
+    "training_csv": "data/copperbelt_training_v14_centroid_contact.csv",
+    "id_column": "id",
+    "x_column": "centroid_x",
+    "y_column": "centroid_y",
+    "label_column": "deposit_present",
+    "legacy_domain_column": "domain",
+    "complete_case_columns": [
+      "litho_contact_litho_class",
+      "distance_to_lithology_contact",
+      "bouguer",
+      "isostatic",
+      "emag",
+      "distance_to_fault",
+      "domain"
+    ],
+    "expected_rows": 1899,
+    "expected_complete_cases": 1872,
+    "expected_positives": 139,
+    "expected_complete_case_positives": 138
+  },
+  "outputs": {
+    "directory": "data/processed/geology_foundation",
+    "domain_gpkg": "daly_tectonic_domains_v1.gpkg",
+    "domain_layer": "daly_domains",
+    "boundary_gpkg": "daly_domain_boundaries_v1.gpkg",
+    "boundary_layer": "daly_domain_boundaries",
+    "domain_raster": "daly_tectonic_domains_v1_600m.tif",
+    "structural_gpkg": "structural_linework_tier3_v1.gpkg",
+    "structural_layer": "structural_linework_tier3",
+    "crosswalk_csv": "domain_crosswalk.csv",
+    "source_registry_csv": "source_registry.csv",
+    "named_structures_csv": "named_structure_reference.csv",
+    "v14_coverage_csv": "v14_domain_assignment_coverage.csv",
+    "stratigraphy_status_json": "bedrock_stratigraphy_status.json",
+    "validation_json": "validation_report.json",
+    "manifest_json": "manifest.json",
+    "diagnostic_png": "outputs/geology_foundation/daly_domain_reconstruction.png"
+  }
+}

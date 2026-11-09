@@ -1,0 +1,484 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Daly et al. (2025) named major-structure reconstruction, version 2",
+  "policy": {
+    "primary_naming_reference": "Daly et al. (2025) Figure 12",
+    "geometry_cross_check": "Daly et al. (2025) Figure 14",
+    "naming_rule": "A published abbreviation is linked to geometry only where label placement, the heavy printed trace, and local trace topology support a unique association. Proximity alone is insufficient.",
+    "connectivity_rule": "Segments are ordered by cartographic continuity. Straight gap bridges are stored separately and never presented as observed fault geometry.",
+    "prohibited_evidence": "Mineral occurrences, deposit density, exploration history and deposit-proximity scores were not used to name, connect, rank or classify structures.",
+    "contiguous_tolerance_m": 2.0,
+    "bridge_geometry": "straight_line_between_nearest_component_endpoints",
+    "confidence_definitions": {
+      "high": "Label and unique heavy trace are directly associated and local topology supports the link.",
+      "medium": "Association is supported but requires an interpreted offset or continuation across closely spaced linework.",
+      "medium_low": "Plausible association exists, but continuity or uniqueness is not fully demonstrated.",
+      "unresolved": "The label cannot be uniquely associated with a continuous printed trace."
+    },
+    "stroke_width_note": "Printed stroke width is a cartographic fault-zone symbol, not physical fault-zone width."
+  },
+  "label_anchors_px": {
+    "LB": [247.0, 813.0],
+    "M": [300.0, 814.0],
+    "Ky_nw": [516.0, 671.0],
+    "Ky_sw": [75.0, 999.0],
+    "Si": [487.0, 759.0],
+    "Kw": [851.0, 821.0],
+    "Ch": [1204.0, 836.0],
+    "Pd": [903.0, 891.0],
+    "Kf": [815.0, 930.0],
+    "Mh": [385.0, 932.0],
+    "Mt": [363.0, 1035.0],
+    "Ks": [466.0, 1049.0],
+    "LL": [574.0, 1100.0],
+    "Mb": [886.0, 1081.0],
+    "Ny": [920.0, 1157.0],
+    "MbFZ": [880.0, 1244.0]
+  },
+  "structures": [
+    {
+      "structure_id": "DALY2025_MSTR_CH",
+      "abbreviation": "Ch",
+      "name": "Chilonga",
+      "aliases": [],
+      "label_anchor_key": "Ch",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Major fault zone on the northeastern basin margin near Chilonga Mission.",
+      "figure14_cross_check": "Same heavy trace is present in Figure 14; that figure carries no labels.",
+      "centerline_parts": [
+        {
+          "part_id": "CH_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": ["DALY2025_MSC_0047", "DALY2025_MSC_0028"],
+          "bridge_max_km": 0.1,
+          "reason": "The two long components meet at one endpoint and form the unique trace southeast of Ch."
+        }
+      ],
+      "supporting_segments": [
+        {
+          "segment_id": "DALY2025_MSC_0199",
+          "role": "junction_fragment",
+          "confidence": "medium",
+          "reason": "Short component at the common endpoint; retained as mapped detail."
+        }
+      ],
+      "candidate_segments_not_assigned": [
+        {
+          "segment_id": "DALY2025_MSC_0088",
+          "reason": "Separate short heavy trace northeast of Ch; no continuity or label support."
+        }
+      ],
+      "notes": ["No kinematics, displacement or age is assigned.", "Caption spelling Ch is canonical."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_KF",
+      "abbreviation": "Kf",
+      "name": "Kafue",
+      "aliases": [],
+      "label_anchor_key": "Kf",
+      "attribution_confidence": "medium",
+      "geometry_status": "attributed",
+      "published_context": "Kafue fault zone defines the eastern Kafue Anticline margin and the edge of the thick Lower Roan basin.",
+      "figure14_cross_check": "The components form one continuous heavy trace around the eastern Kafue Anticline in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "KF_MAIN",
+          "role": "main_trace",
+          "confidence": "medium",
+          "ordered_segment_ids": ["DALY2025_MSC_0012", "DALY2025_MSC_0033", "DALY2025_MSC_0034", "DALY2025_MSC_0062"],
+          "bridge_max_km": 0.1,
+          "reason": "Continuous component chain on the eastern Kafue Anticline. The label is offset into the anticline interior."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {
+          "segment_id": "DALY2025_MSC_0072",
+          "reason": "Short northern junction spur; not an independent parent trace."
+        },
+        {
+          "segment_id": "DALY2025_MSC_0071",
+          "reason": "Short eastern junction spur; not an independent parent trace."
+        }
+      ],
+      "notes": ["The southern junction is shared geometrically with Mubulashi 0031, but the named axes are separated.", "Kafue is not applied to Pedicle 0004."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_KS",
+      "abbreviation": "Ks",
+      "name": "Kasempa",
+      "aliases": [],
+      "label_anchor_key": "Ks",
+      "attribution_confidence": "unresolved",
+      "geometry_status": "unresolved_reference_only",
+      "published_context": "Kasempa is named as one of four regionally significant Southern Rift Basin fault zones.",
+      "figure14_cross_check": "Figure 14 shows several heavy traces near Ks, but no label-bearing or uniquely abutted trace.",
+      "centerline_parts": [],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {"segment_id": "DALY2025_MSC_0002", "reason": "Long trace about 36 px away; one of three plausible adjacent traces."},
+        {"segment_id": "DALY2025_MSC_0007", "reason": "Long trace about 37 px away; one of three plausible adjacent traces."},
+        {"segment_id": "DALY2025_MSC_0010", "reason": "Long trace about 38 px away; one of three plausible adjacent traces."},
+        {"segment_id": "DALY2025_MSC_0076", "reason": "Short junction component about 40 px away; no parent-trace evidence."}
+      ],
+      "notes": ["No geometry is assigned.", "External structural mapping or author vectors are required to resolve this case."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_KW",
+      "abbreviation": "Kw",
+      "name": "Kawire",
+      "aliases": ["Kawiri"],
+      "label_anchor_key": "Kw",
+      "attribution_confidence": "medium",
+      "geometry_status": "attributed",
+      "published_context": "Kawire fault is described at Konkola and linked to the Kafue fault zone.",
+      "figure14_cross_check": "The accepted pieces form the nearest continuous heavy trace west of Kafue Anticline in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "KW_MAIN",
+          "role": "main_trace",
+          "confidence": "medium",
+          "ordered_segment_ids": ["DALY2025_MSC_0038", "DALY2025_MSC_0024"],
+          "bridge_max_km": 0.1,
+          "reason": "The long components join end-to-end and form the nearest major trace to Kw; the label is offset east."
+        }
+      ],
+      "supporting_segments": [
+        {"segment_id": "DALY2025_MSC_0241", "role": "junction_fragment", "confidence": "low", "reason": "Very short junction fragment retained as mapped detail."}
+      ],
+      "candidate_segments_not_assigned": [],
+      "notes": ["Caption spelling Kawire is canonical; Kawiri is a body-text alias."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_KY",
+      "abbreviation": "Ky",
+      "name": "Kanyama",
+      "aliases": [],
+      "label_anchor_key": "Ky_nw",
+      "additional_label_anchor_keys": ["Ky_sw"],
+      "attribution_confidence": "mixed",
+      "geometry_status": "partially_attributed",
+      "published_context": "Kanyama fault zone is the western boundary fault of the major Lower Roan rift event.",
+      "figure14_cross_check": "The northwest network is continuous in Figure 14. The southwest label is beside a separate heavy trace whose mapped connection is absent.",
+      "centerline_parts": [
+        {
+          "part_id": "KY_NW_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": ["DALY2025_MSC_0102", "DALY2025_MSC_0042", "DALY2025_MSC_0109", "DALY2025_MSC_0021"],
+          "bridge_max_km": 0.1,
+          "reason": "Continuous northwest arcuate trace passing immediately below Ky."
+        },
+        {
+          "part_id": "KY_NW_SPLAY",
+          "role": "splay",
+          "confidence": "medium",
+          "ordered_segment_ids": ["DALY2025_MSC_0020"],
+          "bridge_max_km": 0.1,
+          "reason": "Northward branch of the same mapped network."
+        },
+        {
+          "part_id": "KY_SW_PROBABLE",
+          "role": "disconnected_southwest_component",
+          "confidence": "medium_low",
+          "ordered_segment_ids": ["DALY2025_MSC_0005"],
+          "bridge_max_km": 0.0,
+          "reason": "The second Ky label is adjacent to this long southwest trace. Continuity to the northwest network is not mapped."
+        }
+      ],
+      "supporting_segments": [
+        {"segment_id": "DALY2025_MSC_0217", "role": "junction_fragment", "confidence": "low", "reason": "Short fragment at the Kanyama main-trace junction; retained as mapped detail."}
+      ],
+      "candidate_segments_not_assigned": [],
+      "notes": ["The two Ky labels are retained. Northwest is high confidence; southwest is medium-low and explicitly disconnected.", "No connection to Lwawa or Mwinilunga is asserted."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_LB",
+      "abbreviation": "LB",
+      "name": "Lwawa",
+      "aliases": ["Lwawu"],
+      "label_anchor_key": "LB",
+      "attribution_confidence": "medium",
+      "geometry_status": "attributed",
+      "published_context": "Lwawu is a western-margin fault active during Mwashia deposition and emplacement of the Lwawu Basalts.",
+      "figure14_cross_check": "The main and parallel strands occur together in Figure 14 along the western green Mwashia belt.",
+      "centerline_parts": [
+        {
+          "part_id": "LB_MAIN",
+          "role": "main_trace",
+          "confidence": "medium",
+          "ordered_segment_ids": ["DALY2025_MSC_0064", "DALY2025_MSC_0009"],
+          "bridge_max_km": 0.1,
+          "reason": "Long trace adjacent to the western Mwashia belt and the LB label."
+        },
+        {
+          "part_id": "LB_PARALLEL_MARGIN",
+          "role": "parallel_fault_zone_margin",
+          "confidence": "medium_low",
+          "ordered_segment_ids": ["DALY2025_MSC_0046", "DALY2025_MSC_0032"],
+          "bridge_max_km": 0.1,
+          "reason": "Parallel strand converges with the main trace at a mapped endpoint and is retained as part of the labelled fault zone."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [],
+      "notes": ["Caption spelling Lwawa is canonical; Lwawu is an alias.", "The name is not applied to adjacent Mwinilunga 0011."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_LL",
+      "abbreviation": "LL",
+      "name": "Lungu / Lamala",
+      "aliases": ["Lungu / Luamala", "Lunga"],
+      "label_anchor_key": "LL",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Lungu/Lamala is a regionally significant Southern Rift Basin fault zone.",
+      "figure14_cross_check": "The east-west heavy trace beneath LL is continuous in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "LL_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": ["DALY2025_MSC_0050"],
+          "bridge_max_km": 0.0,
+          "reason": "The label lies directly on this heavy east-west ribbon."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [],
+      "notes": ["Caption spelling is expanded for readability; Lunga is a literature alias."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_M",
+      "abbreviation": "M",
+      "name": "Mwinilunga",
+      "aliases": [],
+      "label_anchor_key": "M",
+      "attribution_confidence": "medium",
+      "geometry_status": "attributed",
+      "published_context": "Mwinilunga fault zone marks the western margin of the thick Mwinilunga Salt Basin.",
+      "figure14_cross_check": "The accepted chain is the heavy trace immediately east of M and west of the main CRZ linework in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "M_MAIN",
+          "role": "main_trace",
+          "confidence": "medium",
+          "ordered_segment_ids": ["DALY2025_MSC_0053", "DALY2025_MSC_0011"],
+          "bridge_max_km": 0.1,
+          "reason": "Continuous heavy trace east of M; the label sits in open space between closely spaced traces."
+        }
+      ],
+      "supporting_segments": [
+        {"segment_id": "DALY2025_MSC_0112", "role": "junction_fragment", "confidence": "low", "reason": "Short junction fragment retained as mapped detail."}
+      ],
+      "candidate_segments_not_assigned": [],
+      "notes": ["The name is not assigned to Lwawa trace 0009 by proximity."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_MB",
+      "abbreviation": "Mb",
+      "name": "Mubulashi",
+      "aliases": ["Mubalashi"],
+      "label_anchor_key": "Mb",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Mubalashi fault zone terminates the Kafue Anticline to the south.",
+      "figure14_cross_check": "The southwest-trending heavy trace leaves the southern Kafue junction and lies beside Mb in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "MB_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": ["DALY2025_MSC_0031"],
+          "bridge_max_km": 0.0,
+          "reason": "Long southwest-trending heavy component beside the Mb label."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {"segment_id": "DALY2025_MSC_0117", "reason": "Short broken component south of Mb; no continuous parent trace."},
+        {"segment_id": "DALY2025_MSC_0172", "reason": "Short broken component near Mb; not part of the accepted axis."}
+      ],
+      "notes": ["Caption abbreviation Mb is expanded; Mubalashi is an alias."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_MH",
+      "abbreviation": "Mh",
+      "name": "Maheba",
+      "aliases": [],
+      "label_anchor_key": "Mh",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Maheba is a west-dipping fault bordering folded Nguba and Kundulungu rocks east of Mwombezhi Dome.",
+      "figure14_cross_check": "The long trace is continuous in Figure 14 and passes through the Mh label.",
+      "centerline_parts": [
+        {
+          "part_id": "MH_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": ["DALY2025_MSC_0014"],
+          "bridge_max_km": 0.0,
+          "reason": "The label sits directly on this long northwest-southeast ribbon."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {"segment_id": "DALY2025_MSC_0001", "reason": "Parallel long trace about 29 px from the label; not selected by direct placement."},
+        {"segment_id": "DALY2025_MSC_0037", "reason": "Adjacent long component about 31 px away; no unique connection."},
+        {"segment_id": "DALY2025_MSC_0016", "reason": "Parallel long trace about 33 px away; no unique connection."}
+      ],
+      "notes": ["West-dipping is literature context, not a map-symbol interpretation."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_MT",
+      "abbreviation": "Mt",
+      "name": "Matebo",
+      "aliases": ["Mateba"],
+      "label_anchor_key": "Mt",
+      "attribution_confidence": "unresolved",
+      "geometry_status": "unresolved_reference_only",
+      "published_context": "Matebo is one of four regionally significant Southern Rift Basin fault zones.",
+      "figure14_cross_check": "Figure 14 shows a long heavy trace nearby, but the label is offset and several components are close.",
+      "centerline_parts": [],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {"segment_id": "DALY2025_MSC_0092", "reason": "Short component immediately west of the label; too short to establish the parent fault zone."},
+        {"segment_id": "DALY2025_MSC_0087", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0136", "reason": "Short fragment in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0007", "reason": "Long regional trace about 29 px away; plausible but not uniquely selected."},
+        {"segment_id": "DALY2025_MSC_0001", "reason": "Long regional trace about 46 px away; plausible but not uniquely selected."},
+        {"segment_id": "DALY2025_MSC_0174", "reason": "Short dashed component southwest of the label; no parent-trace evidence."}
+      ],
+      "notes": ["No geometry is assigned.", "External structural mapping or author vectors are required to resolve this case."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_MBFZ",
+      "abbreviation": "MbFZ",
+      "name": "Mwembeshi Fault Zone",
+      "aliases": ["Mwembeshi"],
+      "label_anchor_key": "MbFZ",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Mwembeshi is a major east-west fault zone described with the Lungu/Lamala, Mubulashi and Nyama systems.",
+      "figure14_cross_check": "The accepted pieces form the long east-west heavy trace directly above MbFZ in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "MBFZ_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": [
+            "DALY2025_MSC_0206",
+            "DALY2025_MSC_0059",
+            "DALY2025_MSC_0243",
+            "DALY2025_MSC_0124",
+            "DALY2025_MSC_0098",
+            "DALY2025_MSC_0242",
+            "DALY2025_MSC_0077",
+            "DALY2025_MSC_0156",
+            "DALY2025_MSC_0125",
+            "DALY2025_MSC_0084",
+            "DALY2025_MSC_0155",
+            "DALY2025_MSC_0153",
+            "DALY2025_MSC_0131",
+            "DALY2025_MSC_0204",
+            "DALY2025_MSC_0127",
+            "DALY2025_MSC_0041"
+          ],
+          "bridge_max_km": 35.0,
+          "reason": "Ordered east-west heavy solid and dashed components beneath MbFZ. All gaps are recorded as bridges."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {"segment_id": "DALY2025_MSC_0168", "reason": "Distant western fragment near the SRB edge; no continuity to the accepted trace."}
+      ],
+      "notes": ["No kinematics or displacement is assigned.", "Straight bridges are reconstruction aids, not observed fault geometry."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_NY",
+      "abbreviation": "Ny",
+      "name": "Nyama",
+      "aliases": [],
+      "label_anchor_key": "Ny",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Nyama fault zone is associated with east-west structures north of the Mumbwa sub-basin.",
+      "figure14_cross_check": "The accepted chain follows the continuous east-west heavy trace beneath Ny in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "NY_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": [
+            "DALY2025_MSC_0063",
+            "DALY2025_MSC_0145",
+            "DALY2025_MSC_0120",
+            "DALY2025_MSC_0248",
+            "DALY2025_MSC_0115",
+            "DALY2025_MSC_0137",
+            "DALY2025_MSC_0119",
+            "DALY2025_MSC_0141",
+            "DALY2025_MSC_0212"
+          ],
+          "bridge_max_km": 35.0,
+          "reason": "East-west heavy trace below Ny. Gaps correspond to printed dash or label interruptions."
+        }
+      ],
+      "supporting_segments": [
+        {"segment_id": "DALY2025_MSC_0230", "role": "junction_fragment", "confidence": "low", "reason": "Short northward junction fragment retained as mapped detail."}
+      ],
+      "candidate_segments_not_assigned": [],
+      "notes": ["No kinematic interpretation is assigned."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_PD",
+      "abbreviation": "Pd",
+      "name": "Pedicle",
+      "aliases": ["P"],
+      "label_anchor_key": "Pd",
+      "attribution_confidence": "high",
+      "geometry_status": "attributed",
+      "published_context": "Pedicle is a long northwest-trending basement-rooted fault east of the Kafue Anticline.",
+      "figure14_cross_check": "The isolated long northwest-southeast heavy line immediately east of Pd is continuous in Figure 14.",
+      "centerline_parts": [
+        {
+          "part_id": "PD_MAIN",
+          "role": "main_trace",
+          "confidence": "high",
+          "ordered_segment_ids": ["DALY2025_MSC_0004"],
+          "bridge_max_km": 0.0,
+          "reason": "Unique long trace beside Pd, separated from Kafue and Mwembeshi."
+        }
+      ],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [],
+      "notes": ["Figure 2 uses P; Figure 12 caption spelling Pedicle is canonical."]
+    },
+    {
+      "structure_id": "DALY2025_MSTR_SI",
+      "abbreviation": "Si",
+      "name": "Sialinga",
+      "aliases": ["Sailunga"],
+      "label_anchor_key": "Si",
+      "attribution_confidence": "unresolved",
+      "geometry_status": "unresolved_reference_only",
+      "published_context": "Sailunga is named in the Figure 12 caption; no kinematics are supplied here.",
+      "figure14_cross_check": "The label is surrounded by broken heavy components, but no continuous parent axis is preserved at this location.",
+      "centerline_parts": [],
+      "supporting_segments": [],
+      "candidate_segments_not_assigned": [
+        {"segment_id": "DALY2025_MSC_0105", "reason": "Short east-west component near the label; not a continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0208", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0222", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0176", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0101", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0134", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0121", "reason": "Short component in the same cluster; no continuous parent axis."},
+        {"segment_id": "DALY2025_MSC_0126", "reason": "Short component in the same cluster; no continuous parent axis."}
+      ],
+      "notes": ["No geometry is assigned.", "Body-text spelling Sailunga is retained as an alias."]
+    }
+  ]
+}

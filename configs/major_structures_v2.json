@@ -1,0 +1,60 @@
+{
+  "schema_version": "2.0.0",
+  "project": "Central African Copperbelt named major-structure reconstruction",
+  "target_crs": "EPSG:32735",
+  "sources": {
+    "figure12_raster": "data/raw/daly_2025/Daly_Figure12_Katangan_Basin_Structural_Map.jpg",
+    "figure12_metadata": "data/raw/daly_2025/Daly_Figure12_source_metadata.json",
+    "figure14_raster": "data/raw/daly_2025/Daly_Figure14_Tectonic_Domains_FULL_modified.tif",
+    "caption_pdf": "literature/Tectonics - 2025 - Daly - The Inter‐Cratonic Neoproterozoic Katangan Basin of Central Africa  Rift Basin Formation .pdf",
+    "v1_gpkg": "data/processed/geology_foundation/daly_major_structures_v1.gpkg",
+    "v1_layer": "daly_major_structures",
+    "v1_attributes_csv": "data/processed/geology_foundation/daly_major_structures_attributes_v1.csv",
+    "v1_manifest": "data/processed/geology_foundation/daly_major_structures_manifest_v1.json",
+    "named_reference_csv": "data/processed/geology_foundation/named_structure_reference.csv",
+    "attribution_config": "configs/major_structures_v2_attribution.json",
+    "domain_gpkg": "data/processed/geology_foundation/daly_tectonic_domains_v1.gpkg",
+    "domain_layer": "daly_domains",
+    "v14_training_csv": "data/copperbelt_training_v14_centroid_contact.csv",
+    "v14_training_sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878"
+  },
+  "protected_source_hashes": {
+    "figure12_raster": "8960d8f6c71abc6208e2ad189019c54e1f752f68da9e562387cc8d17b2189912",
+    "figure14_raster": "5b09b82d966e6b5fea7a48bb6083a8b3882ae375635a8b638cd3404b62fa8cf1",
+    "caption_pdf": "43d9c94152987e56ce0a68cb2bf7988f5cf700e8803a3f10092927041c3a569a",
+    "v1_gpkg": "8b816736b6571be68a2c6bec07307144d0f6fedef1cace9a2e2562220a921ab8",
+    "v1_attributes_csv": "58f131f69652493251ae1b07e3b25db664f81fb71e01babe77550d02a0436fde",
+    "v1_manifest": "5ef256f253553467f3fbcb22047dcd3e5d8eb333bb7e147b21a1927d8cdb6bcd"
+  },
+  "figure12_georeference": {
+    "method": "linear Plate Carree fit to the published axis ticks",
+    "longitude_ticks": [
+      {"pixel_x": 420.5, "longitude": 25.0},
+      {"pixel_x": 1061.5, "longitude": 30.0}
+    ],
+    "latitude_ticks": [
+      {"pixel_y": 576.0, "latitude": -10.0},
+      {"pixel_y": 1225.0, "latitude": -15.0}
+    ],
+    "tick_evidence": "Top and bottom frame ticks at x=420.5 and x=1061.5; left and right frame ticks centred at y=576 and y=1225.",
+    "pixel_size_degrees": {
+      "longitude": 0.007800312012480499,
+      "latitude": 0.007704160246533128
+    }
+  },
+  "outputs": {
+    "directory": "data/processed/geology_foundation",
+    "named_gpkg": "daly_major_structures_named_v2.gpkg",
+    "segment_attribution_csv": "daly_structure_segment_attribution_v2.csv",
+    "structure_summary_csv": "daly_structure_summary_v2.csv",
+    "attribution_json": "daly_structure_attribution_v2.json",
+    "summary_json": "daly_structure_reconstruction_summary_v2.json",
+    "manifest_json": "daly_structure_reconstruction_manifest_v2.json",
+    "validation_json": "daly_structure_reconstruction_validation_v2.json",
+    "figure12_alignment_png": "outputs/geology_foundation/naming_v2/figure12_v1_alignment.png",
+    "figure12_alignment_detail_png": "outputs/geology_foundation/naming_v2/figure12_v1_alignment_detail.png",
+    "figure12_segment_ids_png": "outputs/geology_foundation/naming_v2/figure12_v1_segment_ids.png",
+    "named_map_png": "outputs/geology_foundation/daly_named_structures_map_v2.png",
+    "attribution_map_png": "outputs/geology_foundation/daly_structure_attribution_map_v2.png"
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "schema_version": "1.0.0",
+  "project_crs": "EPSG:32735",
+  "protected_hashes": {
+    "v14_training_csv": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+    "structural_feature_table": "23825be04019900b96fb35b972f01028833cc9c261e514e5689cf46fe57c4ad7",
+    "stage3_manifest": "0281ad5fd8b4e126c1f441d2ebade86b9caba3387b19174dba101c0b07138d9e",
+    "v1_structure_gpkg": "8b816736b6571be68a2c6bec07307144d0f6fedef1cace9a2e2562220a921ab8",
+    "v2_structure_gpkg": "10ba59c7bbe771f3e74dfe0e6db3263718f292f95efe394d39a5fcd73413e330"
+  },
+  "protected_files": {
+    "v14_training_csv": "data/copperbelt_training_v14_centroid_contact.csv",
+    "structural_feature_table": "data/processed/structural_predictors/structural_predictors_v1.csv",
+    "stage3_manifest": "data/processed/structural_predictors/structural_predictor_manifest_v1.json",
+    "v1_structure_gpkg": "data/processed/geology_foundation/daly_major_structures_v1.gpkg",
+    "v2_structure_gpkg": "data/processed/geology_foundation/daly_major_structures_named_v2.gpkg"
+  },
+  "inputs": {
+    "support_table": {
+      "path": "data/processed/structural_predictors/structural_predictors_v1.csv",
+      "sha256": "23825be04019900b96fb35b972f01028833cc9c261e514e5689cf46fe57c4ad7"
+    },
+    "support_gpkg": {
+      "path": "data/processed/structural_predictors/structural_predictors_v1.gpkg",
+      "layer": "structural_support_points",
+      "sha256": "74fe0a8e3a485db7838e3c6a96b0b3ef139754f370f1c4b279a75e926b9ab3ac"
+    },
+    "tracts": {
+      "path": "data/raw/usgs_sir2010_5090_t/CACB_tracts_utm.shp",
+      "expected_features": 5,
+      "sha256": "aaf0869ff467d08c6d05fa10aeed1479ad82701c9918202c9a1ca7bb9cfa3f4c"
+    },
+    "occurrences": {
+      "path": "data/raw/usgs_sir2010_5090_t/CACB_deposits_utm.shp",
+      "sha256": "c418e4f857fe792cfbf86b78273d2dbd1b1efa9332eb4e81aea8757f01d41976",
+      "expected_features": 187,
+      "site_status_field": "SiteStatus",
+      "statuses": ["deposit", "prospect", "group"],
+      "expected_status_counts": {"deposit": 65, "prospect": 102, "group": 20},
+      "group_includes_fields": ["Includes", "Includes2"],
+      "positional_accuracy_m": 1000,
+      "positional_monte_carlo_draws": 4000,
+      "positional_seed": 20261106
+    },
+    "contact_geometry": {
+      "path": "data/raw/africa_surficial_lithology/internal_contacts_only.gpkg",
+      "layer": "internal_contacts_only",
+      "expected_features": 259,
+      "sha256": "0f444bf21a24a1efe87a8fdcbb1403be7dc31b0c9b7f2cd0e41d375620531fb5"
+    },
+    "fault_geometry": {
+      "path": "data/raw/selley_2005/Selley_2005_faults_shear_zones_compilation.gpkg",
+      "layer": "faults_shear_zones",
+      "expected_features": 126,
+      "sha256": "c410fcb33bb0c6a4f9284f54ea5d4a092eb79e5c982910f1dc65530d564d9e89"
+    },
+    "v14_table": {
+      "path": "data/copperbelt_training_v14_centroid_contact.csv",
+      "sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+      "gravity_field": "bouguer",
+      "id_field": "id",
+      "x_field": "centroid_x",
+      "y_field": "centroid_y"
+    }
+  },
+  "support": {
+    "expected_n": 2193,
+    "nominal_hex_area_km2": 10.0,
+    "expected_n_full_support": 1019,
+    "expected_n_overlap_ge_80pct": 1447,
+    "overlap_thresholds": {"edge": 0.8, "full": 0.99},
+    "expected_n_outside_daly": 285,
+    "exposure_method": "voronoi_catchment_area_intersected_with_tract_union",
+    "catchment_partition_tolerance_km2": 0.000001,
+    "coverage_tolerance_m2": 1.0,
+    "retain_outside_daly": true
+  },
+  "folds": {
+    "n_folds": 4,
+    "primary_scheme": "equal_count_contiguous_belt_axis",
+    "primary_buffer_km": 10.0,
+    "equal_count_method": "contiguous_quantiles_along_principal_axis",
+    "belt_axis_reference_direction": [1.0, -1.0],
+    "historical_scheme": "v14_nearest_cell_crosswalk",
+    "historical_buffer_km": 0.0,
+    "unbuffered_sensitivity": true
+  },
+  "models": {
+    "ridge_lambda": 1.0,
+    "distribution": "negative_binomial_2",
+    "outcome": "n_records",
+    "offset": "log_tract_area_km2",
+    "standardization_scope": "training_fold_only",
+    "ridge_penalty_scope": "all_non_intercept_coefficients",
+    "predictive_interval_level": 0.95,
+    "confidence_level": 0.95,
+    "block_bootstrap": {"block_size_km": 50.0, "n_resamples": 1000, "seed": 20261106},
+    "fold_bootstrap": {"n_resamples": 500, "seed": 20261106},
+    "categorical": {
+      "BASE_CONTACT_CLASS": {"reference": "4", "levels": ["4", "6", "7", "14", "16", "20"]}
+    },
+    "continuous": {
+      "BASE_DIST_FAULT_KM": {"transform": "log1p", "standardize": true},
+      "BASE_DIST_CONTACT_KM": {"transform": "log1p", "standardize": true},
+      "BASE_BOUGUER_MGAL": {"transform": "identity", "standardize": true},
+      "STR_DIST_NAMED_HM_KM": {"transform": "log1p", "standardize": true},
+      "STR_DIST_NAMED_BRIDGED_KM": {"transform": "log1p", "standardize": true},
+      "STR_NAMED_LINE_DENSITY_50KM": {"transform": "log1p", "standardize": true}
+    },
+    "primary_experiments": [
+      {"id": "N0_AREA", "label": "Area-only reference", "predictors": []},
+      {"id": "S0_BASE", "label": "Existing geological covariates", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL"]},
+      {"id": "S1_HM", "label": "S0 plus observed HM distance", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL", "STR_DIST_NAMED_HM_KM"]},
+      {"id": "S2_DENS50", "label": "S0 plus 50 km structural density", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL", "STR_NAMED_LINE_DENSITY_50KM"]},
+      {"id": "S3_HM_DENS50", "label": "S0 plus HM distance and 50 km density", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL", "STR_DIST_NAMED_HM_KM", "STR_NAMED_LINE_DENSITY_50KM"]}
+    ],
+    "sensitivity_experiments": [
+      {"id": "S0_NO_GRAVITY", "label": "S0 without inherited gravity", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS"]},
+      {"id": "S1_HM_BRIDGED", "label": "S0 plus bridged HM distance", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL", "STR_DIST_NAMED_BRIDGED_KM"]},
+      {"id": "S3_HM_DENS50_BRIDGED", "label": "S0 plus bridged HM distance and density", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL", "STR_DIST_NAMED_BRIDGED_KM", "STR_NAMED_LINE_DENSITY_50KM"]},
+      {"id": "S3_EXPANDED_RECORDS", "label": "S3 predictors with group-expanded counts", "predictors": ["BASE_DIST_FAULT_KM", "BASE_DIST_CONTACT_KM", "BASE_CONTACT_CLASS", "BASE_BOUGUER_MGAL", "STR_DIST_NAMED_HM_KM", "STR_NAMED_LINE_DENSITY_50KM"], "outcome": "n_expanded_records"}
+    ]
+  },
+  "outputs": {
+    "processed_dir": "data/processed/stage4",
+    "figure_dir": "outputs/stage4",
+    "model_table": "stage4_model_table_v1.csv",
+    "support_gpkg": "stage4_support_v1.gpkg",
+    "occurrences_csv": "stage4_occurrences_v1.csv",
+    "group_components_csv": "stage4_group_components_v1.csv",
+    "positional_weights_csv": "stage4_positional_weights_v1.csv",
+    "support_audit_csv": "stage4_support_audit_v1.csv",
+    "fold_summary_csv": "stage4_fold_summary_v1.csv",
+    "data_manifest": "stage4_data_manifest_v1.json",
+    "model_predictions": "stage4_model_predictions_v1.csv",
+    "fold_metrics": "stage4_fold_metrics_v1.csv",
+    "model_metrics": "stage4_model_metrics_v1.csv",
+    "metric_bootstrap": "stage4_metric_bootstrap_v1.csv",
+    "pairwise_deltas": "stage4_pairwise_deltas_v1.csv",
+    "coefficients_by_fold": "stage4_coefficients_by_fold_v1.csv",
+    "coefficient_summary": "stage4_coefficient_summary_v1.csv",
+    "calibration_bins": "stage4_calibration_bins_v1.csv",
+    "residual_moran": "stage4_residual_moran_v1.csv",
+    "predictor_diagnostics": "stage4_predictor_diagnostics_v1.csv",
+    "model_manifest": "stage4_model_manifest_v1.json",
+    "data_validation": "stage4_data_validation_v1.json",
+    "model_validation": "stage4_model_validation_v1.json",
+    "figures": {
+      "support_folds": "stage4_support_and_folds.png",
+      "occurrence_counts": "stage4_occurrence_counts.png",
+      "model_comparison": "stage4_model_comparison.png",
+      "calibration_residuals": "stage4_calibration_residuals.png",
+      "coefficients": "stage4_coefficients.png"
+    }
+  }
+}
