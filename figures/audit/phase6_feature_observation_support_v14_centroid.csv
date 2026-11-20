@@ -1,0 +1,4 @@
+Feature,Observed_N,Missing_N,Observed_%,Missing_%
+distance_to_fault,1872,0,100.0,0.0
+distance_to_lithology_contact,1872,0,100.0,0.0
+bouguer,1872,0,100.0,0.0

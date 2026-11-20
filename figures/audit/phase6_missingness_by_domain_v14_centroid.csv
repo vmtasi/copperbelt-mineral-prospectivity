@@ -1,0 +1,7 @@
+Domain,Total_Cells,Deposits_Known,Non_Deposits,distance_to_fault_Missing_N,distance_to_fault_Missing_%,distance_to_lithology_contact_Missing_N,distance_to_lithology_contact_Missing_%,bouguer_Missing_N,bouguer_Missing_%,Complete_Cases_N,Complete_Cases_%
+CRZ,154,0,154,0,0.0,0,0.0,0,0.0,154,100.0
+MMSB,16,0,16,0,0.0,0,0.0,0,0.0,16,100.0
+NKB,24,0,24,0,0.0,0,0.0,0,0.0,24,100.0
+NRB_3a,1127,107,1020,0,0.0,0,0.0,0,0.0,1127,100.0
+NRB_3b,550,31,519,0,0.0,0,0.0,0,0.0,550,100.0
+SRB,1,0,1,0,0.0,0,0.0,0,0.0,1,100.0

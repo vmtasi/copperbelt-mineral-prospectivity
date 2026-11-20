@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "model_identity": "frozen V11 specification executed through an I/O-only wrapper",
+  "started_utc": "2026-10-20T20:44:22.031177Z",
+  "runtime": {
+    "executable": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv\\Scripts\\python.exe",
+    "version": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+    "pytensor_flags": "compiledir=C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.runtime_cache\\pytensor_v14"
+  },
+  "frozen_model": {
+    "path": "src/v11_spatial_stability_final.py",
+    "sha256": "587b64963153793570e84e0a4a5f2b8f586fd811659f1b30c17997bcf49a3c0b"
+  },
+  "execution_wrapper": {
+    "path": "src/v14_centroid_spatial_stability.py",
+    "sha256": "ce4757ff97dd39bf36a015fde3e115b54b31260ca7a741252c6d6f9c593d6b8c"
+  },
+  "dataset": {
+    "path": "data/copperbelt_training_v14_centroid_contact.csv",
+    "sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+    "manifest": "data/derived/canonical_training_manifest_v14_centroid_contact.json",
+    "manifest_sha256": "656be6077ff1499d6fabbe74a7a0a2951e68ae4049b9316bffd405e290623974",
+    "validation_status": "PASS"
+  },
+  "configuration": {
+    "folds": 4,
+    "draws": 1500,
+    "tune": 2500,
+    "chains": 2,
+    "cores": 2,
+    "target_accept": 0.99,
+    "random_seed": 42
+  },
+  "output_directory": "figures\\v14_centroid_contact",
+  "expected_trace_names": [
+    "v14_centroid_fold_1_trace.nc",
+    "v14_centroid_fold_2_trace.nc",
+    "v14_centroid_fold_3_trace.nc",
+    "v14_centroid_fold_4_trace.nc"
+  ],
+  "changes_to_frozen_runner": [
+    {
+      "from": "data_path = ROOT / 'data' / 'copperbelt_training_v13_litho_contact.csv'",
+      "to": "data_path = ROOT / 'data' / 'copperbelt_training_v14_centroid_contact.csv'"
+    },
+    {
+      "from": "trace_path = output_dir / f'v11_fold_{fold+1}_trace.nc'",
+      "to": "trace_path = output_dir / f'v14_centroid_fold_{fold+1}_trace.nc'"
+    },
+    {
+      "from": "stability_csv = output_dir / 'v11_geological_stability_matrix.csv'",
+      "to": "stability_csv = output_dir / 'v14_centroid_geological_stability_matrix.csv'"
+    },
+    {
+      "from": "pd.DataFrame(fold_rows).to_csv(output_dir / \"v11_fold_metrics.csv\", index=False)",
+      "to": "pd.DataFrame(fold_rows).to_csv(output_dir / \"v14_centroid_fold_metrics.csv\", index=False)"
+    }
+  ],
+  "compatibility_shim": {
+    "applied": true,
+    "reason": "QGIS Python 3.12 cannot load the CPython 3.10 sklearn extension",
+    "standard_scaler": "src.numerics.StandardScaler",
+    "roc_auc_score": "src.numerics.roc_auc_score",
+    "model_specification_changed": false
+  },
+  "finished_utc": "2026-10-20T21:42:09.618588Z",
+  "fold_metrics": [
+    {
+      "fold": 1,
+      "n_test": 468,
+      "n_positive_test": 9,
+      "auc": 0.8753328491890583
+    },
+    {
+      "fold": 2,
+      "n_test": 468,
+      "n_positive_test": 31,
+      "auc": 0.7356610319627962
+    },
+    {
+      "fold": 3,
+      "n_test": 468,
+      "n_positive_test": 37,
+      "auc": 0.6850818335737129
+    },
+    {
+      "fold": 4,
+      "n_test": 468,
+      "n_positive_test": 61,
+      "auc": 0.6030531276432916
+    }
+  ],
+  "outputs": [
+    {
+      "path": "v14_centroid_fold_1_trace.nc",
+      "bytes": 2088740,
+      "sha256": "05f72bf404faf17e44da6ef0d4ce00315e2df0323912e7d955e81d3ebcf045fc"
+    },
+    {
+      "path": "v14_centroid_fold_2_trace.nc",
+      "bytes": 2090488,
+      "sha256": "13737735b7a233d9c30043eb9eebb521b51b96910e51ba1ce34a1210f3ab38b5"
+    },
+    {
+      "path": "v14_centroid_fold_3_trace.nc",
+      "bytes": 2088544,
+      "sha256": "47be84198a80feddfb11ced96f0d60a0be1c6da4e0a5d9a293cfe3eb19a6a183"
+    },
+    {
+      "path": "v14_centroid_fold_4_trace.nc",
+      "bytes": 2089114,
+      "sha256": "20833b82d2f86268ceec5b5b7949bc4d976890839f64bf4f1a8b9c75ef9b1dbd"
+    },
+    {
+      "path": "v14_centroid_fold_metrics.csv",
+      "bytes": 148,
+      "sha256": "a79f11753e616a21e5c58df62c359c2c67e2b1e872c7884d73511a0666bada98"
+    },
+    {
+      "path": "v14_centroid_geological_stability_matrix.csv",
+      "bytes": 1103,
+      "sha256": "710d352027d3448d7bcd2148085dee8ad29802f57d2d1d4e64d531c968276da3"
+    }
+  ]
+}

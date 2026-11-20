@@ -33,7 +33,27 @@ build/
 
 # Generated project outputs
 outputs/
-figures/
+/figures/*
+
+# --- Paper 1 V14 benchmark: tracked so a fresh clone reproduces the paper ---
+# Checksums and restore notes: paper_1/benchmark/V14_BENCHMARK.md
+!/figures/v14_centroid_contact/
+!/figures/v14_centroid_oof_posterior_uncertainty.csv
+!/figures/v14_centroid_oof_posterior_uncertainty.gpkg
+!/figures/audit/
+/figures/audit/*
+!/figures/audit/*_v14_centroid.csv
+!/figures/audit/*_v14_centroid.nc
+!/figures/audit/v14_model_output_validation_post_refit_20261021.json
+!/figures/audit/beta_diagnostics_v14_centroid/
+/figures/audit/beta_diagnostics_v14_centroid/*.png
+!/figures/audit/distance_representation_sensitivity_v14_centroid/
+# 35 MB of sensitivity traces: external archive only (see benchmark SHA256SUMS_external)
+/figures/audit/distance_representation_sensitivity_v14_centroid/traces/
+!/figures/audit/v14_centroid_population_reconstruction/
+/figures/audit/v14_centroid_population_reconstruction/*.png
+# Paper 1 supplement summaries derived from the frozen benchmark (no refit)
+!/figures/audit/paper1_supplement_v14/
 
 # Local MCP runtime
 .mcp/*.exe
@@ -43,6 +63,10 @@ figures/
 
 # Large/raw research data
 data/*.csv
+!/data/copperbelt_training_v14_centroid_contact.csv
+/data/raw/
+/data/processed/
+/data/derived/eg100_2005/
 /data/derived/litho_contact_distance_v13.csv
 /data/derived/litho_contact_distance_v13.gpkg
 
@@ -72,6 +96,8 @@ literature/
 /.runtime_vendor/
 /.cache/
 /.tmp/
+/tmp/
+/work/
 
 # PyTensor compiledir leaks (flattened absolute-path cache dirs)
 *runtime_cachepytensor*

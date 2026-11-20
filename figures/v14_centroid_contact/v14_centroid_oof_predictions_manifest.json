@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "generated_utc": "2026-10-20T21:42:41.153825Z",
+  "generator": "src/extract_v14_oof.py",
+  "model_identity": "V14 centroid-to-internal-contact refit of the frozen V11 specification",
+  "status": "PASS",
+  "canonical_dataset": {
+    "path": "data\\copperbelt_training_v14_centroid_contact.csv",
+    "sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+    "rows": 1872,
+    "positive_cells": 138,
+    "background_cells": 1734
+  },
+  "folds": {
+    "0": {
+      "cells": 468,
+      "positives": 9
+    },
+    "1": {
+      "cells": 468,
+      "positives": 31
+    },
+    "2": {
+      "cells": 468,
+      "positives": 37
+    },
+    "3": {
+      "cells": 468,
+      "positives": 61
+    }
+  },
+  "traces": {
+    "fold_1": {
+      "requested_path": "figures\\v14_centroid_contact\\v14_centroid_fold_1_trace.nc",
+      "resolved_path": "figures\\v14_centroid_contact\\v14_centroid_fold_1_trace.nc",
+      "format": "netCDF (ArviZ InferenceData)",
+      "bytes": 2088740,
+      "sha256": "05f72bf404faf17e44da6ef0d4ce00315e2df0323912e7d955e81d3ebcf045fc",
+      "held_out_cells": 468,
+      "held_out_positives": 9,
+      "observed_labels_match": true
+    },
+    "fold_2": {
+      "requested_path": "figures\\v14_centroid_contact\\v14_centroid_fold_2_trace.nc",
+      "resolved_path": "figures\\v14_centroid_contact\\v14_centroid_fold_2_trace.nc",
+      "format": "netCDF (ArviZ InferenceData)",
+      "bytes": 2090488,
+      "sha256": "13737735b7a233d9c30043eb9eebb521b51b96910e51ba1ce34a1210f3ab38b5",
+      "held_out_cells": 468,
+      "held_out_positives": 31,
+      "observed_labels_match": true
+    },
+    "fold_3": {
+      "requested_path": "figures\\v14_centroid_contact\\v14_centroid_fold_3_trace.nc",
+      "resolved_path": "figures\\v14_centroid_contact\\v14_centroid_fold_3_trace.nc",
+      "format": "netCDF (ArviZ InferenceData)",
+      "bytes": 2088544,
+      "sha256": "47be84198a80feddfb11ced96f0d60a0be1c6da4e0a5d9a293cfe3eb19a6a183",
+      "held_out_cells": 468,
+      "held_out_positives": 37,
+      "observed_labels_match": true
+    },
+    "fold_4": {
+      "requested_path": "figures\\v14_centroid_contact\\v14_centroid_fold_4_trace.nc",
+      "resolved_path": "figures\\v14_centroid_contact\\v14_centroid_fold_4_trace.nc",
+      "format": "netCDF (ArviZ InferenceData)",
+      "bytes": 2089114,
+      "sha256": "20833b82d2f86268ceec5b5b7949bc4d976890839f64bf4f1a8b9c75ef9b1dbd",
+      "held_out_cells": 468,
+      "held_out_positives": 61,
+      "observed_labels_match": true
+    }
+  },
+  "prediction_artifact": {
+    "path": "figures\\v14_centroid_contact\\v14_centroid_oof_predictions.csv",
+    "sha256": "f1713d20fc8d6675cafae87cbdf8e7687945b16fcf7b21f013317bb88f03cf8a",
+    "rows": 1872,
+    "columns": [
+      "id",
+      "fold",
+      "deposit_present",
+      "daly_domain",
+      "centroid_x",
+      "centroid_y",
+      "prob_v14"
+    ],
+    "unique_ids": 1872,
+    "duplicated_ids": 0,
+    "prob_v14_min": 0.0012516450599689278,
+    "prob_v14_max": 0.6053632430472556
+  },
+  "code": {
+    "src/extract_v14_oof.py": "99b8648b591ecf7e02095e2475b2bc7ee81768e6e0b3ae7d5cb190a07cb1f998",
+    "src/v14_centroid_spatial_stability.py": "ce4757ff97dd39bf36a015fde3e115b54b31260ca7a741252c6d6f9c593d6b8c",
+    "src/v11_spatial_stability_final.py": "587b64963153793570e84e0a4a5f2b8f586fd811659f1b30c17997bcf49a3c0b",
+    "src/validation_strategies.py": "dee9c6add0d183e93fffde4132e4034efd7628de3826b81b3a689150db6a22a2",
+    "src/trace_io.py": "10beb0c6d49ca402c76bf6ac629277723440117cb72a791e3f89dc244764dd74",
+    "src/oof_provenance.py": "d018659d64ec8ccd436331213fd8d835d52e8629406621437f70a0d26df22ac0",
+    "src/numerics.py": "67fffb7303b8e6571edac419ef9e904fcbd8b276fb55fcf9985fe71445255ae7"
+  },
+  "method": "Posterior-mean predicted probability for each held-out V14 fold cell, reconstructed from the V14 trace with fold-specific scalers and rock terms fitted on training folds only."
+}

@@ -1,0 +1,8 @@
+# Paper 1 V14 benchmark artefacts are checksummed byte-for-byte
+# (paper_1/benchmark/SHA256SUMS). Disable line-ending conversion so a
+# clone on any platform reproduces the recorded hashes.
+data/copperbelt_training_v14_centroid_contact.csv -text
+data/derived/*.csv -text
+data/derived/*.json -text
+figures/** -text
+paper_1/benchmark/SHA256SUMS* -text
