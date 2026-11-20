@@ -1,5 +1,8 @@
 # Copperbelt Mineral Prospectivity Mapping
 
+> **Live project status (18 Nov 2026):** See [the project progress dashboard](docs/PROJECT_PROGRESS.md) for validated milestones, open scientific limitations and the ordered remaining work. The dashboard keeps the historical V14 benchmark, tract-supported occurrence-intensity analysis and full-Daly-union redesign as separate workstreams.
+
+
 ## Overview
 
 This project develops a spatially structured Bayesian framework for mineral-prospectivity mapping in the Central African Copperbelt. The completed Paper 1 analysis addresses a central challenge in spatial geoscientific machine learning: predictive relationships can appear stronger when spatial leakage or locally specific feature definitions are allowed to substitute for transferable geological information. The project therefore combines exogenous geological and geophysical predictors with geographically separated out-of-fold evaluation.
