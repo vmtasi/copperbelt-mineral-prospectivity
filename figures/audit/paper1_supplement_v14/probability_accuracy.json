@@ -1,0 +1,49 @@
+{
+  "n": 1872,
+  "positives": 138,
+  "pooled_prevalence": 0.07371794871794872,
+  "brier_dvhm": 0.06878641688332576,
+  "brier_baseline_oof_training_prevalence": 0.06950075486400274,
+  "brier_baseline_pooled_prevalence": 0.0682836127547666,
+  "brier_skill_vs_oof_baseline": 0.010278132691864728,
+  "brier_skill_vs_pooled_prevalence": -0.007363466991193501,
+  "calibration_intercept_in_the_large": 0.04850156024799929,
+  "calibration_slope": 0.6051983342054514,
+  "calibration_slope_intercept": -0.8361684052300195,
+  "mean_predicted": 0.07083253584488443,
+  "per_fold": {
+    "1": {
+      "brier": 0.018507818891526785,
+      "baseline_training_prevalence": 0.09188034188034189,
+      "brier_baseline": 0.024138907151727663,
+      "brier_skill": 0.23327850862535215,
+      "mean_predicted": 0.03662252825649924,
+      "observed_prevalence": 0.019230769230769232
+    },
+    "2": {
+      "brier": 0.06268707676206532,
+      "baseline_training_prevalence": 0.07621082621082621,
+      "brier_baseline": 0.06195110023457601,
+      "brier_skill": -0.011879958946694247,
+      "mean_predicted": 0.025468668796023313,
+      "observed_prevalence": 0.06623931623931624
+    },
+    "3": {
+      "brier": 0.0764858643702209,
+      "baseline_training_prevalence": 0.07193732193732194,
+      "brier_baseline": 0.07286010259656983,
+      "brier_skill": -0.04976333609804384,
+      "mean_predicted": 0.08900425277612811,
+      "observed_prevalence": 0.07905982905982906
+    },
+    "4": {
+      "brier": 0.1174649075094901,
+      "baseline_training_prevalence": 0.054843304843304845,
+      "brier_baseline": 0.1190529094731374,
+      "brier_skill": 0.01333862373187622,
+      "mean_predicted": 0.13223469355088704,
+      "observed_prevalence": 0.13034188034188035
+    }
+  },
+  "notes": "Baseline 'oof_training_prevalence' assigns each held-out cell the positive rate of its own training partition and is the fair out-of-fold comparator; 'pooled_prevalence' uses the overall rate and therefore leaks the held-out label frequency."
+}

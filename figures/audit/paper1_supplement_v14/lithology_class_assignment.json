@@ -1,0 +1,49 @@
+{
+  "status": "COMPLETE",
+  "conclusion": "The stored class is the litho_class attribute of one of the internal contact lines at the minimum polygon-to-contact distance (QGIS nearest join). It is not the raster class at the centroid or the majority class in the cell. Where tied contacts carry different classes, the choice between them is undocumented.",
+  "rules": {
+    "H1_centroid_raster_class": {
+      "cells": 1899,
+      "matches": 798,
+      "share": 0.4202
+    },
+    "H2_majority_class_in_cell": {
+      "cells": 1889,
+      "matches": 858,
+      "share": 0.4542
+    },
+    "H3_nearest_contact_to_centroid": {
+      "cells": 1899,
+      "matches": 942,
+      "share": 0.4961
+    },
+    "H4_any_tied_nearest_contact_to_polygon": {
+      "cells": 1899,
+      "matches": 1812,
+      "share": 0.9542
+    }
+  },
+  "cells_with_tied_contacts_of_different_classes": 1890,
+  "unmatched_by_H4": {
+    "cells": 87,
+    "positive_cells": 5
+  },
+  "inputs": {
+    "training_table": {
+      "path": "data/copperbelt_training_v14_centroid_contact.csv",
+      "sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878"
+    },
+    "raster": {
+      "path": "lithography_square_93m.tif",
+      "sha256": "3a5596e9e88f0046bb8309c7bdbe85a5e7410e5ef2dec18fb179210235b48d38"
+    },
+    "grid_contact_join": {
+      "path": "grid_internal_contact_distance_1899.gpkg",
+      "sha256": "877cfc16703e88f093ecd864eb256b22fcd8972998c4a58e83427c7c04e101b0"
+    },
+    "internal_contacts": {
+      "path": "internal_contacts_only.gpkg",
+      "sha256": "0f444bf21a24a1efe87a8fdcbb1403be7dc31b0c9b7f2cd0e41d375620531fb5"
+    }
+  }
+}

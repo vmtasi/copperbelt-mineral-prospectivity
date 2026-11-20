@@ -37,7 +37,8 @@ def _manuscript() -> str:
 
 
 def _visible_tex(text: str) -> str:
-    return "\n".join(line.split("%", 1)[0] for line in text.splitlines())
+    # Strip LaTeX comments but keep escaped percent signs (\%).
+    return "\n".join(re.sub(r"(?<!\\)%.*", "", line) for line in text.splitlines())
 
 
 def _predictions() -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]:
@@ -272,3 +273,82 @@ def test_regional_context_figure_names_all_lithology_classes():
     for name in expected:
         assert name in caption.lower()
     assert "class code" not in caption.lower()
+
+
+# --------------------------------------------------------------------------- #
+# Passages that previously carried V13 numbers after the V14 refit.
+BETA_V14_PATH = (
+    ROOT / "figures" / "audit" / "beta_diagnostics_v14_centroid"
+    / "beta_diagnostics_coefficients_by_fold.csv"
+)
+POPULATION_V14 = ROOT / "figures" / "audit" / "v14_centroid_population_reconstruction"
+ROBUSTNESS_V14 = (
+    ROOT / "figures" / "audit" / "distance_representation_sensitivity_v14_centroid"
+    / "robustness_assessment.csv"
+)
+FIG5_PATH = ROOT / "paper_1" / "manuscript" / "images" / "fig5_predictor_contributions.tikz"
+
+
+def test_coefficient_passage_uses_v14_traces():
+    text = _visible_tex(_manuscript())
+    beta = pd.read_csv(BETA_V14_PATH)
+    nrb3a_contact = beta[(beta.Domain == "NRB_3a") & (beta.Variable == "lithology")]
+    nrb3a_fault = beta[(beta.Domain == "NRB_3a") & (beta.Variable == "fault")]
+    nrb3b_contact = beta[(beta.Domain == "NRB_3b") & (beta.Variable == "lithology")]
+    expected = [
+        f"${nrb3a_contact.beta_lin_median.min():.3f}$ to ${nrb3a_contact.beta_lin_median.max():.3f}$",
+        f"${nrb3a_fault.beta_lin_median.min():.3f}$ to ${nrb3a_fault.beta_lin_median.max():.3f}$",
+        f"{nrb3b_contact['P(beta_sq>0)'].min():.3f}--{nrb3b_contact['P(beta_sq>0)'].max():.3f}",
+    ]
+    for token in expected:
+        assert token in text, token
+    # V13 values that must not reappear.
+    for stale in ("-0.977", "-2.622", "0.766--0.896", "+1.435", "+1.627"):
+        assert stale not in text, stale
+
+
+def test_share_table_and_figure5_use_v14_reconstruction():
+    shares = pd.read_csv(POPULATION_V14 / "fold_predictor_summary.csv")
+    text = _visible_tex(_manuscript())
+    fig5 = FIG5_PATH.read_text(encoding="utf-8")
+    for row in shares.itertuples():
+        values = [row.fault_share_pct, row.lith_share_pct, row.gravity_share_pct, row.rocks_share_pct]
+        table_row = f"{row.fold} & " + " & ".join(f"{v:.1f}\%" for v in values) + r" \\"
+        assert table_row in text, table_row
+        fig_row = f"{row.fold}/{row.fold}/" + "/".join(f"{v:.1f}" for v in values)
+        assert fig_row in fig5, fig_row
+
+
+def test_population_curvature_and_dstar_use_v14():
+    d = pd.read_csv(POPULATION_V14 / "population_d_star_summary.csv")
+    text = _visible_tex(_manuscript())
+    fault = d[d.predictor == "distance_to_fault"]
+    contact = d[d.predictor == "distance_to_lithology_contact"]
+    assert f"from {fault.p_beta_sq_pos.min():.2f} to {fault.p_beta_sq_pos.max():.2f}" in text
+    assert f"from {contact.p_beta_sq_pos.min():.2f} to {contact.p_beta_sq_pos.max():.2f}" in text
+    assert f"[{fault.d_star_ci_lower_km.min():.0f}, {fault.d_star_ci_upper_km.max():.0f}]" in text
+    assert f"[{contact.d_star_ci_lower_km.min():.0f}, {contact.d_star_ci_upper_km.max():.0f}]" in text
+
+
+def test_robustness_counts_and_case_use_v14():
+    r = pd.read_csv(ROBUSTNESS_V14)
+    text = _visible_tex(_manuscript())
+    assert (
+        f"the curvature criterion was met in {int(r.crit1_pass.sum())}, the $D^*$ agreement "
+        f"criterion in {int(r.crit2_pass.sum())}, and the training-support criterion in "
+        f"{int(r.crit3_both_in_support.sum())}"
+    ) in text
+    robust = r[r.robust_all_criteria]
+    assert len(robust) == 1
+    case = robust.iloc[0]
+    assert f"{case.domain.replace('_', chr(92) + '_')} lithological contact in the fit with Fold~{case.fold} held out" in text
+
+
+def test_domain_names_follow_daly_2025():
+    text = _visible_tex(_manuscript())
+    for wrong in ("Northern Roan Basin", "Congo River Zone", "North Kundelungu Basin",
+                  "Mwembeshi Shear Belt", "South Roan Basin"):
+        assert wrong not in text, wrong
+    for right in ("Northeastern Katangan Basin", "Mwashia marginal sub-basins",
+                  "Southern Rift Basin", "Northern Rift Basin", "Central Rift Zone"):
+        assert right in text, right

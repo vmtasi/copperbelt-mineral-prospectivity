@@ -137,3 +137,34 @@ These items belong in the redesign's acceptance tests. Passing a new model fit w
 The V14 numerical benchmark is reproducible from its preserved OOF predictions, and the north-west Fold 4 result is genuine. The scientific limitations are not erased by that numerical consistency. In particular, the manuscript cannot yet claim that domain-varying slopes are the source of the pooled advantage, that the contact predictor represents bedrock mineralisation, that the fault predictor represents a structural hierarchy, or that posterior intervals represent total predictive uncertainty.
 
 The correct conclusion is narrower and defensible: V14 demonstrates a reproducible application of partially pooled Bayesian logistic regression under a four-sector spatial validation design, with uneven sector performance and a small pooled ranking advantage over a global logistic reference. The redesign must earn any stronger claim with new data and new tests.
+
+---
+
+## 8. Update — 20 November 2026 (Paper 1 completion pass)
+
+This update adds dispositions. Earlier rows are kept unchanged as the
+audit trail. Evidence is in `figures/audit/paper1_supplement_v14/`, which
+`src/paper1_supplement_summaries.py` and
+`src/audit_lithology_class_assignment.py` generate without refitting, and
+in `paper_1/manuscript/supplementary.tex`.
+
+| ID | New status | Evidence and change |
+|---|---|---|
+| **M19** | **Quantified** (acceptance met) | Brier skill vs. out-of-fold training-prevalence baseline is +0.010; vs. pooled prevalence it is −0.007. Calibration slope 0.605, intercept −0.836, calibration-in-the-large +0.049; the top decile is overpredicted (0.278 vs 0.144). Reported in the main text and Table S5. No claim of improved probability accuracy is made. |
+| **M20** | **Corrected** (calibration only) | The historical calibration slope 0.61 and intercept −0.84 are reproduced from the V14 OOF predictions with a documented method (`probability_accuracy.json`). Moran's I 0.145 is still unverified and is not reported. |
+| **M24** | **Corrected** | The 16 informative NRB cases are reported separately: C1 3, C2 4, C3 12, all three 1. All 48: 15/4/18/1. Main text and Table S8. The robust case is NRB_3b contact in the Fold 2 fit; the manuscript's "Fold 1, NRB_3a" was a V13 carry-over and is fixed. |
+| **M27** | **Corrected** | Population means and scales are summarised from the four V14 fold traces in Table S7, labelled separately from the Phase 4B descriptive model. |
+| **M28** | **Corrected** | Fold-specific ROC-AUC with class-stratified bootstrap 95% intervals is in Table 3 (Fold 1: 0.875 [0.831, 0.918]), with a caveat about 9 positives. |
+| **R01** | **Corrected** | Domain expansions follow Daly et al. (2025) §4.2 and Fig. 14. A regression test (`test_domain_names_follow_daly_2025`) forbids the old names. Figure 1 map labels were not regenerated. |
+| **R02** | **Corrected** | Table 5 and Figure 5 now use the V14 `fold_predictor_summary.csv`; the test `test_share_table_and_figure5_use_v14_reconstruction` enforces this. |
+| **R06** | **Corrected** | `supplementary.tex` written (S1–S8). Its tables are generated from files by `src/build_paper1_supplement_tables.py`. |
+| **R07** | **Corrected** | BibTeX author corrected to the Crossref record: family "Tshanga Matthieu", given "Matthieu". |
+| **R08** | **Corrected** | 61 V14 benchmark artefacts are tracked in Git with SHA-256 sums (`paper_1/benchmark/SHA256SUMS`). `.gitattributes` disables line-ending conversion, and `tests/test_v14_benchmark_integrity.py` verifies the files. The 20 sensitivity traces (35 MB) are listed in `SHA256SUMS_external` for a Zenodo deposit. |
+
+### New entries
+
+| ID | Limitation | Status | Evidence | Required action |
+|---|---|---|---|---|
+| **M29** | The "surficial-lithology class" covariate is an attribute of the nearest contact line, not the lithology of the cell. | **Quantified** | The stored class matches the centroid raster class in 42.0% of cells and the majority class in 45.4%. It matches the class of a tied nearest contact to the cell polygon in 95.4% (1,812/1,899). 1,890 cells have tied contacts with different classes, so the choice between them is undocumented. 87 cells are unmatched (5 positive). | The manuscript now describes the covariate as it is. A versioned sensitivity refit with centroid or majority class would test whether the lithology terms matter. |
+| **M30** | Several results passages carried V13 numbers after the V14 refit. | **Corrected** | Coefficient ranges (§4.2), NRB_3b curvature range, population P(μ_sq>0), population D* intervals, the robust D* case, the share table/Fig. 5 and MCMC diagnostics (R-hat 1.0068 → 1.004; ESS 1,234 → 1,219 over all parameters) were updated. New tests compare each passage with the V14 files. | Keep the tests. Treat any new number in the manuscript as needing a file-backed test. |
+| **M31** | NRB_3b fault-distance direction was presented as opposite to NRB_3a. | **Corrected** | Every NRB_3b fault linear interval includes zero; P(β_lin<0) is 0.12–0.46 (0.02–0.74 across representations). The text now says the direction is unresolved rather than reversed. | None beyond the wording. |

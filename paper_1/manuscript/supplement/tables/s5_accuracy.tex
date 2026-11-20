@@ -1,0 +1,21 @@
+\begin{tabular}{lr}
+\toprule
+Quantity & Value \\
+\midrule
+DVHM Brier score & 0.0688 \\
+Baseline: training-partition prevalence (out-of-fold) & 0.0695 \\
+Baseline: pooled prevalence & 0.0683 \\
+Brier skill vs.\ training-partition prevalence & $+0.010$ \\
+Brier skill vs.\ pooled prevalence & $-0.007$ \\
+Calibration slope (logistic, on logit $\bar p$) & 0.605 \\
+Calibration intercept (with slope) & $-0.836$ \\
+Calibration-in-the-large (logit offset) & $+0.049$ \\
+Mean predicted probability / observed prevalence & 0.0708 / 0.0737 \\
+\midrule
+\multicolumn{2}{l}{\emph{By held-out fold: Brier (baseline) and skill}} \\
+Fold 1 & 0.0185 (0.0241); $+0.233$ \\
+Fold 2 & 0.0627 (0.0620); $-0.012$ \\
+Fold 3 & 0.0765 (0.0729); $-0.050$ \\
+Fold 4 & 0.1175 (0.1191); $+0.013$ \\
+\bottomrule
+\end{tabular}

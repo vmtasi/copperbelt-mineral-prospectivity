@@ -17,10 +17,10 @@
 
 % One bar per fold, with the fold label aligned to its own bar
 \foreach \i/\fold/\fault/\contact/\gravity/\rock in {
-  1/1/86.6/11.0/2.0/0.4,
-  2/2/46.8/28.0/5.6/19.6,
-  3/3/30.5/32.8/14.4/22.4,
-  4/4/33.2/23.2/28.7/14.9
+  1/1/86.5/10.9/2.1/0.4,
+  2/2/45.1/29.9/5.8/19.2,
+  3/3/30.4/32.9/14.3/22.4,
+  4/4/33.5/22.8/28.8/15.0
 }{
   \pgfmathsetmacro{\y}{32-8*\i}
   \pgfmathsetmacro{\total}{\fault+\contact+\gravity+\rock}
@@ -47,5 +47,5 @@
 \fill[gravityshare] (0,-11) rectangle ++(3,3);
 \node[anchor=west] at (4.5,-9.5) {Bouguer gravity};
 \fill[rockshare] (45,-11) rectangle ++(3,3);
-\node[anchor=west] at (49.5,-9.5) {Host lithology};
+\node[anchor=west] at (49.5,-9.5) {Surficial-lithology class};
 \end{tikzpicture}
