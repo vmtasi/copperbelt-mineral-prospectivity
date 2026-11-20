@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sqlite3
 import sys
 from pathlib import Path
@@ -23,6 +24,7 @@ import pandas as pd
 import pytest
 
 CANONICAL = ROOT / "data" / "copperbelt_training_v13_litho_contact.csv"
+V14_CANONICAL = ROOT / "data" / "copperbelt_training_v14_centroid_contact.csv"
 DISTANCE_CSV = ROOT / "data" / "derived" / "litho_contact_distance_v13.csv"
 DISTANCE_GPKG = ROOT / "data" / "derived" / "litho_contact_distance_v13.gpkg"
 MANIFEST = ROOT / "data" / "derived" / "canonical_training_manifest.json"
@@ -211,7 +213,15 @@ def test_complete_case_frame_folds_unchanged():
 
 
 def test_retired_feature_files_are_not_active():
-    active = list((ROOT / "data").rglob("*"))
+    # data/raw and data/processed hold separately versioned research-evidence
+    # registers (RDC, Stage 3-5), not model feature tables; a "provisional"
+    # CRS register there is not a retired predictor file.
+    evidence_trees = {ROOT / "data" / "raw", ROOT / "data" / "processed"}
+    active = [
+        path
+        for path in (ROOT / "data").rglob("*")
+        if not any(tree in path.parents for tree in evidence_trees)
+    ]
     names = {path.name for path in active if path.is_file()}
     assert not any("v12" in name for name in names)
     assert not any("provisional" in name for name in names)
@@ -237,21 +247,26 @@ def test_no_active_script_reads_retired_contact_tables():
         }:
             continue
         text = path.read_text(encoding="utf-8", errors="ignore")
+        # Whole-token match: Stage 5 legitimately computes a new audit column
+        # ``distance_to_tract_boundary_km``; only the retired predictor name
+        # ``distance_to_tract_boundary`` itself is forbidden.
         offenders.extend(
             f"{path.relative_to(ROOT)}:{pattern}"
             for pattern in patterns
-            if pattern in text
+            if re.search(rf"(?<![A-Za-z0-9_]){re.escape(pattern)}(?![A-Za-z0-9_])", text)
         )
     assert not offenders, offenders
 
 
 
 def test_model_loader_consumes_canonical_distance():
+    # The active loader moved to the V14 centroid-contact table (Paper 1
+    # benchmark); V13 remains the frozen historical table tested above.
     from src.distance_sensitivity_models import DATA_PATH, load_modeling_data
 
-    assert DATA_PATH.resolve() == CANONICAL.resolve()
+    assert DATA_PATH.resolve() == V14_CANONICAL.resolve()
     model_frame, _ = load_modeling_data()
-    canonical = pd.read_csv(CANONICAL)
+    canonical = pd.read_csv(V14_CANONICAL)
     expected = _complete_case_frame(canonical)
     merged = model_frame[["id", "distance_to_lithology_contact"]].merge(
         canonical[["id", "distance_to_lithology_contact"]],
