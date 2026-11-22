@@ -352,3 +352,50 @@ def test_domain_names_follow_daly_2025():
     for right in ("Northeastern Katangan Basin", "Mwashia marginal sub-basins",
                   "Southern Rift Basin", "Northern Rift Basin", "Central Rift Zone"):
         assert right in text, right
+
+
+# --------------------------------------------------------------------------- #
+# Area-aware ablation ladder (paper_1/v15): every reported number is file-backed.
+V15 = ROOT / "paper_1" / "v15"
+
+
+def test_ladder_table_matches_v15_metrics():
+    text = _visible_tex(_manuscript())
+    summary = pd.read_csv(V15 / "metrics" / "model_summary.csv").set_index("model")
+    for label, model in (("M0", "M0_global"), ("M1", "M1_domain_intercept"),
+                         ("M2", "M2_domain_distance"), ("M3$^{*}$", "M3_domain_distance_gravity")):
+        r = summary.loc[model]
+        cells = (f"{r.auc:.3f} & {r.pr_auc:.3f} & ${r.mean_log_score:.4f}$ & "
+                 f"${r.brier_skill:+.3f}$ & {r.calibration_slope:.2f}")
+        assert cells in text, (label, cells)
+    rf = summary.loc["RF_comparator"]
+    assert f"Random forest & -- & {rf.auc:.3f} & {rf.pr_auc:.3f} & ${rf.mean_log_score:.4f}$" in text
+
+
+def test_ladder_comparisons_match_spatial_block_bootstrap():
+    text = _visible_tex(_manuscript())
+    b = pd.read_csv(V15 / "metrics" / "paired_bootstrap.csv")
+
+    def row(left, right):
+        r = b[(b.left == left) & (b.right == right)].iloc[0]
+        return r
+
+    # bootstrap stores left minus right; the manuscript reports upper minus lower.
+    for lower, upper in (("M0_global", "M1_domain_intercept"),
+                         ("M1_domain_intercept", "M2_domain_distance"),
+                         ("M2_domain_distance", "M3_domain_distance_gravity")):
+        r = row(lower, upper)
+        token = (f"${-r.mean_delta_log_score:+.4f}$ & [${-r.ci_upper:+.4f}$, ${-r.ci_lower:+.4f}$]")
+        assert token in text, token
+    r = row("M3_domain_distance_gravity", "RF_comparator")
+    assert f"${r.mean_delta_log_score:+.4f}$ & [${r.ci_lower:+.4f}$, ${r.ci_upper:+.4f}$]" in text
+
+
+def test_area_and_gravity_auc_sentences_match_corrected_diagnostics():
+    text = _visible_tex(_manuscript())
+    area = pd.read_csv(V15 / "diagnostics" / "area_auc_by_fold.csv").set_index("fold")
+    assert f"pooled ROC-AUC of {area.loc['pooled', 'auc_area']:.3f}" in text
+    assert f"from {area.loc['0', 'auc_area']:.3f} in Fold~1 to {area.loc['3', 'auc_area']:.3f} in Fold~4" in text
+    g = pd.read_csv(V15 / "diagnostics" / "gravity_fold_summary.csv")
+    values = ", ".join(f"{v:.3f}" for v in g.gravity_auc_low_gravity_positive[:3])
+    assert f"ROC-AUC {values}, and {g.gravity_auc_low_gravity_positive.iloc[3]:.3f}" in text
