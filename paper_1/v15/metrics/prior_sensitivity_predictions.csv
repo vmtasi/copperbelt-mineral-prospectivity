@@ -1,0 +1,4 @@
+prior_sensitivity,cells,mean_probability,max_abs_probability_difference_from_primary,mean_abs_probability_difference_from_primary
+primary,1872,0.07031505240034447,0.0,0.0
+prior_0_5,1872,0.0742145307119263,0.10317780684057742,0.010356879229448472
+prior_2_0,1872,0.06812201586063309,0.1383076205312796,0.006183219531056486

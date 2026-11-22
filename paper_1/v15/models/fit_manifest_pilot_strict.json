@@ -1,0 +1,27 @@
+{
+  "experiment": "V15_PAPER1",
+  "started_utc": "2026-11-20T19:27:14.140849Z",
+  "python": "3.10.11 (tags/v3.10.11:7d4cc5a, Apr  5 2023, 00:38:17) [MSC v.1929 64 bit (AMD64)]",
+  "executable": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv\\Scripts\\python.exe",
+  "git_head": "74b436c711d6a0cb04a02d22340b03ce213163a8",
+  "data": {
+    "path": "paper_1/v15/data/v15_model_frame.csv",
+    "sha256": "0a2c987e2f8de3cf10728027a87f226790cf0dc7c8dda27e00fbcd652ddec5d9"
+  },
+  "sampler": {
+    "draws": 500,
+    "tune": 1000,
+    "chains": 2,
+    "cores": 2,
+    "target_accept": 0.995,
+    "random_seed": 42
+  },
+  "models": [
+    "M2_domain_distance"
+  ],
+  "folds": [
+    3
+  ],
+  "tag": "pilot_strict",
+  "prior_scale": 1.0
+}

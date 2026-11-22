@@ -1,0 +1,2 @@
+draws,cells,prior_mean_probability,prior_p2_5_probability,prior_median_probability,prior_p97_5_probability,prior_p99_5_probability,fraction_probability_above_0_5,fraction_probability_above_0_9
+2000,468,0.4094155531079014,4.6970649299050825e-23,0.13589213051257315,1.0,1.0,0.39101175213675216,0.32298076923076924

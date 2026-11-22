@@ -1,0 +1,32 @@
+{
+  "grid_path": "C:\\Project\\data for projects\\grid_internal_contact_distance_1899.gpkg",
+  "tract_path": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\raw\\rdc_rocks\\derived\\spatial_atlas_v1\\layers\\usgs_permissive_tracts.gpkg",
+  "grid_sha256": "877cfc16703e88f093ecd864eb256b22fcd8972998c4a58e83427c7c04e101b0",
+  "tract_sha256": "17d7559ccfcd58f2fd92d1138d623f544fba7173fe3ec3e13c5f48ac153a77a9",
+  "crs": "EPSG:32735",
+  "unit": "km2",
+  "cells": 1899,
+  "unique_ids": 1899,
+  "full_cell_area_min_km2": 25.0,
+  "full_cell_area_max_km2": 25.0,
+  "clipped_area_sum_km2": 21790.355785239553,
+  "max_abs_clipped_minus_tract_intersection_km2": 4.263256414560601e-14,
+  "definition": "5 km cell footprint intersected with the union of the five USGS permissive tracts",
+  "v14_table": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\data\\copperbelt_training_v14_centroid_contact.csv",
+  "v14_table_sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+  "full_v14_rows": 1899,
+  "complete_case_rows": 1872,
+  "positive_cells": 138,
+  "fold_counts": {
+    "0": 468,
+    "1": 468,
+    "2": 468,
+    "3": 468
+  },
+  "fold_positives": {
+    "0": 9,
+    "1": 31,
+    "2": 37,
+    "3": 61
+  }
+}

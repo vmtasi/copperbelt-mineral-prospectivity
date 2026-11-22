@@ -1,0 +1,5 @@
+model,n,k_neighbors,weights,morans_i,permutations,p_value_one_sided_positive
+M0_global,1872,8,row-standardised k-nearest neighbours,0.24636020241694687,999,0.001
+M1_domain_intercept,1872,8,row-standardised k-nearest neighbours,0.22370903982503323,999,0.001
+M2_domain_distance,1872,8,row-standardised k-nearest neighbours,0.18043134941190192,999,0.001
+M3_domain_distance_gravity,1872,8,row-standardised k-nearest neighbours,0.15208676638563232,999,0.001

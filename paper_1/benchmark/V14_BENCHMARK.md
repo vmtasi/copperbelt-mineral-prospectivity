@@ -70,3 +70,11 @@ African Copperbelt assessment (occurrences, permissive tracts), the
 WGM2012 complete Bouguer anomaly (BGI) and the Africa surficial lithology
 raster (USGS). The source products are not redistributed; cite them as in
 the manuscript.
+
+## V15 area-aware ablation ladder
+
+The V15 ladder (`paper_1/v15/`) is tracked in Git except for its posterior
+traces (`*.nc`, about 84 MB). These go to the same external deposit as the
+sensitivity traces. `paper_1/v15/checksums/SHA256SUMS_v15` covers all 270
+V15 files, traces included. `python -m src.v15.checksums --verify` therefore
+passes only once the traces have been restored.

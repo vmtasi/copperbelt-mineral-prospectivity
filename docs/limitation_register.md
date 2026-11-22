@@ -168,3 +168,23 @@ in `paper_1/manuscript/supplementary.tex`.
 | **M29** | The "surficial-lithology class" covariate is an attribute of the nearest contact line, not the lithology of the cell. | **Quantified** | The stored class matches the centroid raster class in 42.0% of cells and the majority class in 45.4%. It matches the class of a tied nearest contact to the cell polygon in 95.4% (1,812/1,899). 1,890 cells have tied contacts with different classes, so the choice between them is undocumented. 87 cells are unmatched (5 positive). | The manuscript now describes the covariate as it is. A versioned sensitivity refit with centroid or majority class would test whether the lithology terms matter. |
 | **M30** | Several results passages carried V13 numbers after the V14 refit. | **Corrected** | Coefficient ranges (§4.2), NRB_3b curvature range, population P(μ_sq>0), population D* intervals, the robust D* case, the share table/Fig. 5 and MCMC diagnostics (R-hat 1.0068 → 1.004; ESS 1,234 → 1,219 over all parameters) were updated. New tests compare each passage with the V14 files. | Keep the tests. Treat any new number in the manuscript as needing a file-backed test. |
 | **M31** | NRB_3b fault-distance direction was presented as opposite to NRB_3a. | **Corrected** | Every NRB_3b fault linear interval includes zero; P(β_lin<0) is 0.12–0.46 (0.02–0.74 across representations). The text now says the direction is unresolved rather than reversed. | None beyond the wording. |
+
+## 9. Update — 22 November 2026 (V15 area-aware ablation ladder)
+
+Evidence: `paper_1/v15/reports/master_results_report.md` (with its 22 Nov erratum) and `paper_1/v15/metrics/`.
+
+| ID | New status | Evidence |
+|---|---|---|
+| **M05** | **Quantified** | Prior scales ×0.5/×2: ROC-AUC 0.738/0.727 (primary 0.734), but between-domain scales track the prior (σ_α 0.65→1.73). Heterogeneity magnitude is reported as prior-dependent. |
+| **M06** | **Corrected** (claim narrowed) | M1 (domain intercepts) vs M2 (+ domain distance slopes) under the same likelihood: +0.0062 log score per cell, spatial-block 95% [−0.0160, +0.0291]. The slope-heterogeneity claim is removed from the manuscript. |
+| **M08** | **Quantified** | 500 perturbations within 1 km relabel about 40 cells each; model ordering is stable and AUC falls by about 0.01. |
+| **M10** | **Quantified** | Moran's I on OOF residuals 0.15–0.25 (p = 0.001) for all ladder models; reported as optimism for unsampled areas. |
+| **M13** | **Corrected** | Cloglog likelihood with log-area offset (M0–M3), plus a logit area-covariate sensitivity, which scores better than the offset by 0.0084 per cell [0.0028, 0.0141]. |
+| **M21** | **Corrected** | Random forest under the same folds: AUC 0.753, log score −0.2352; neither M2 nor M3 differs from it decisively. |
+
+### New entries
+
+| ID | Limitation | Status | Evidence | Required action |
+|---|---|---|---|---|
+| **M32** | The domain-varying gravity model (M3) was specified after fold-level gravity results had been examined. | **Bounded by available evidence** | M3 vs M2 +0.0304 [+0.0110, +0.0530], concentrated in Folds 1–2 and NRB_3b, the same sector and domain where the fault distances cannot be reproduced (Folds 1–2: 69 and 158 of 227 cells; NRB_3b: 20 of 31 positives). | Test on independent data (a held-out district or an independent gravity product) before any causal or confirmatory claim. |
+| **M33** | `src/v15/metrics.py::roc_auc` clipped scores to [1e-12, 1], corrupting AUCs of raw covariates (area, gravity). | **Corrected** | Fixed 22 Nov 2026 with a regression test. Area AUC is 0.583 (not 0.559) and the low-gravity fold AUCs are 0.850/0.783/0.566/0.509. Model-probability metrics were unaffected. | None. |

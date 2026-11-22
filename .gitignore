@@ -101,3 +101,6 @@ literature/
 
 # PyTensor compiledir leaks (flattened absolute-path cache dirs)
 *runtime_cachepytensor*
+
+# V15 ablation ladder: posterior traces (~84 MB) go to the external archive
+/paper_1/v15/**/*.nc

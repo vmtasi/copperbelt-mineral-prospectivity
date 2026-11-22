@@ -1,0 +1,24 @@
+[
+  {
+    "model": "M2_domain_distance",
+    "fold": 4,
+    "diverging": 0,
+    "max_rhat": 1.01040864,
+    "min_ess_bulk": 306.29788322,
+    "min_ess_tail": 125.52121153,
+    "converged": true,
+    "status": "PASS",
+    "elapsed_seconds": 269.5280386000013,
+    "trace": "traces\\pilot_strict_M2_domain_distance\\fold_4.nc",
+    "prediction": "predictions\\pilot_strict_M2_domain_distance_fold_4.csv",
+    "n_train": 1404,
+    "n_test": 468,
+    "positive_train": 77,
+    "positive_test": 61,
+    "n_rocks": 5,
+    "area_train_sum_km2": 17361.24577649396,
+    "link": "cloglog",
+    "area_treatment": "offset",
+    "family": "domain_distance"
+  }
+]

@@ -1,0 +1,39 @@
+{
+  "status": "COMPLETE",
+  "conclusion": "The stored V14 class is a contact-line class at minimum polygon-to-contact distance. It is not the raster class at the centroid or the majority raster class in the cell. Where tied contacts carry different classes, the selected class is not uniquely identified by the source.",
+  "rules": {
+    "H1_centroid_raster_class": {
+      "cells": 1899,
+      "matches": 798,
+      "share": 0.42022116903633494
+    },
+    "H2_majority_class_in_cell": {
+      "cells": 1889,
+      "matches": 858,
+      "share": 0.45420857596611963
+    },
+    "H3_nearest_contact_to_centroid": {
+      "cells": 1899,
+      "matches": 942,
+      "share": 0.4960505529225908
+    },
+    "H4_any_tied_nearest_contact_to_polygon": {
+      "cells": 1899,
+      "matches": 1812,
+      "share": 0.9541864139020537
+    }
+  },
+  "cells_with_tied_contacts_of_different_classes": 1890,
+  "unmatched_by_H4": {
+    "cells": 87,
+    "positive_cells": 5
+  },
+  "defensible_centroid_assignment": false,
+  "reason": "The only centroid raster is a surficial-lithology product, not the host-lithology polygon used by V14. Its 42 percent agreement with the stored field is insufficient to relabel cells. No polygon source supporting a unique host class at the centroid was found in the acquired data.",
+  "inputs": {
+    "training_table_sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878",
+    "raster_sha256": "3a5596e9e88f0046bb8309c7bdbe85a5e7410e5ef2dec18fb179210235b48d38",
+    "grid_sha256": "877cfc16703e88f093ecd864eb256b22fcd8972998c4a58e83427c7c04e101b0",
+    "contacts_sha256": "0f444bf21a24a1efe87a8fdcbb1403be7dc31b0c9b7f2cd0e41d375620531fb5"
+  }
+}

@@ -1,0 +1,3 @@
+fault_distance_reproduced,cells,positive_cells,stored_distance_median_m,recomputed_distance_median_m,abs_difference_median_m,abs_difference_max_m
+False,227,26.0,42967.8087422221,27505.81120185945,18178.23266227128,33076.97838222206
+True,1672,112.0,10964.030400180949,10964.030630483941,0.00016253369096830284,0.0004970130248693749

@@ -1,0 +1,38 @@
+{
+  "tags": {
+    "primary": "",
+    "prior_0_5": "prior0p5_",
+    "prior_2_0": "prior2p0_"
+  },
+  "key_scales": [
+    "alpha_sigma",
+    "sigma_beta_f_lin",
+    "sigma_beta_f_sq",
+    "sigma_beta_l_lin",
+    "sigma_beta_l_sq"
+  ],
+  "prediction_comparison": [
+    {
+      "prior_sensitivity": "primary",
+      "cells": 1872,
+      "mean_probability": 0.07031505240034447,
+      "max_abs_probability_difference_from_primary": 0.0,
+      "mean_abs_probability_difference_from_primary": 0.0
+    },
+    {
+      "prior_sensitivity": "prior_0_5",
+      "cells": 1872,
+      "mean_probability": 0.0742145307119263,
+      "max_abs_probability_difference_from_primary": 0.10317780684057742,
+      "mean_abs_probability_difference_from_primary": 0.010356879229448472
+    },
+    {
+      "prior_sensitivity": "prior_2_0",
+      "cells": 1872,
+      "mean_probability": 0.06812201586063309,
+      "max_abs_probability_difference_from_primary": 0.1383076205312796,
+      "mean_abs_probability_difference_from_primary": 0.006183219531056486
+    }
+  ],
+  "interpretation": "If predictions and scale posteriors remain close under the two prior-width variants, the informative domains are predominantly data-supported. Large movement in sparse domains indicates prior dependence."
+}

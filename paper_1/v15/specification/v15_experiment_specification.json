@@ -1,0 +1,236 @@
+{
+  "schema_version": "1.0.0",
+  "experiment": "Paper 1 V15",
+  "created_utc": "2026-11-22T18:06:50.405856Z",
+  "frozen": true,
+  "estimand": "Incremental held-out predictive value of domain-varying distance relationships after accounting for domain intercepts and clipped-cell exposure.",
+  "domains": [
+    "CRZ",
+    "MMSB",
+    "NKB",
+    "NRB_3a",
+    "NRB_3b",
+    "SRB"
+  ],
+  "outcome": {
+    "column": "deposit_present",
+    "meaning": "at least one compiled USGS occurrence in the cell; binary, not a count",
+    "cells": 1872,
+    "positive_cells": 138,
+    "negative_cells": 1734,
+    "fold_cells": {
+      "0": 468,
+      "1": 468,
+      "2": 468,
+      "3": 468
+    },
+    "fold_positives": {
+      "0": 9,
+      "1": 31,
+      "2": 37,
+      "3": 61
+    }
+  },
+  "area": {
+    "definition": "5 km cell footprint intersected with the union of the five USGS permissive tracts",
+    "crs": "EPSG:32735",
+    "unit": "km2",
+    "grid_cells": 1899,
+    "clipped_area_sum_km2": 21790.355785239553,
+    "complete_case_cells": 1872,
+    "cells_below_1_km2": 205,
+    "positive_cells_below_1_km2": 0,
+    "offset": "log(area_km2); fixed coefficient 1 in the cloglog models"
+  },
+  "predictors": {
+    "fault": "distance_to_fault, training-fold standardized, then squared",
+    "contact": "distance_to_lithology_contact, training-fold standardized, then squared",
+    "gravity": "bouguer, training-fold standardized",
+    "lithology": "litho_contact_litho_class indicators retained when the training partition has both labels",
+    "area": "log_area_km2 exposure offset; standardized covariate only in the area-covariate sensitivity"
+  },
+  "models": {
+    "M0_global": {
+      "spec": {
+        "family": "global",
+        "link": "cloglog",
+        "area": "offset",
+        "include_litho": true
+      },
+      "equation": "cloglog(p_i) = alpha + b_f1 z_f + b_f2 z_f^2 + b_l1 z_l + b_l2 z_l^2 + b_g g + x_rock'b_rock + log(A_i)"
+    },
+    "M1_domain_intercept": {
+      "spec": {
+        "family": "domain_intercept",
+        "link": "cloglog",
+        "area": "offset",
+        "include_litho": true
+      },
+      "equation": "cloglog(p_i) = alpha_d[i] + b_f1 z_f + b_f2 z_f^2 + b_l1 z_l + b_l2 z_l^2 + b_g g + x_rock'b_rock + log(A_i)"
+    },
+    "M2_domain_distance": {
+      "spec": {
+        "family": "domain_distance",
+        "link": "cloglog",
+        "area": "offset",
+        "include_litho": true
+      },
+      "equation": "cloglog(p_i) = alpha_d[i] + b_f1[d(i)] z_f + b_f2[d(i)] z_f^2 + b_l1[d(i)] z_l + b_l2[d(i)] z_l^2 + b_g g + x_rock'b_rock + log(A_i)"
+    },
+    "M3_domain_distance_gravity": {
+      "spec": {
+        "family": "domain_distance_gravity",
+        "link": "cloglog",
+        "area": "offset",
+        "include_litho": true
+      },
+      "equation": "cloglog(p_i) = alpha_d[i] + b_f1[d(i)] z_f + b_f2[d(i)] z_f^2 + b_l1[d(i)] z_l + b_l2[d(i)] z_l^2 + b_g[d(i)] g + x_rock'b_rock + log(A_i)"
+    },
+    "V14_control": {
+      "spec": {
+        "family": "domain_distance",
+        "link": "logit",
+        "area": "none",
+        "include_litho": true
+      },
+      "equation": "logit(p_i) = alpha_d[i] + b_f1[d(i)] z_f + b_f2[d(i)] z_f^2 + b_l1[d(i)] z_l + b_l2[d(i)] z_l^2 + b_g g + x_rock'b_rock"
+    },
+    "M2_logit_no_area": {
+      "spec": {
+        "family": "domain_distance",
+        "link": "logit",
+        "area": "none",
+        "include_litho": true
+      },
+      "equation": "logit(p_i) = alpha_d[i] + b_f1[d(i)] z_f + b_f2[d(i)] z_f^2 + b_l1[d(i)] z_l + b_l2[d(i)] z_l^2 + b_g g + x_rock'b_rock"
+    },
+    "M2_logit_area_covariate": {
+      "spec": {
+        "family": "domain_distance",
+        "link": "logit",
+        "area": "covariate",
+        "include_litho": true
+      },
+      "equation": "logit(p_i) = alpha_d[i] + b_f1[d(i)] z_f + b_f2[d(i)] z_f^2 + b_l1[d(i)] z_l + b_l2[d(i)] z_l^2 + b_g g + x_rock'b_rock + b_A z_A"
+    },
+    "M2_cloglog_no_litho": {
+      "spec": {
+        "family": "domain_distance",
+        "link": "cloglog",
+        "area": "offset",
+        "include_litho": false
+      },
+      "equation": "cloglog(p_i) = alpha_d[i] + b_f1[d(i)] z_f + b_f2[d(i)] z_f^2 + b_g g + log(A_i)"
+    },
+    "M2_logit_raster_centroid_litho": {
+      "spec": {
+        "family": "domain_distance",
+        "link": "logit",
+        "area": "none",
+        "include_litho": true,
+        "litho_source": "raster_centroid"
+      },
+      "equation": "sensitivity model"
+    }
+  },
+  "priors": {
+    "intercept_mu_sigma": 1.0,
+    "intercept_sigma_scale": 1.0,
+    "slope_mu_sigma": 1.0,
+    "slope_sigma_scale": 1.0,
+    "rock_sigma": 1.0,
+    "area_sigma": 1.0,
+    "prior_scale": 1.0
+  },
+  "sampler": {
+    "config_default": {
+      "draws": 1000,
+      "tune": 1500,
+      "chains": 2,
+      "cores": 2,
+      "target_accept": 0.95,
+      "random_seed": 42
+    },
+    "executed": {
+      "M0_global": {
+        "chains": 2,
+        "draws": 1000,
+        "tune": 1500,
+        "target_accept": 0.95
+      },
+      "M1_domain_intercept": {
+        "chains": 2,
+        "draws": 1000,
+        "tune": 1500,
+        "target_accept": 0.95
+      },
+      "M2_domain_distance": {
+        "chains": 4,
+        "draws": 1500,
+        "tune": 2500,
+        "target_accept": 0.995
+      },
+      "M3_domain_distance_gravity": {
+        "chains": 4,
+        "draws": 1500,
+        "tune": 2500,
+        "target_accept": 0.995
+      },
+      "sensitivity": {
+        "chains": 2,
+        "draws": 1000,
+        "tune": 2000,
+        "target_accept": 0.995
+      }
+    }
+  },
+  "comparisons": [
+    [
+      "M0_global",
+      "M1_domain_intercept"
+    ],
+    [
+      "M1_domain_intercept",
+      "M2_domain_distance"
+    ],
+    [
+      "M2_domain_distance",
+      "M3_domain_distance_gravity"
+    ]
+  ],
+  "sensitivity": [
+    "V14_control",
+    "M2_logit_no_area",
+    "M2_logit_area_covariate",
+    "M2_cloglog_no_litho",
+    "buffered_5km",
+    "buffered_10km",
+    "prior_scale_0.5",
+    "prior_scale_2.0"
+  ],
+  "inputs": {
+    "model_frame": {
+      "path": "paper_1/v15/data/v15_model_frame.csv",
+      "sha256": "0a2c987e2f8de3cf10728027a87f226790cf0dc7c8dda27e00fbcd652ddec5d9"
+    },
+    "v14_table": {
+      "path": "data\\copperbelt_training_v14_centroid_contact.csv",
+      "sha256": "161ad50684950f7f106c079079eacbae9de09c1851dc15867b014c6b88bbd878"
+    },
+    "v14_benchmark_checksums": {
+      "path": "paper_1\\benchmark\\SHA256SUMS",
+      "sha256": "3f1ae3fa51e099249b400d2e132f0955afc923cb39b17988d8f0ae1c189575d3"
+    },
+    "config_source": {
+      "path": "src/v15/config.py",
+      "sha256": "e3c106c7793305d8dbaef7aff4a34462645b9d1b2315d509a704fa94b4409438"
+    }
+  },
+  "deviations_from_v14": [
+    "V15 primary models use a complementary log-log likelihood with log clipped-cell area as a fixed offset.",
+    "M2 and M3 were refitted after an initial run produced 2-11 divergences per fold; the initial traces are archived under paper_1/v15/models/nonconverged_initial and are not used for inference.",
+    "The retained M2 and M3 runs use four chains, 1,500 draws, 2,500 tuning steps and target_accept 0.995; M0 and M1 use the earlier convergent two-chain configuration.",
+    "The V14_control is a new V15 re-specification with the V14 likelihood, predictors and priors, not a byte reproduction of the frozen V14 chains. V14 itself used 1,500 draws, 2,500 tuning steps, two chains and target_accept 0.99.",
+    "The frozen V14 OOF predictions remain the exact benchmark; no V14 file is modified."
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "source_points": 187,
+  "used_points_in_positive_cells": 184,
+  "not_used_model_negative": 2,
+  "not_used_outside_modelled_grid": 1,
+  "base_positive_cells": 138,
+  "simulations": 500,
+  "radius_km": 1.0,
+  "assignment": "full 5 km cell polygon, nearest-cell fallback for points outside the grid",
+  "mean_changed_cells": 40.072,
+  "median_changed_cells": 40.0,
+  "p95_changed_cells": 51.049999999999955,
+  "mean_positives": 138.648,
+  "point_edge_crossing_probability_mean": 0.1738913043478261,
+  "point_edge_crossing_probability_max": 0.64,
+  "uncertainty_assumption": "The 1 km radius is the project's working positional-uncertainty assumption; the USGS table has no per-record uncertainty field. The experiment is label-churn sensitivity, not survey-grade relocation. It uses only the 184 records that lie in the 138 positive cells.",
+  "model_summary": {
+    "M0_global": {
+      "auc_mean": 0.6789760178525269,
+      "auc_sd": 0.007116184182095648,
+      "auc_p05": 0.6675390802212506,
+      "auc_p95": 0.6903094458196993,
+      "mean_log_score_mean": -0.2761463406263122,
+      "mean_log_score_sd": 0.0045552570576981016
+    },
+    "M1_domain_intercept": {
+      "auc_mean": 0.6961349174193713,
+      "auc_sd": 0.007725689689662821,
+      "auc_p05": 0.6830922820157942,
+      "auc_p95": 0.7080405795521568,
+      "mean_log_score_mean": -0.267304963433714,
+      "mean_log_score_sd": 0.004496546697093569
+    },
+    "M2_domain_distance": {
+      "auc_mean": 0.7226485821298393,
+      "auc_sd": 0.006960406165710768,
+      "auc_p05": 0.7112444742448328,
+      "auc_p95": 0.7336370009897724,
+      "mean_log_score_mean": -0.2616946226272257,
+      "mean_log_score_sd": 0.004566310937585937
+    },
+    "M3_domain_distance_gravity": {
+      "auc_mean": 0.7944148652104622,
+      "auc_sd": 0.006111577331201398,
+      "auc_p05": 0.784449620923639,
+      "auc_p95": 0.8039538775122282,
+      "mean_log_score_mean": -0.22991079155376404,
+      "mean_log_score_sd": 0.0035995438477145016
+    },
+    "RF_comparator": {
+      "auc_mean": 0.7415169505452179,
+      "auc_sd": 0.007692396563425313,
+      "auc_p05": 0.7294279666551982,
+      "auc_p95": 0.7540229661516639,
+      "mean_log_score_mean": -0.23878768765156022,
+      "mean_log_score_sd": 0.003714127406357263
+    },
+    "V14_frozen": {
+      "auc_mean": 0.714270122283638,
+      "auc_sd": 0.004625172902243906,
+      "auc_p05": 0.7070363826165714,
+      "auc_p95": 0.7217976675416664,
+      "mean_log_score_mean": -0.2523419959792499,
+      "mean_log_score_sd": 0.003434885336563293
+    }
+  }
+}

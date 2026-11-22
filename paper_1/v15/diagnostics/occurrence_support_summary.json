@@ -1,0 +1,34 @@
+{
+  "source_points": 187,
+  "points_in_complete_case_cells": 186,
+  "points_in_model_positive_cells": 184,
+  "points_in_model_negative_cells": 2,
+  "points_in_excluded_cells": 1,
+  "unique_complete_case_cells_with_points": 140,
+  "unique_model_positive_cells_with_points": 138,
+  "model_positive_cells": 138,
+  "max_points_in_one_positive_cell": 5,
+  "positive_cells_with_multiple_points": 33,
+  "points_in_multi_point_positive_cells": 79,
+  "v14_positive_rows_before_complete_case": 139,
+  "v14_positive_rows_after_complete_case": 138,
+  "negative_cell_points": [
+    {
+      "Name": "Kanaronga",
+      "grid_cell_id": 986,
+      "model_fold": 3.0
+    },
+    {
+      "Name": "Luishia",
+      "grid_cell_id": 4288,
+      "model_fold": 2.0
+    }
+  ],
+  "excluded_cell_points": [
+    {
+      "Name": "Sebembere",
+      "grid_cell_id": 7074
+    }
+  ],
+  "target_interpretation": "The binary label is at-least-one compiled occurrence in a cell. USGS records are not one-to-one with positive cells: 184 records lie in 138 positive cells, two records lie in model-negative cells, and one lies in an excluded complete-case cell. Multiple records in one cell are not independent observations."
+}

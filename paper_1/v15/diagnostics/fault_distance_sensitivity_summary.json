@@ -1,0 +1,11 @@
+{
+  "structure_source": "C:\\Project\\data for projects\\CACB_Structures.gpkg",
+  "structure_lines": 126,
+  "cells": 1899,
+  "reproduced_within_1m": 1672,
+  "nonreproduced": 227,
+  "nonreproduced_positive_cells": 26,
+  "nonreproduced_not_in_complete_case_frame": 0,
+  "max_abs_difference_m": 33076.97838222206,
+  "interpretation": "The stored predictor is not reproducible from the surviving 126-line structure layer for 227 cells. The original fault geometry is not preserved, so this is a cartographic provenance limitation, not a missing-value problem and not a reason to alter the canonical complete-case frame."
+}
