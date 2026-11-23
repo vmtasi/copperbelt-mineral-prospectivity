@@ -1,0 +1,34 @@
+{
+  "N1_fixed_3b->N2_3b_distance_interactions": {
+    "supported": false,
+    "conditions": {
+      "pooled_log_score_and_auc_improve": true,
+      "spatial_block_95_interval_excludes_zero": false,
+      "positive_log_score_folds_ge_3_of_4": true,
+      "coefficient_stability": true
+    },
+    "positive_log_score_folds": 3,
+    "coefficient_detail": {
+      "criterion": "majority of the four added 3b x distance terms have a 95% interval excluding zero in >= 3 of 4 folds",
+      "stable_terms": [
+        "beta_3b_f_lin",
+        "beta_3b_l_lin"
+      ],
+      "stable_term_count": 2
+    }
+  },
+  "N2_3b_distance_interactions->N3_3b_gravity_interaction": {
+    "supported": false,
+    "conditions": {
+      "pooled_log_score_and_auc_improve": true,
+      "spatial_block_95_interval_excludes_zero": false,
+      "positive_log_score_folds_ge_3_of_4": false,
+      "coefficient_stability": true
+    },
+    "positive_log_score_folds": 2,
+    "coefficient_detail": {
+      "criterion": "3b x gravity interaction interval excludes zero in >= 3 of 4 folds",
+      "folds_excluding_zero": 3
+    }
+  }
+}

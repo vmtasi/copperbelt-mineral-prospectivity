@@ -1,0 +1,185 @@
+{
+  "created_utc": "2026-11-23T05:57:10.375333Z",
+  "model_frame": {
+    "path": "paper_1\\v15\\data\\v15_model_frame.csv",
+    "sha256": "0a2c987e2f8de3cf10728027a87f226790cf0dc7c8dda27e00fbcd652ddec5d9",
+    "cells": 1872,
+    "positives": 138
+  },
+  "fault_variant": {
+    "selected_column": "distance_to_fault_stored_km",
+    "role": "stored fault distances",
+    "path": "C:\\Project\\data for projects\\CACB_Structures.gpkg",
+    "sha256": "c410fcb33bb0c6a4f9284f54ea5d4a092eb79e5c982910f1dc65530d564d9e89",
+    "features": 126,
+    "definition": "Euclidean distance in EPSG:32735 from each canonical V15 cell centroid to the union of the surviving 126-line CACB structure layer",
+    "reproduced_within_1m": 1645,
+    "not_reproduced": 227,
+    "not_reproduced_positives": 26,
+    "max_abs_difference_km": 33.076978382222066
+  },
+  "primary": {
+    "cells": 1872,
+    "positives": 138,
+    "by_fold": [
+      {
+        "fold": 1,
+        "cells": 468,
+        "positives": 9
+      },
+      {
+        "fold": 2,
+        "cells": 468,
+        "positives": 31
+      },
+      {
+        "fold": 3,
+        "cells": 468,
+        "positives": 37
+      },
+      {
+        "fold": 4,
+        "cells": 468,
+        "positives": 61
+      }
+    ],
+    "by_fold_domain": [
+      {
+        "fold": 1,
+        "domain": "CRZ",
+        "cells": 146,
+        "positives": 0
+      },
+      {
+        "fold": 1,
+        "domain": "NKB",
+        "cells": 12,
+        "positives": 0
+      },
+      {
+        "fold": 1,
+        "domain": "NRB_3b",
+        "cells": 310,
+        "positives": 9
+      },
+      {
+        "fold": 2,
+        "domain": "CRZ",
+        "cells": 8,
+        "positives": 0
+      },
+      {
+        "fold": 2,
+        "domain": "NKB",
+        "cells": 12,
+        "positives": 0
+      },
+      {
+        "fold": 2,
+        "domain": "NRB_3a",
+        "cells": 207,
+        "positives": 9
+      },
+      {
+        "fold": 2,
+        "domain": "NRB_3b",
+        "cells": 240,
+        "positives": 22
+      },
+      {
+        "fold": 2,
+        "domain": "SRB",
+        "cells": 1,
+        "positives": 0
+      },
+      {
+        "fold": 3,
+        "domain": "NRB_3a",
+        "cells": 468,
+        "positives": 37
+      },
+      {
+        "fold": 4,
+        "domain": "MMSB",
+        "cells": 16,
+        "positives": 0
+      },
+      {
+        "fold": 4,
+        "domain": "NRB_3a",
+        "cells": 452,
+        "positives": 61
+      }
+    ]
+  },
+  "secondary": {
+    "cells": 1677,
+    "positives": 138,
+    "by_fold": [
+      {
+        "fold": 1,
+        "cells": 310,
+        "positives": 9
+      },
+      {
+        "fold": 2,
+        "cells": 447,
+        "positives": 31
+      },
+      {
+        "fold": 3,
+        "cells": 468,
+        "positives": 37
+      },
+      {
+        "fold": 4,
+        "cells": 452,
+        "positives": 61
+      }
+    ],
+    "by_fold_domain": [
+      {
+        "fold": 1,
+        "domain": "NRB_3b",
+        "cells": 310,
+        "positives": 9
+      },
+      {
+        "fold": 2,
+        "domain": "NRB_3a",
+        "cells": 207,
+        "positives": 9
+      },
+      {
+        "fold": 2,
+        "domain": "NRB_3b",
+        "cells": 240,
+        "positives": 22
+      },
+      {
+        "fold": 3,
+        "domain": "NRB_3a",
+        "cells": 468,
+        "positives": 37
+      },
+      {
+        "fold": 4,
+        "domain": "NRB_3a",
+        "cells": 452,
+        "positives": 61
+      }
+    ]
+  },
+  "outside_nrb_domains": [
+    "CRZ",
+    "MMSB",
+    "NKB",
+    "SRB"
+  ],
+  "fold_domain_confounding": {
+    "fold_1": "NRB_3b plus outside-NRB cells; no NRB_3a",
+    "fold_2": "mixed NRB_3a, NRB_3b and outside-NRB cells",
+    "fold_3": "NRB_3a only",
+    "fold_4": "NRB_3a plus a small outside-NRB component"
+  }
+}

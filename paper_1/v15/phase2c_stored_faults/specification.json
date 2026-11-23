@@ -1,0 +1,45 @@
+{
+  "schema_version": "2c.1.0",
+  "created_utc": "2026-11-23T05:57:10.503990Z",
+  "status": "pre_specified_before_phase2c_fits",
+  "fault_column": "distance_to_fault_stored_km",
+  "primary_frame": {
+    "name": "full_1872",
+    "role": "primary; source of all verdicts",
+    "cells": 1872,
+    "positives": 138,
+    "domain_terms": [
+      "fixed outside-NRB indicator for CRZ, MMSB, NKB and SRB",
+      "fixed NRB_3b indicator in N1-N3"
+    ]
+  },
+  "secondary_frame": {
+    "name": "nrb_3a_plus_3b_1677",
+    "role": "descriptive; no outside-NRB indicator; no verdicts",
+    "cells": 1677,
+    "positives": 138
+  },
+  "folds": "V15 fold IDs copied unchanged: 1 = NRB_3b only; 2 = mixed; 3-4 = NRB_3a only",
+  "fault_distance": "Stored V15 fault distance; training-fold standardization; quadratic term formed after standardization",
+  "likelihood": "Bernoulli complementary log-log",
+  "area": "log_area_km2 fixed offset with coefficient one",
+  "priors": {
+    "all_coefficients": "Normal(0, 1), independent",
+    "hierarchical_scales": "none"
+  },
+  "models": {
+    "N0_global": "global terms; outside-NRB only in the primary frame",
+    "N1_fixed_3b": "N0 + fixed NRB_3b indicator",
+    "N2_3b_distance_interactions": "N1 + 3b x (fault, fault^2, contact, contact^2)",
+    "N3_3b_gravity_interaction": "N2 + 3b x gravity"
+  },
+  "decision_rule": {
+    "pooled": "upper model improves both mean held-out log score and ROC-AUC",
+    "uncertainty": "95% 25-km spatial-block bootstrap interval for mean log-score gain excludes zero",
+    "fold_replication": "mean log-score gain is positive in >= 3 of 4 folds",
+    "coefficient_n1_n2": "a majority (>= 2 of 4) of the added 3b x distance coefficients has a 95% interval excluding zero in >= 3 of 4 folds",
+    "coefficient_n2_n3": "the 3b x gravity interaction interval excludes zero in >= 3 of 4 folds",
+    "supported": "all applicable conditions must hold"
+  },
+  "descriptive_check": "N1-to-N2 and N2-to-N3 comparisons within Fold 2 only, because Fold 2 is the only mixed fold"
+}
