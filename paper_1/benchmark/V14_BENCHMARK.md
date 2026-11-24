@@ -90,7 +90,7 @@ tracked in Git with two exceptions:
   per-fit prediction files that `python -m src.transfer analyze-mcmc`
   regenerates without refitting.
 
-`paper_1/transfer/checksums/SHA256SUMS` covers all 468 files, these
+`paper_1/transfer/checksums/SHA256SUMS` covers all 469 files, these
 included. Verify from inside `paper_1/transfer/` with
 `sha256sum -c checksums/SHA256SUMS`. Every tracked file verifies after a
 fresh clone; the excluded ones verify once they are restored.

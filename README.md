@@ -1,79 +1,113 @@
-# Copperbelt Mineral Prospectivity Mapping
+# Copperbelt Mineral Prospectivity: Geographic Transfer
 
-> **Live project status (18 Nov 2026):** See [the project progress dashboard](docs/PROJECT_PROGRESS.md) for validated milestones, open scientific limitations and the ordered remaining work. The dashboard keeps the historical V14 benchmark, tract-supported occurrence-intensity analysis and full-Daly-union redesign as separate workstreams.
+Code and outputs for Paper 1, *Rankings Transfer but Base Rates Do Not:
+Leave-One-Sector-Out Evaluation of a Prospectivity Model along the Central
+African Copperbelt* (manuscript in `paper_1/manuscript/`).
 
+## The question
 
-## Overview
+A prospectivity model is trained where occurrences are known and used to rank
+ground where they are not. This study measures how well a simple Bayesian
+prospectivity model transfers between four contiguous sectors of the Central
+African Copperbelt, and why transfer fails where it does.
 
-This project develops a spatially structured Bayesian framework for mineral-prospectivity mapping in the Central African Copperbelt. The completed Paper 1 analysis addresses a central challenge in spatial geoscientific machine learning: predictive relationships can appear stronger when spatial leakage or locally specific feature definitions are allowed to substitute for transferable geological information. The project therefore combines exogenous geological and geophysical predictors with geographically separated out-of-fold evaluation.
+## Data and model
 
-## Modeling Approach
+- **Frame:** 1,872 nominal 5 km cells clipped to the USGS permissive tracts.
+  138 cells contain at least one compiled USGS occurrence record.
+- **Predictors:** distance to mapped faults, distance to lithological contacts
+  and Bouguer gravity.
+- **Model:** complementary log-log link with the clipped cell area as an
+  offset; fitted by MCMC (PyMC).
+- **Validation:** four along-belt sectors. Each sector is predicted by a model
+  trained on the other three. Sector-to-sector transfer, random
+  cross-validation and two alternative partitions serve as comparisons.
+- **Pre-specification:** the analysis plan was written and hashed before any
+  fit. It is in `paper_1/transfer/specification.json`, with a versioned
+  amendment in `specification_v2.json`.
 
-The final V11 model is a hierarchical Bayesian logistic regression with partial pooling across Daly geological domains. Its three principal continuous predictors are **distance to fault**, **distance to lithology contact**, and **Bouguer gravity**, together with retained lithological-class terms. The intercept, fault-distance linear and quadratic coefficients, and lithology-contact-distance linear and quadratic coefficients are domain-varying under hierarchical partial pooling. Bouguer gravity enters through a **global linear coefficient**. Distance predictors are standardized using the training data before their quadratic terms are constructed, and inference uses MCMC with the NUTS sampler.
+## Main results
 
-The two distance predictors therefore permit nonlinear fitted response shapes; Bouguer gravity does not have a quadratic term in V11 and consequently has no corresponding D*. This is a property of the model specification, not an indication that gravity is unimportant.
+- **Ranking transfers moderately.** Pooled held-out ROC-AUC is 0.721
+  (0.687–0.755), and sector values are 0.727–0.834.
+- **Probabilities do not transfer.** The south-eastern (Zambian) sector is
+  over-predicted and the north-western sector under-predicted, under every
+  model variant and partition.
+- **Most of the loss in the worst sector is a base-rate shift.** An oracle
+  intercept correction recovers +0.098 log-score units per cell there.
+- **Predictors differ in how well they transfer.** Contact distance transfers,
+  Bouguer gravity is informative only in the south-east, and the
+  fault-distance association depends on uneven map coverage.
+- **Random cross-validation overstates transfer** by 0.031 log-score units per
+  cell and 0.06 in ROC-AUC.
 
-## Lithology-Contact Data Provenance
+The full report is `paper_1/transfer/reports/transfer_report.md`.
 
-The active lithology-contact predictor is the minimum planar distance from each clipped grid-cell polygon to the nearest mapped **internal** lithological contact in EPSG:32735; it is zero where a contact intersects or touches the cell, and the outer study-area perimeter is excluded. It is therefore a polygon-to-contact feature, not a centroid-to-contact feature. The validated reconstruction is `data/derived/litho_contact_distance_v13.csv` / `.gpkg`, and the canonical modelling table is `data/copperbelt_training_v13_litho_contact.csv` with exactly one row per grid cell. The archived surficial-lithology class is retained only as a secondary categorical attribute and was not reconstructed from the nearest-contact geometry. The superseded many-to-many candidate table and its first-row-per-cell columns are preserved in the read-only archive at `archive/litho_contact_repair_2026-10-18/` and are not read by the active pipeline. The definition mismatch is documented in `figures/audit/contact_distance_definition_check.json`; changing to a centroid definition would require refitting the frozen V11 traces and was not done.
+## Repository layout
 
-The research datasets and historical archive are intentionally kept out of
-GitHub. The canonical CSV is covered by the existing `data/*.csv` ignore rule;
-the V13 distance CSV/GeoPackage and the full `archive/` directory are also
-local-only. The tracked manifest records expected versions and hashes, but
-rebuilding or validating the pipeline requires the corresponding local data
-and archive files. The pipeline test module is skipped when those assets are
-not available.
+**Paper 1**
 
-## Current Validation Status (2026-10-18)
+| Path | Contents |
+|---|---|
+| `src/transfer/` | Transfer analysis: partitions, model, MCMC fitting, analyses, report, figures, supplement tables |
+| `paper_1/transfer/` | Specification, predictions, coefficients, metrics, diagnostics, figures, report, checksums |
+| `paper_1/manuscript/` | Manuscript (`main.tex`, Springer Nature template), supplement, figures, references |
+| `paper_1/v15/`, `src/v15/`, `src/phase2b_two_domain.py` | Earlier area-aware domain models, summarized in Supplementary Section S7 |
+| `paper_1/benchmark/`, `figures/` | Frozen earlier benchmark that the modelling frame and domain models depend on (`V14_BENCHMARK.md`) |
+| `data/` | Modelling table and the contact-distance feature |
+| `src/*.py` (root) | Data provenance and shared helpers: table and contact-distance builds, lithology audit, numerics |
+| `tests/` | Integrity, leakage and manuscript-consistency tests |
+| `tools/zenodo/` | Packaging and upload of the archived posterior samples |
+| `requirements-paper1.txt` | Exact package versions used for every fit |
 
-The corrected distance has been propagated through the full pipeline. The canonical table contains 1,899 cells (1,872 complete-case; 138 positive; 1,734 background), with four folds of 468 cells and positive counts `[9, 31, 37, 61]`. The V11 refit gives fold ROC-AUC values of 0.846, 0.709, 0.687, and 0.605 (mean 0.712). Pooled OOF ROC-AUC is 0.707 (95% row-bootstrap interval 0.667--0.744) versus 0.559 (0.509--0.615) for the compact global baseline, a gain of +0.147 (0.073--0.217). Pooled PR-AUC, defined as non-interpolated average precision, is 0.134 versus 0.113. Fold-level PR-AUC is not interchangeable with pooled PR-AUC because positive prevalence differs.
+**Groundwork for Paper 2** (bedrock geology, structure, occurrence intensity)
 
-Validation entry points:
+| Path | Contents |
+|---|---|
+| `src/geology_foundation/`, `docs/geology_foundation/` | Geological domains, major structures and structural predictors |
+| `src/data_acquisition/`, `docs/acquisition_*` | Acquisition and georeferencing of Zambian and DRC geological sources |
+| `src/modeling/` | Tract-supported occurrence-intensity models (stages 4–5) |
+| `configs/` | Configuration for the above |
+
+Superseded scripts, notes and figures from earlier versions remain in the Git
+history.
+
+## Reproduce
+
+The fits used Python 3.12.15 with PyMC 5.25.1; `requirements-paper1.txt` pins
+every package. Commands run from the repository root:
 
 ```powershell
-.runtime_vendor\run_qgis_python.bat src\validate_litho_contact_pipeline.py
-.runtime_vendor\run_qgis_python.bat tests\test_litho_contact_pipeline.py
-.runtime_vendor\run_qgis_python.bat src\run_distance_sensitivity.py --aggregate-only
+# Re-derive every metric, table and the report from stored predictions (no fitting)
+python -m src.transfer analyze-mcmc
+python -m src.transfer report-v2
+python -m src.transfer.supplement_tables
+python -m src.transfer.paper_figures      # needs geopandas and matplotlib
+
+# Refit (hours): primary fits, then each batch of further fits; completed fits are skipped
+python -m src.transfer fit-mcmc
+python -m src.transfer fit-amendment --batch a2   # also a3, a6, a8, sensitivities
+
+# Verify outputs and run the tests
+cd paper_1/transfer; sha256sum -c checksums/SHA256SUMS; cd ../..
+python -m pytest -q tests
 ```
 
-The aggregate-only sensitivity mode regenerates its tables from the refitted traces without sampling. Ordinary pipeline stages read only the canonical V13 table and never the historical archive.
+Run MCMC fits in a visible terminal, not as background jobs.
 
-The repository's pytest dependency is pinned in `requirements-test.txt`. The
-legacy `.venv` contains pytest but its native scikit-learn build targets
-CPython 3.10, so pytest is loaded by the QGIS Python runner while
-`src.numerics` supplies compatible numerical fallbacks:
+## Data availability
 
-```powershell
-.runtime_vendor\run_qgis_python.bat tools\run_pytest_qgis.py -q tests
-```
+Posterior samples (`*.nc`) are too large for Git and are archived at Zenodo
+(DOI to be added). Until they are restored, their checksum entries report as
+missing. The 11.6 MB concatenated prediction file is also excluded; the
+analysis command above regenerates it.
 
-The lithology-contact validator requires an explicit new report path so the
-existing audit report is never replaced:
+The source products (USGS occurrence compilation, WGM2012 gravity, Africa
+surficial lithology) are not redistributed; see the manuscript for citations.
 
-```powershell
-.runtime_vendor\run_qgis_python.bat src\validate_litho_contact_pipeline.py --report figures\audit\litho_contact_pipeline_validation_recheck.json
-```
+## Licences
 
-## Spatial and Nonlinear Analysis
-
-The primary predictive validation is **four-fold along-belt spatial out-of-fold (OOF) validation**, using geographic separation to assess predictive transferability rather than relying on random cross-validation. The Daly-domain results are a secondary stratification of those frozen spatial OOF predictions, not a separate domain-refitting or independent domain-validation exercise.
-
-For the two quadratic distance predictors, D* is used as a mathematical diagnostic of an algebraic stationary point. For a standardized distance response, the stationary point follows from the fitted quadratic coefficients. Curvature, existence of a stationary point, its classification as a minimum or maximum, empirical predictor support, and posterior concentration are distinct quantities. An in-support D* is less extrapolative than one outside observed training support, but empirical support is not geological validation, and a finite D* does not by itself establish a geological optimum.
-
-## Development History
-
-The feature set evolved from an initial deposit-distance feature that introduced proximal bias, through a regional tract-boundary feature that showed poor spatial transferability, toward exogenous geological/geophysical predictors with exact spatial coordinates removed. This history documents how leakage and spatially arbitrary feature definitions were addressed during development; it is not the complete scientific identity of the final model.
-
-## Key Findings
-
-- Mineral-prospectivity relationships vary spatially within the modeled Copperbelt framework.
-- Fault distance and lithology-contact distance exhibit nonlinear fitted relationships in relevant settings, with evidence varying across domains and spatial folds.
-- **NRB_3a lithology-contact distance provides particularly strong combined evidence for a supported interior nonlinear response**, while fault-distance nonlinear evidence is more heterogeneous.
-- Bouguer gravity remains an integral third predictor of the multivariate V11 model despite having no quadratic turning-point diagnostic.
-- Spatial OOF prediction shows heterogeneous geographic transferability rather than uniform predictive behavior across the study area.
-- The completed analysis provides qualified evidence consistent with aspects of Daly's proposition, but does not establish a causal geological mechanism or a universal geological distance.
-
-## Scope
-
-The project should be interpreted as a spatially structured Bayesian prospectivity framework with geographically held-out evaluation and heterogeneous predictor relationships. Its results do not establish commercial drilling performance, universal transferability across the entire Copperbelt or every unexplored frontier zone, geological causation, or a universal distance relationship. Paper 1 contains the detailed methodology, results, interpretation, and discussion.
+Code is under the MIT License ([`LICENSE`](LICENSE)). Derived data, outputs and
+figures are under CC BY 4.0, subject to the terms of the third-party sources
+([`LICENSE-DATA.md`](LICENSE-DATA.md)). The manuscript sources are excluded
+from both licences until publication.

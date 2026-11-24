@@ -1,0 +1,29 @@
+{
+  "upload_type": "dataset",
+  "title": "Posterior samples and outputs for: Rankings Transfer but Base Rates Do Not - Leave-One-Sector-Out Evaluation of a Prospectivity Model along the Central African Copperbelt",
+  "creators": [
+    {
+      "name": "Tasi, Van Mutundo",
+      "affiliation": "Independent researcher, Kenya"
+    }
+  ],
+  "description": "<p>Posterior samples (ArviZ NetCDF traces) and the concatenated held-out predictions that accompany the code repository for Paper 1. They are too large for the Git repository. Each zip archive keeps repository-relative paths: unzip it at the repository root to restore the files in place, then verify them with the checksum manifests in the repository (paper_1/transfer/checksums/SHA256SUMS, paper_1/v15/checksums/SHA256SUMS_v15, the Phase 2b and 2c SHA256SUMS files, and paper_1/benchmark/SHA256SUMS_external). CONTENTS.sha256 lists every file in the archives and ARCHIVES.sha256 lists the archives themselves.</p><p>traces_transfer.zip holds the 106 Markov chain Monte Carlo fits of the geographic-transfer analysis reported in the paper. traces_domain_models.zip and traces_v14_distance_sensitivity.zip hold the traces of the earlier domain-model analyses summarized in the supplementary material.</p><p>The source products (USGS Central African Copperbelt occurrence compilation, WGM2012 Bouguer gravity, Africa surficial lithology) are not redistributed.</p>",
+  "access_right": "open",
+  "license": "cc-by-4.0",
+  "keywords": [
+    "mineral prospectivity mapping",
+    "spatial transferability",
+    "spatial cross-validation",
+    "Bayesian modelling",
+    "Central African Copperbelt"
+  ],
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/vmtasi/copperbelt-mineral-prospectivity",
+      "resource_type": "software"
+    }
+  ],
+  "version": "1.0.0",
+  "prereserve_doi": true
+}

@@ -55,8 +55,12 @@ outputs/
 # Paper 1 supplement summaries derived from the frozen benchmark (no refit)
 !/figures/audit/paper1_supplement_v14/
 
-# Local MCP runtime
-.mcp/*.exe
+# Local MCP / QGIS tooling (kept on disk, not published)
+/.mcp/
+/oauth_gateway.py
+/server2.py
+/tools/launch_qgis_mcp.cmd
+/tools/probe_qgis_mcp.py
 
 # OS
 .DS_Store
