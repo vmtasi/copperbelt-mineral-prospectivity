@@ -6,15 +6,19 @@
 \usepackage{array}
 \usepackage{xurl}
 
+% sn-jnl's \orcid expects an Orcidlogo.eps that the template package does not
+% ship; show a linked "iD" label instead.
+\gdef\orcidlogo{\textsuperscript{\sffamily iD}\,}
+
 \begin{document}
 
 \title[Rankings Transfer but Base Rates Do Not]{Rankings Transfer but Base Rates Do Not: Leave-One-Sector-Out Evaluation of a Prospectivity Model along the Central African Copperbelt}
 
-\author*[1]{\fnm{Van Mutundo} \sur{Tasi}}\email{vanmutundo@gmail.com}
+\author*[1]{\fnm{Van Mutundo} \sur{Tasi}\,\orcid{https://orcid.org/0009-0001-8512-6950}}\email{vanmutundo@gmail.com}
 
 \affil*[1]{\orgname{Independent researcher}, \orgaddress{\country{Kenya}}}
 
-\abstract{Mineral prospectivity models are usually validated where they were trained but are used to rank ground elsewhere. We evaluated how a Bayesian prospectivity model transfers between four contiguous sectors of the Central African Copperbelt, and why it fails. The model relates the presence of a compiled occurrence record in 1,872 nominal 5\,km cells (138 positive) to distance to faults, distance to lithological contacts and Bouguer gravity, with a complementary log-log link and cell-area offset. All analyses were pre-specified, and all models were fitted by Markov chain Monte Carlo. Trained on three sectors, the model ranked the cells of the fourth with a pooled ROC-AUC of 0.721 (95\% interval 0.687--0.755) and sector values of 0.727--0.834, against 0.781 under random cross-validation. Probabilities did not transfer: the south-eastern, Zambian sector was over-predicted (mean predicted probability 0.130 against an observed rate of 0.019) and the north-western sector under-predicted (0.081 against 0.130), under every model variant and partition. Oracle decompositions attribute most of the south-eastern loss to a base-rate shift that an intercept correction would remove ($+0.098$ log-score units per cell). Rescaling the slopes added little, and a locally refitted model helped only in the sector that straddles the Zambia--Democratic Republic of the Congo border. Contact distance transferred, Bouguer gravity was informative only in the south-east, and the fault-distance association depended on uneven map coverage; these predictor-level conclusions changed with the sector boundaries. Transferred models should be used for ranking, recalibrated before their probabilities are compared between areas, and validated on held-out regions reported separately.}
+\abstract{Mineral prospectivity models are usually validated where they were trained but are used to rank ground elsewhere. We evaluated how a Bayesian prospectivity model transfers between four contiguous sectors of the Central African Copperbelt, and why it fails. The model relates the presence of a compiled occurrence record in 1,872 nominal 5\,km cells (138 positive) to distance to faults, distance to lithological contacts and Bouguer gravity, with a complementary log-log link and cell-area offset. All analyses were pre-specified, and all models were fitted by Markov chain Monte Carlo. Trained on three sectors, the model ranked the cells of the fourth with a pooled ROC-AUC of 0.721 (95\% interval 0.687--0.755) and sector values of 0.727--0.834, against 0.781 under random cross-validation. Probabilities did not transfer: the south-eastern, Zambian sector was over-predicted (mean predicted probability 0.130 against an observed rate of 0.019) and the north-western sector under-predicted (0.081 against 0.130), under every model variant and partition. Oracle decompositions attribute most of the south-eastern loss to a base-rate shift that an intercept correction would remove (+0.098 log-score units per cell). Rescaling the slopes added little, and a locally refitted model helped only in the sector that straddles the Zambia--Democratic Republic of the Congo border. Contact distance transferred, Bouguer gravity was informative only in the south-east, and the fault-distance association depended on uneven map coverage; these predictor-level conclusions changed with the sector boundaries. Transferred models should be used for ranking, recalibrated before their probabilities are compared between areas, and validated on held-out regions reported separately.}
 
 \keywords{Mineral prospectivity mapping, Spatial transferability, Spatial cross-validation, Probability calibration, Area of applicability, Central African Copperbelt}
 
@@ -399,8 +403,6 @@ The distinction matters in practice. Rankings support decisions about where to l
 \subsection{Why base rates shift along the belt}
 
 The base-rate step coincides with the national border. In the frame, 4.4\% of cells in Zambia carry a compiled record, against 9.2\% in the DRC, and the sector that straddles the border is the only one in which a local model improved on the transferred relationships. Several explanations are consistent with this pattern, and the data cannot separate them. The geological settings differ along the belt \citep{Cailteux2005, Selley2005, Hitzman2012}. The number of compiled prospects and deposits per unit area may also reflect differences in exploration history and in how occurrences were documented and compiled on the two sides of the border \citep{USGS2014CACB}. Large deposits recorded as a single point occupy one cell however much metal they contain. Because the response is the presence of a compiled record, any of these mechanisms changes the base rate that a model inherits from its training data. The model has no term that could anticipate such a shift from the predictors alone.
-% AUTHOR CHECK: confirm or refine the geological and compilation explanations for
-% the lower density of compiled occurrences on the Zambian side.
 
 \subsection{Which relationships carry over}
 \label{sec:disc-predictors}

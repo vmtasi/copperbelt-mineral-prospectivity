@@ -127,7 +127,7 @@ def test_abstract_and_results_sentences_match_metrics():
         f"against an observed rate of {sectors.loc['sector_1', 'observed_rate']:.3f}",
         f"({sectors.loc['sector_4', 'mean_probability']:.3f} against "
         f"{sectors.loc['sector_4', 'observed_rate']:.3f})",
-        f"($+{a3.loc[1, 'base_minus_transfer']:.3f}$ log-score units per cell)",
+        f"(+{a3.loc[1, 'base_minus_transfer']:.3f} log-score units per cell)",
         f"Pooled log-score skill was ${pooled.log_score_skill_vs_prevalence:+.3f}$ per cell",
         f"Calibration-in-the-large was ${sectors.loc['sector_1', 'calibration_in_the_large']:+.2f}$ "
         f"in Sector~1 and ${sectors.loc['sector_4', 'calibration_in_the_large']:+.2f}$ in Sector~4",
