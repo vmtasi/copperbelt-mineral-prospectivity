@@ -19,6 +19,8 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+# Keep every upload small: unstable connections drop long single uploads.
+MAX_PART_BYTES = 20 * 1024 * 1024
 
 # archive name -> (description, list of (manifest file, manifest root), glob patterns)
 ARCHIVES = {
@@ -70,8 +72,25 @@ def load_manifest(manifest: str, base: str) -> dict[str, str]:
     return expected
 
 
+def split_into_parts(files: list[Path]) -> list[list[Path]]:
+    """Group files, in order, into parts of at most MAX_PART_BYTES (uncompressed)."""
+    parts: list[list[Path]] = [[]]
+    size = 0
+    for path in files:
+        length = path.stat().st_size
+        if parts[-1] and size + length > MAX_PART_BYTES:
+            parts.append([])
+            size = 0
+        parts[-1].append(path)
+        size += length
+    return parts
+
+
 def build(out: Path, with_snapshot: bool) -> None:
     out.mkdir(parents=True, exist_ok=True)
+    for stale in out.iterdir():
+        if stale.is_file():
+            stale.unlink()
     manifest_lines = []
     summary = []
     for archive, (description, manifests, patterns) in ARCHIVES.items():
@@ -91,12 +110,16 @@ def build(out: Path, with_snapshot: bool) -> None:
             else:
                 unlisted.append(relative)
             manifest_lines.append(f"{actual}  {relative}")
-        target = out / archive
-        with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
-            for path in files:
-                bundle.write(path, path.relative_to(ROOT).as_posix())
-        size = target.stat().st_size / 1e6
-        summary.append((archive, len(files), size, description, unlisted))
+        parts = split_into_parts(files)
+        for number, part in enumerate(parts, start=1):
+            stem = archive.removesuffix(".zip")
+            name = archive if len(parts) == 1 else f"{stem}_part{number}of{len(parts)}.zip"
+            target = out / name
+            with zipfile.ZipFile(target, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
+                for path in part:
+                    bundle.write(path, path.relative_to(ROOT).as_posix())
+            summary.append((name, len(part), target.stat().st_size / 1e6, description,
+                            unlisted if number == 1 else []))
     if with_snapshot:
         snapshot = out / "repository_snapshot.zip"
         commit = subprocess.run(
