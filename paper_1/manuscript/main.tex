@@ -12,6 +12,14 @@
 
 \begin{document}
 
+% Preprint build (preprint.tex defines \preprintmode): a note on page 1.
+\ifdefined\preprintmode
+\AddToHookNext{shipout/foreground}{%
+  \put(0.5\paperwidth,-14mm){\makebox[0pt]{\parbox{0.8\paperwidth}{\centering\footnotesize\sffamily
+    This is a non-peer-reviewed preprint submitted to EarthArXiv. It has been submitted to
+    \emph{Natural Resources Research} for peer review.}}}}
+\fi
+
 \title[Rankings Transfer but Base Rates Do Not]{Rankings Transfer but Base Rates Do Not: Leave-One-Sector-Out Evaluation of a Prospectivity Model along the Central African Copperbelt}
 
 \author*[1]{\fnm{Van Mutundo} \sur{Tasi}\,\orcid{https://orcid.org/0009-0001-8512-6950}}\email{vanmutundo@gmail.com}

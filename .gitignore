@@ -79,7 +79,8 @@ data/*.csv
 
 .trash/
 
-# LaTeX build artifacts
+# LaTeX build artifacts (preprint.pdf is an intermediate of tools/build_preprint.py)
+/paper_1/manuscript/preprint.pdf
 *.aux
 *.fls
 *.log
