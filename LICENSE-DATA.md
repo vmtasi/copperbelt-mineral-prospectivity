@@ -14,7 +14,7 @@ tables, predictions, posterior summaries, metrics, checksums and figures
 under `data/`, `figures/` and `paper_1/` (except the manuscript sources; see
 below), and the posterior traces in the external archive.
 
-Please cite the archived release (DOI to be added) and the Paper 1 article
+Please cite the archived release (https://doi.org/10.5281/zenodo.24498271) and the Paper 1 article
 when you reuse them.
 
 ## Third-party sources

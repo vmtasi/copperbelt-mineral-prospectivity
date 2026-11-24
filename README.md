@@ -98,7 +98,7 @@ Run MCMC fits in a visible terminal, not as background jobs.
 ## Data availability
 
 Posterior samples (`*.nc`) are too large for Git and are archived at Zenodo
-(DOI to be added). Until they are restored, their checksum entries report as
+(https://doi.org/10.5281/zenodo.24498271). Until they are restored, their checksum entries report as
 missing. The 11.6 MB concatenated prediction file is also excluded; the
 analysis command above regenerates it.
 

@@ -34,10 +34,9 @@ distance-representation sensitivity analysis (Models A-tail, B, B-tail, C
 and D; about 35 MB). They are too large for this repository. The summary
 CSVs derived from them are tracked.
 
-**Action before submission:** deposit these traces, together with a
-snapshot of this repository, in a DOI-issuing archive such as Zenodo.
-Then record the DOI here and in the manuscript's data-availability
-section. A local copy of the full preserved bundle is in
+**Archived:** these traces, together with a snapshot of this repository,
+are deposited at Zenodo, https://doi.org/10.5281/zenodo.24498271 (cited in
+the manuscript's data-availability statement). A local copy of the full preserved bundle is in
 `archive/v14_benchmark_preservation_2026-11-05/`, which Git ignores.
 
 ## Verify
