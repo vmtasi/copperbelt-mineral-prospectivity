@@ -61,6 +61,8 @@ def main() -> None:
     parser.add_argument("--metadata", type=Path, default=ROOT / "tools" / "zenodo" / "metadata.json")
     parser.add_argument("--sandbox", action="store_true", help="use sandbox.zenodo.org")
     parser.add_argument("--deposition", type=int, help="existing draft ID (skip creation and upload)")
+    parser.add_argument("--add", type=Path, nargs="+",
+                        help="with --deposition: upload these files to the existing draft")
     parser.add_argument("--publish", action="store_true", help="publish the draft (permanent)")
     args = parser.parse_args()
 
@@ -68,6 +70,17 @@ def main() -> None:
     if not token:
         sys.exit("Set ZENODO_TOKEN in this terminal first (see the module docstring).")
     api = f"{HOSTS[args.sandbox]}/api/deposit/depositions"
+
+    if args.deposition and args.add:
+        draft = _request("GET", f"{api}/{args.deposition}", token)
+        for path in args.add:
+            size = path.stat().st_size
+            print(f"Uploading {path.name} ({size / 1e6:.1f} MB) ...", flush=True)
+            with path.open("rb") as handle:
+                _request("PUT", f"{draft['links']['bucket']}/{urllib.parse.quote(path.name)}",
+                         token, stream=handle, length=size)
+        print(f"Added to draft {args.deposition}; still not published.")
+        return
 
     if args.deposition and args.publish:
         result = _request("POST", f"{api}/{args.deposition}/actions/publish", token, b"")
