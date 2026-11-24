@@ -307,6 +307,8 @@ def domain_table() -> Path:
 def diagnostics_table() -> Path:
     primary = json.loads((TRANSFER / "diagnostics" / "mcmc_status.json").read_text(encoding="utf-8"))
     status = pd.read_csv(TRANSFER / "diagnostics" / "amendment1_status.csv")
+    # The 126-line fault variant is not reported in the paper.
+    status = status.loc[status["model"] != "T0_rebuilt"]
     labels = {
         "a2": "Single-sector and two-sector training",
         "a3_local": "Within-sector inner cross-validation",

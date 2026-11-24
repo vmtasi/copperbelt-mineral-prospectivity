@@ -255,8 +255,12 @@ def test_convergence_and_gate_numbers_match_diagnostics():
     tex = _manuscript()
     primary = pd.read_json(TRANSFER / "diagnostics" / "mcmc_status.json")
     status = pd.read_csv(TRANSFER / "diagnostics" / "amendment1_status.csv")
+    # The paper does not report the 126-line fault variant (4 fits).
+    status = status.loc[status["model"] != "T0_rebuilt"]
     gate = pd.read_json(TRANSFER / "diagnostics" / "map_mcmc_validation.json", typ="series")
-    assert len(primary) + len(status) == 106
+    assert len(primary) + len(status) == 102
+    assert f"The {len(status)} further fits used two chains" in tex
+    assert f"All {len(primary) + len(status)} fits met these criteria" in tex
     assert status["converged"].astype(bool).all() and (status["diverging"] == 0).all()
     assert (
         f"the maximum $\\hat R$ was {primary['max_rhat'].max():.3f} and the minimum bulk "
