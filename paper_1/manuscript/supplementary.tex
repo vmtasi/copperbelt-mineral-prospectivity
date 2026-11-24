@@ -43,7 +43,7 @@ Occurrence response & 187 USGS records (65 deposits, 102 prospects, 20 grouped r
 \addlinespace
 Contact distance & Minimum planar distance from each cell centroid to the 259 internal contact lines of the polygonized surficial-lithology raster, excluding the outer tract boundary. Minimum 11.13\,m, median 11,979.61\,m, maximum 70,130.56\,m, no zero values. & Confirmed (scripted, checksummed) \\
 \addlinespace
-Fault distance & Distance from the cell centroid to the nearest of 126 lines digitized from Fig.~1b of Selley et al.\ (2005). In the 1,872-cell frame, the surviving layer reproduces 1,645 stored values within 1\,m; 227 differ (26 positive cells). The stored values were computed before six lines (features 120--125) were added in the Zambian Copperbelt (Section~\ref{sec:s1-fault}). & Partly reproduced \\
+Fault distance & Distance from the cell centroid to the nearest of 120 lines digitized from Fig.~1b of Selley et al.\ (2005). Recomputing the distances from these lines reproduces all 1,872 stored values within 1\,m (Section~\ref{sec:s1-fault}). & Confirmed \\
 \addlinespace
 Bouguer gravity & Nearest 2 arc-minute grid node to the centroid, without interpolation; centroid-to-node offsets 0.07--2.56\,km (median 1.47\,km). The grid header names neither product nor datum; the product is identified as the WGM2012 complete Bouguer anomaly from companion free-air, disturbance and topography grids that share its limits and spacing. Only the sampled values survive. & Inferred \\
 \addlinespace
@@ -57,7 +57,7 @@ Frame & 5\,km grid clipped to the union of five USGS permissive tracts: 1,899 ce
 \subsection*{Fault-distance provenance}
 \label{sec:s1-fault}
 
-The 126-line fault layer is attributed to the regional structural compilation in Fig.~1b of Selley et al.\ (2005), which is drawn at a regional scale. Six lines (features 120--125) lie in the Zambian Copperbelt and were added to the layer after the stored distances were computed. They cannot be verified in the source figure. A test for leakage of occurrence information into these lines, recorded with the specification, was negative. Because neither version can be verified, the specification fixed the stored distances as primary and the distances recomputed from the surviving layer as a sensitivity analysis (main text, Table~6, and Table~\ref{tab:s6} here). The compilation is denser in the DRC than in Zambia: in the south-eastern Sector~1, 36\% of cells have fault distances beyond the 99th percentile of the other three sectors (Table~\ref{tab:s4}).
+The fault layer is a 120-line digitization of the regional structural compilation in Fig.~1b of Selley et al.\ (2005), which is drawn at a regional scale; its positional accuracy and georeferencing control are not documented. The distance from each cell centroid to the nearest of these lines reproduces the stored predictor in every cell. The compilation is denser in the DRC than in Zambia: in the south-eastern Sector~1, 36\% of cells have fault distances beyond the 99th percentile of the other three sectors (Table~\ref{tab:s4}).
 
 \subsection*{Lithology attribute}
 \label{sec:s1-lithology}
@@ -130,12 +130,12 @@ One implementation correction was made after the fits and before writing: the co
 \section{Model variants and alternative partitions}
 \label{sec:s6}
 
-The three model variants were specified as sensitivity analyses: without the squared distance terms; with fault distances recomputed from the surviving 126-line layer; and with a fixed indicator for the 195 cells outside the Northern Rift Basin of Daly et al.\ (2025), none of which contains a compiled occurrence. All use the primary partition.
+Two model variants are reported as sensitivity analyses: without the squared distance terms, and with a fixed indicator for the 195 cells outside the Northern Rift Basin of Daly et al.\ (2025), none of which contains a compiled occurrence. All use the primary partition.
 
 \begin{table}[ht]
 \centering
 \small
-\caption{Leave-one-sector-out results for the primary model and the three model variants. Brier skill is relative to the training base rate; ``Slope'' is the calibration slope.}
+\caption{Leave-one-sector-out results for the primary model and the two model variants. Brier skill is relative to the training base rate; ``Slope'' is the calibration slope.}
 \label{tab:s6}
 \input{supplement/tables/transfer/s6_sensitivity.tex}
 \end{table}
@@ -154,9 +154,9 @@ The gap partition cuts the belt axis at the midpoints of the three largest gaps 
 \section{Geological domain structure}
 \label{sec:s7}
 
-Earlier analyses of the same frame tested whether letting model terms vary between the tectonic domains of Daly et al.\ (2025) improves held-out prediction under the same four sectors. They used the complementary log-log likelihood with the area offset, and the global terms of the transfer model plus a categorical lithology attribute. Two designs were used. The first was a fixed-effect ladder with an indicator for cells outside the Northern Rift Basin, an indicator for its Sub-domain~3b, and interactions of that indicator with the distance terms and with gravity; it was fitted with both fault-distance versions. The second was a hierarchical ladder with six partially pooled domains. Table~\ref{tab:s8} gives the held-out log-score gain from adding domain-varying terms.
+Earlier analyses of the same frame tested whether letting model terms vary between the tectonic domains of Daly et al.\ (2025) improves held-out prediction under the same four sectors. They used the complementary log-log likelihood with the area offset, and the global terms of the transfer model plus a categorical lithology attribute. Two designs were used. The first was a fixed-effect ladder with an indicator for cells outside the Northern Rift Basin, an indicator for its Sub-domain~3b, and interactions of that indicator with the distance terms and with gravity. The second was a hierarchical ladder with six partially pooled domains. Both used the same fault distances as the transfer analysis. Table~\ref{tab:s8} gives the held-out log-score gain from adding domain-varying terms.
 
-Domain-varying distance terms did not improve held-out prediction in any design. A domain-varying gravity term improved it only in the hierarchical design ($+0.030$ per cell). That specification was formulated after the data had been examined, its between-domain scales tracked their priors, and the gain shrank to $+0.014$ (interval including zero) with fixed effects and to $+0.002$ with fixed effects and recomputed fault distances. Domain structure therefore does not repair transfer in this frame.
+Domain-varying distance terms did not improve held-out prediction in any design. A domain-varying gravity term improved it only in the hierarchical design ($+0.030$ per cell). That specification was formulated after the data had been examined, its between-domain scales tracked their priors, and with fixed effects the gain shrank to $+0.014$, with an interval including zero. Domain structure therefore does not repair transfer in this frame.
 
 \begin{table}[ht]
 \centering

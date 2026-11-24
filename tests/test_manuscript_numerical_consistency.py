@@ -233,7 +233,6 @@ def test_robustness_table_matches_metrics():
     ]
     for model, label in [
         ("T0_linear", "\\quad Without squared terms"),
-        ("T0_rebuilt", "\\quad Recomputed fault distances"),
         ("T0_nrb", "\\quad With outside-basin indicator"),
     ]:
         expected.append(

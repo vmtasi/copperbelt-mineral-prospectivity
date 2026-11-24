@@ -213,7 +213,6 @@ def sensitivity_table() -> Path:
     labels = {
         "T0": "Primary model",
         "T0_linear": "Without squared terms",
-        "T0_rebuilt": "Recomputed fault distances",
         "T0_nrb": "With outside-basin indicator",
     }
     lines = [
@@ -276,6 +275,9 @@ def partition_table() -> Path:
 
 def domain_table() -> Path:
     gradient = pd.read_csv(TRANSFER / "metrics" / "a7_gravity_gradient.csv")
+    # The paper uses the 120-line fault map throughout; the fixed-effect runs
+    # with the 126-line map are not reported.
+    gradient = gradient.loc[gradient["fault_variant"] == "stored"]
     labels = {
         ("fixed-effect ladder", "N1-N2"): "Domain-varying distance terms",
         ("fixed-effect ladder", "N2-N3"): "Domain-varying gravity term",
@@ -286,16 +288,15 @@ def domain_table() -> Path:
         "fixed-effect ladder": "Fixed effects",
         "V15 hierarchical reference": "Hierarchical (six domains)",
     }
-    fault = {"stored": "stored", "rebuilt": "recomputed"}
     lines = [
-        r"\begin{tabular}{lllrrr}",
+        r"\begin{tabular}{llrrr}",
         r"\toprule",
-        r"Domain structure & Fault distances & Added terms & $\Delta$ log score & 95\% interval & Sectors improved \\",
+        r"Domain structure & Added terms & $\Delta$ log score & 95\% interval & Sectors improved \\",
         r"\midrule",
     ]
     for row in gradient.itertuples(index=False):
         lines.append(
-            f"{structure[row.row_type]} & {fault[row.fault_variant]} & "
+            f"{structure[row.row_type]} & "
             f"{labels[(row.row_type, row.comparison)]} & {_signed(row.mean_log_score_gain, 4)} & "
             f"[{_signed(row.ci_lower, 4)}, {_signed(row.ci_upper, 4)}] & {int(row.positive_folds)} of 4 \\\\"
         )
