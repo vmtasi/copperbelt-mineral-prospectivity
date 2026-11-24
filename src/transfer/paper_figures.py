@@ -48,6 +48,9 @@ COUNTRIES = (
 # Validated palette (see the module docstring).
 SECTOR_RAMP = ["#86b6ef", "#3987e5", "#1c5cab", "#0d366b"]
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a"]
+MAP_SECTOR_RAMP = ["#b8d9ee", "#69acd6", "#2d7fb8", "#12466f"]
+MAP_AOA_INSIDE = "#2878b5"
+MAP_AOA_OUTSIDE = "#e46f3d"
 SEQUENTIAL = [
     "#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7",
     "#3987e5", "#2a78d6", "#256abf", "#1c5cab", "#184f95", "#104281", "#0d366b",
@@ -58,6 +61,8 @@ DIVERGING_POS = "#1c5cab"
 INK = "#0b0b0b"
 INK_2 = "#52514e"
 GRID = "#d9d8d4"
+LAND = "#f7f4ec"
+BORDER = "#40464b"
 
 MM = 1 / 25.4
 FULL_WIDTH = 129 * MM  # Springer full-width figure size
@@ -113,16 +118,36 @@ def _border(frame: gpd.GeoDataFrame) -> gpd.GeoSeries:
     return gpd.GeoSeries([line.intersection(clip)], crs=frame.crs)
 
 
+def _countries(frame: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
+    """Country boundaries used only as neutral cartographic context."""
+    return gpd.read_file(COUNTRIES, layer="countries").to_crs(frame.crs)
+
+
 def _map_axes(ax: plt.Axes, frame: gpd.GeoDataFrame) -> None:
     xmin, ymin, xmax, ymax = frame.total_bounds
     pad = 15000
     ax.set_xlim(xmin - pad, xmax + pad)
     ax.set_ylim(ymin - pad, ymax + pad)
     ax.set_aspect("equal")
-    ax.set_xticks([])
-    ax.set_yticks([])
+    x_min = np.ceil((xmin - pad) / 50000) * 50000
+    y_min = np.ceil((ymin - pad) / 50000) * 50000
+    ax.set_xticks(np.arange(x_min, xmax + pad, 100000))
+    ax.set_yticks(np.arange(y_min, ymax + pad, 100000))
+    ax.set_xticklabels(
+        [f"{value / 1000:.0f}" for value in ax.get_xticks()],
+        fontsize=6,
+    )
+    ax.set_yticklabels(
+        [f"{value / 1000:.0f}" for value in ax.get_yticks()],
+        fontsize=6,
+    )
+    ax.tick_params(length=2.2, pad=2, color=INK_2)
+    ax.set_facecolor(LAND)
+    ax.grid(color="#e8e3d9", linewidth=0.45, alpha=0.8)
+    ax.set_axisbelow(True)
     for spine in ax.spines.values():
-        spine.set_color(GRID)
+        spine.set_color("#aeb1ad")
+        spine.set_linewidth(0.7)
 
 
 def _scale_bar(ax: plt.Axes, frame: gpd.GeoDataFrame, length_m: float = 100000) -> None:
@@ -135,91 +160,296 @@ def _scale_bar(ax: plt.Axes, frame: gpd.GeoDataFrame, length_m: float = 100000) 
 
 def _positives(ax: plt.Axes, frame: gpd.GeoDataFrame, size: float = 3.0) -> None:
     positive = frame.loc[frame["deposit_present"] == 1]
-    ax.scatter(positive["centroid_x"], positive["centroid_y"], s=size, c=INK,
-               marker="o", linewidths=0, zorder=4)
+    ax.scatter(
+        positive["centroid_x"],
+        positive["centroid_y"],
+        s=size,
+        c=INK,
+        marker="o",
+        linewidths=0.16,
+        edgecolors="white",
+        zorder=5,
+    )
 
 
-def figure_partitions(frame: gpd.GeoDataFrame, border: gpd.GeoSeries) -> plt.Figure:
+def _north_arrow(ax: plt.Axes) -> None:
+    ax.annotate(
+        "N",
+        xy=(0.95, 0.93),
+        xytext=(0.95, 0.82),
+        xycoords="axes fraction",
+        textcoords="axes fraction",
+        ha="center",
+        va="center",
+        fontsize=6,
+        color=INK,
+        arrowprops={
+            "arrowstyle": "-|>",
+            "facecolor": INK,
+            "edgecolor": INK,
+            "linewidth": 0.7,
+            "mutation_scale": 7,
+        },
+        zorder=10,
+    )
+
+
+def _country_context(
+    ax: plt.Axes,
+    countries: gpd.GeoDataFrame,
+) -> None:
+    countries.boundary.plot(ax=ax, color="#c6c5c0", linewidth=0.45, zorder=0)
+
+
+def _panel_heading(ax: plt.Axes, letter: str, title: str) -> None:
+    ax.text(
+        0.0,
+        1.022,
+        letter,
+        transform=ax.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=7.1,
+        fontweight="bold",
+        color="white",
+        bbox={
+            "boxstyle": "round,pad=0.20,rounding_size=0.2",
+            "facecolor": INK,
+            "edgecolor": "none",
+        },
+        zorder=12,
+    )
+    ax.text(
+        0.072,
+        1.025,
+        title,
+        transform=ax.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=7.5,
+        fontweight="bold",
+        color=INK,
+        zorder=11,
+    )
+
+
+def figure_partitions(
+    frame: gpd.GeoDataFrame,
+    border: gpd.GeoSeries,
+    countries: gpd.GeoDataFrame,
+) -> plt.Figure:
     specs = [
         ("fold_primary", "a  Equal cells (primary)"),
         ("fold_p_gap", "b  Cut at gaps"),
         ("fold_p_pos", "c  Equal positives"),
     ]
-    fig, axes = plt.subplots(1, 3, figsize=(FULL_WIDTH, 0.52 * FULL_WIDTH))
-    cmap = ListedColormap(SECTOR_RAMP)
-    for ax, (column, title) in zip(axes, specs):
-        frame.plot(ax=ax, column=column, cmap=cmap, vmin=-0.5, vmax=3.5,
-                   linewidth=0, edgecolor="none")
+    fig, axes = plt.subplots(
+        1,
+        3,
+        figsize=(FULL_WIDTH, 0.62 * FULL_WIDTH),
+        gridspec_kw={"wspace": 0.055},
+    )
+    cmap = ListedColormap(MAP_SECTOR_RAMP)
+    for panel_index, (ax, (column, title)) in enumerate(zip(axes, specs)):
+        _country_context(ax, countries)
+        frame.plot(
+            ax=ax,
+            column=column,
+            cmap=cmap,
+            vmin=-0.5,
+            vmax=3.5,
+            linewidth=0,
+            edgecolor="none",
+            alpha=0.94,
+            zorder=2,
+        )
         dissolved = frame.dissolve(by=column)
-        dissolved.boundary.plot(ax=ax, color="white", linewidth=0.5)
-        border.plot(ax=ax, color=INK_2, linewidth=0.7, linestyle=(0, (3, 2)))
-        _positives(ax, frame)
+        dissolved.boundary.plot(ax=ax, color="white", linewidth=1.0, zorder=3)
+        frame.dissolve().boundary.plot(ax=ax, color=BORDER, linewidth=0.55, zorder=4)
+        border.plot(ax=ax, color="white", linewidth=2.0, alpha=0.9, zorder=5)
+        border.plot(ax=ax, color=BORDER, linewidth=0.7, linestyle=(0, (4, 2)), zorder=6)
+        _positives(ax, frame, size=2.4)
         for sector, row in dissolved.iterrows():
             point = row.geometry.representative_point()
             positives = int(frame.loc[frame[column] == sector, "deposit_present"].sum())
-            ax.text(point.x, point.y, f"{int(sector) + 1}\n({positives})", ha="center",
-                    va="center", fontsize=6.5, color=INK, fontweight="bold",
-                    path_effects=HALO, zorder=5, linespacing=0.9)
+            xmin, _, xmax, _ = frame.total_bounds
+            if point.x > xmin + 0.72 * (xmax - xmin):
+                alignment = "right"
+                label_x = point.x - 4000
+            elif point.x < xmin + 0.28 * (xmax - xmin):
+                alignment = "left"
+                label_x = point.x + 4000
+            else:
+                alignment = "center"
+                label_x = point.x
+            ax.text(
+                label_x,
+                point.y,
+                f"S{int(sector) + 1}\n({positives})",
+                ha=alignment,
+                va="center",
+                fontsize=5.9,
+                color=INK,
+                fontweight="bold",
+                linespacing=0.9,
+                bbox={
+                    "boxstyle": "round,pad=0.20,rounding_size=0.22",
+                    "facecolor": "white",
+                    "edgecolor": "#c7c5bd",
+                    "linewidth": 0.3,
+                    "alpha": 0.94,
+                },
+                zorder=8,
+            )
         _map_axes(ax, frame)
-        ax.set_title(title, loc="left", color=INK, fontsize=7.5)
+        _panel_heading(ax, "abc"[panel_index], title[3:].strip())
+        if panel_index:
+            ax.tick_params(labelbottom=False, labelleft=False, length=0)
+            ax.set_xlabel("")
+            ax.set_ylabel("")
+        else:
+            ax.set_xlabel("UTM easting (km)", labelpad=2)
+            ax.set_ylabel("UTM northing (km)", labelpad=2)
     _scale_bar(axes[0], frame)
-    handles = [Patch(facecolor=c, label=f"Sector {i + 1}") for i, c in enumerate(SECTOR_RAMP)]
+    _north_arrow(axes[2])
+    handles = [
+        Patch(facecolor=c, label=f"Sector {i + 1}")
+        for i, c in enumerate(MAP_SECTOR_RAMP)
+    ]
     handles += [
         Line2D([], [], marker="o", linestyle="none", markersize=2.5, color=INK,
                label="Positive cell"),
         Line2D([], [], color=INK_2, linewidth=0.7, linestyle=(0, (3, 2)),
                label="Zambia–DRC border"),
     ]
-    fig.legend(handles=handles, loc="upper center", ncol=3, frameon=False,
-               bbox_to_anchor=(0.5, 0.10), handlelength=1.4, columnspacing=1.2,
-               fontsize=6.5)
-    fig.subplots_adjust(wspace=0.03, bottom=0.12, left=0.0, right=1.0)
+    fig.legend(
+        handles=handles,
+        loc="lower center",
+        ncol=4,
+        frameon=False,
+        bbox_to_anchor=(0.5, 0.006),
+        handlelength=1.1,
+        handleheight=0.8,
+        columnspacing=0.9,
+        labelspacing=0.35,
+        fontsize=6.2,
+    )
+    fig.subplots_adjust(
+        wspace=0.055, bottom=0.15, left=0.055, right=0.995, top=0.91
+    )
     return fig
 
 
-def figure_heldout_map(frame: gpd.GeoDataFrame, border: gpd.GeoSeries) -> plt.Figure:
+def figure_heldout_map(
+    frame: gpd.GeoDataFrame,
+    border: gpd.GeoSeries,
+    countries: gpd.GeoDataFrame,
+) -> plt.Figure:
     loo = pd.read_csv(TRANSFER / "predictions" / "T0_mcmc_loo.csv")[["id", "prob"]]
     aoa = pd.read_csv(TRANSFER / "metrics" / "a4_aoa_cells.csv")[["id", "AOA"]]
     data = frame.merge(loo, on="id", validate="one_to_one").merge(
         aoa, on="id", validate="one_to_one"
     )
     sectors = frame.dissolve(by="fold_primary")
-    fig, axes = plt.subplots(1, 2, figsize=(FULL_WIDTH, 0.62 * FULL_WIDTH))
+    fig, axes = plt.subplots(
+        1,
+        2,
+        figsize=(FULL_WIDTH, 0.66 * FULL_WIDTH),
+        gridspec_kw={"wspace": 0.055},
+    )
 
     cmap = LinearSegmentedColormap.from_list("seq", SEQUENTIAL)
     norm = PowerNorm(gamma=0.5, vmin=0, vmax=float(np.ceil(data["prob"].max() * 10) / 10))
-    data.plot(ax=axes[0], column="prob", cmap=cmap, norm=norm, linewidth=0)
-    axes[0].set_title("a  Held-out probability", loc="left")
-    colorbar = fig.colorbar(
-        plt.cm.ScalarMappable(norm=norm, cmap=cmap), ax=axes[0], orientation="horizontal",
-        fraction=0.04, pad=0.02, aspect=35,
-    )
-    colorbar.set_label("Posterior mean probability", fontsize=6.5)
-    colorbar.outline.set_edgecolor(GRID)
-
-    inside = data["AOA"] == 1
-    data.loc[inside].plot(ax=axes[1], color=SERIES[0], linewidth=0)
-    data.loc[~inside].plot(ax=axes[1], color=SERIES[1], linewidth=0)
-    axes[1].set_title("b  Area of applicability", loc="left")
-    axes[1].legend(
-        handles=[
-            Patch(facecolor=SERIES[0], label="Inside"),
-            Patch(facecolor=SERIES[1], label="Outside"),
-            Line2D([], [], marker="o", linestyle="none", markersize=2.5, color=INK,
-                   label="Positive cell"),
-        ],
-        loc="center left", bbox_to_anchor=(0.0, 0.42), frameon=False, fontsize=6.5,
-    )
     for ax in axes:
-        border.plot(ax=ax, color=INK_2, linewidth=0.7, linestyle=(0, (3, 2)))
-        _positives(ax, data, size=2.5)
+        _country_context(ax, countries)
+
+    data.plot(
+        ax=axes[0],
+        column="prob",
+        cmap=cmap,
+        norm=norm,
+        linewidth=0,
+        zorder=2,
+    )
+    _panel_heading(axes[0], "a", "Held-out probability")
+    inside = data["AOA"] == 1
+    data.loc[inside].plot(ax=axes[1], color=MAP_AOA_INSIDE, linewidth=0, zorder=2)
+    data.loc[~inside].plot(ax=axes[1], color=MAP_AOA_OUTSIDE, linewidth=0, zorder=2)
+    _panel_heading(axes[1], "b", "Area of applicability")
+    for ax in axes:
+        frame.dissolve().boundary.plot(
+            ax=ax, color=BORDER, linewidth=0.55, zorder=4
+        )
+        border.plot(ax=ax, color="white", linewidth=2.0, alpha=0.9, zorder=5)
+        border.plot(
+            ax=ax,
+            color=BORDER,
+            linewidth=0.7,
+            linestyle=(0, (4, 2)),
+            zorder=6,
+        )
+        _positives(ax, data, size=2.2)
         for sector, row in sectors.iterrows():
             point = row.geometry.representative_point()
-            ax.text(point.x, point.y, f"S{int(sector) + 1}", ha="center", va="center",
-                    fontsize=7, fontweight="bold", color=INK, path_effects=HALO, zorder=5)
+            ax.text(
+                point.x,
+                point.y,
+                f"S{int(sector) + 1}",
+                ha="center",
+                va="center",
+                fontsize=6.6,
+                fontweight="bold",
+                color=INK,
+                bbox={
+                    "boxstyle": "round,pad=0.24,rounding_size=0.25",
+                    "facecolor": "white",
+                    "edgecolor": "#c7c5bd",
+                    "linewidth": 0.35,
+                    "alpha": 0.92,
+                },
+                zorder=8,
+            )
         _map_axes(ax, frame)
     _scale_bar(axes[0], frame)
-    fig.subplots_adjust(wspace=0.05)
+    _north_arrow(axes[1])
+    axes[0].set_xlabel("UTM easting (km)", labelpad=2)
+    axes[0].set_ylabel("UTM northing (km)", labelpad=2)
+    axes[1].tick_params(labelbottom=False, labelleft=False, length=0)
+    axes[1].set_xlabel("")
+    axes[1].set_ylabel("")
+    colorbar_axis = fig.add_axes([0.095, 0.060, 0.36, 0.018])
+    colorbar = fig.colorbar(
+        plt.cm.ScalarMappable(norm=norm, cmap=cmap),
+        cax=colorbar_axis,
+        orientation="horizontal",
+    )
+    colorbar.set_label("Posterior mean probability", fontsize=6.3, labelpad=3)
+    colorbar.outline.set_edgecolor("#b8b5ae")
+    fig.legend(
+        handles=[
+            Patch(facecolor=MAP_AOA_INSIDE, label="Inside AOA"),
+            Patch(facecolor=MAP_AOA_OUTSIDE, label="Outside AOA"),
+            Line2D(
+                [],
+                [],
+                marker="o",
+                linestyle="none",
+                markersize=2.6,
+                markeredgecolor="white",
+                color=INK,
+                label="Positive cell",
+            ),
+        ],
+        loc="lower center",
+        bbox_to_anchor=(0.69, 0.042),
+        ncol=1,
+        frameon=False,
+        handlelength=1.1,
+        handleheight=0.8,
+        labelspacing=0.30,
+        fontsize=6.2,
+    )
+    fig.subplots_adjust(bottom=0.21, left=0.055, right=0.995, top=0.91)
     return fig
 
 
@@ -417,9 +647,10 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     frame = _cells()
     border = _border(frame)
+    countries = _countries(frame)
     figures = {
-        "fig2_partitions": figure_partitions(frame, border),
-        "fig3_heldout_map": figure_heldout_map(frame, border),
+        "fig2_partitions": figure_partitions(frame, border, countries),
+        "fig3_heldout_map": figure_heldout_map(frame, border, countries),
         "fig4_sector_transfer": figure_sector_transfer(),
         "fig6_decomposition": figure_decomposition(),
         "fig7_predictors": figure_predictors(),

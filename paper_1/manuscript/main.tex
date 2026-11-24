@@ -17,18 +17,26 @@
 \AddToHookNext{shipout/foreground}{%
   \put(0.5\paperwidth,-14mm){\makebox[0pt]{\parbox{0.8\paperwidth}{\centering\footnotesize\sffamily
     This is a non-peer-reviewed preprint submitted to EarthArXiv. It has been submitted to
-    \emph{Natural Resources Research} for peer review.}}}}
+    \emph{Natural Resources Research} for peer review. Correspondence:
+    vanmutundo@gmail.com.}}}}
 \fi
 
 \title[Rankings Transfer but Base Rates Do Not]{Rankings Transfer but Base Rates Do Not: Leave-One-Sector-Out Evaluation of a Prospectivity Model along the Central African Copperbelt}
 
+\ifdefined\preprintmode
+\author[1]{\fnm{Van Mutundo} \sur{Tasi}}
+\affil[1]{\orgname{Independent researcher}}
+\else
 \author*[1]{\fnm{Van Mutundo} \sur{Tasi}\,\orcid{https://orcid.org/0009-0001-8512-6950}}\email{vanmutundo@gmail.com}
-
 \affil*[1]{\orgname{Independent researcher}, \orgaddress{\country{Kenya}}}
+\fi
 
 \abstract{Mineral prospectivity models are usually validated where they were trained but are used to rank ground elsewhere. We evaluated how a Bayesian prospectivity model transfers between four contiguous sectors of the Central African Copperbelt, and why it fails. The model relates the presence of a compiled occurrence record in 1,872 nominal 5\,km cells (138 positive) to distance to faults, distance to lithological contacts and Bouguer gravity, with a complementary log-log link and cell-area offset. All analyses were pre-specified, and all models were fitted by Markov chain Monte Carlo. Trained on three sectors, the model ranked the cells of the fourth with a pooled ROC-AUC of 0.721 (95\% interval 0.687--0.755) and sector values of 0.727--0.834, against 0.781 under random cross-validation. Probabilities did not transfer: the south-eastern, Zambian sector was over-predicted (mean predicted probability 0.130 against an observed rate of 0.019) and the north-western sector under-predicted (0.081 against 0.130), under every model variant and partition. Oracle decompositions attribute most of the south-eastern loss to a base-rate shift that an intercept correction would remove (+0.098 log-score units per cell). Rescaling the slopes added little, and a locally refitted model helped only in the sector that straddles the Zambia--Democratic Republic of the Congo border. Contact distance transferred, Bouguer gravity was informative only in the south-east, and the fault-distance association depended on uneven map coverage; these predictor-level conclusions changed with the sector boundaries. Transferred models should be used for ranking, recalibrated before their probabilities are compared between areas, and validated on held-out regions reported separately.}
 
+\ifdefined\preprintmode
+\else
 \keywords{Mineral prospectivity mapping, Spatial transferability, Spatial cross-validation, Probability calibration, Area of applicability, Central African Copperbelt}
+\fi
 
 \maketitle
 
@@ -204,11 +212,6 @@ The rule was fixed in the specification. A predictor transfers when two conditio
 Three model variants were specified as sensitivity analyses: without the squared terms; with the recomputed fault distances; and with a fixed indicator for the 195 cells outside the Northern Rift Basin of \citet{Daly2025}, none of which contains a compiled occurrence. They are reported but were not used for conclusions.
 
 Two alternative partitions use the same principal axis (Figure~\ref{fig:partitions}b,c). The first cuts the axis at the midpoints of the three largest gaps between consecutive positive cells, subject to every sector being at least 100\,km long; this approximates holding out whole mining districts. The second cuts it so that each sector holds 34 or 35 positive cells, which gives every single-sector training set the same support. Its two north-western sectors are only 49 and 71\,km long and their boundaries cross dense clusters of positive cells, which makes it optimistic. Under each partition we repeated the leave-one-sector-out fits and the single-sector transfer matrix. By the pre-specified rule, conclusions are robust to the partition only if the predictor verdicts and the direction of the main transfer results agree under all three partitions.
-
-\subsection{Software and use of AI tools}
-\label{sec:software}
-
-Analyses used Python 3.12.15 with PyMC 5.25.1 \citep{Salvatier2016}, PyTensor 2.31.7, ArviZ 0.23.4 \citep{Kumar2019}, NumPy 2.2.6, pandas 2.3.3 and SciPy 1.15.3. Figures were drawn with Matplotlib and GeoPandas 1.1.3, and Figure~\ref{fig:study_area} was composed in QGIS 3.40.15 (Bratislava). The AI assistant Claude (Anthropic) was used to help write and review the analysis code, to check outputs against the specification, and to edit the manuscript text. The author designed the study, fixed the specification, checked the code and results, and takes full responsibility for the content.
 
 \section{Results}
 
@@ -465,9 +468,9 @@ The online supplementary material describes the reconstruction of the predictors
 \item \textbf{Competing interests} The author has no relevant financial or non-financial interests to disclose.
 \item \textbf{Ethics approval and consent to participate} Not applicable.
 \item \textbf{Consent for publication} Not applicable.
-\item \textbf{Data availability} The modelling table, the analysis specification and its amendment, all held-out predictions, posterior summaries, metrics and diagnostics are available at \url{https://github.com/vmtasi/copperbelt-mineral-prospectivity}, with SHA-256 checksums for every output in \texttt{paper\_1/transfer/}. Posterior samples of all fits are archived at Zenodo (DOI to be added). Derived data are released under CC BY 4.0. The USGS occurrence compilation, the WGM2012 gravity grid and the Africa surficial lithology raster are cited in the text and are not redistributed.
+\item \textbf{Data availability} The modelling table, the analysis specification and its amendment, all held-out predictions, posterior summaries, metrics and diagnostics are available at \url{https://github.com/vmtasi/copperbelt-mineral-prospectivity}, with SHA-256 checksums for every output in \texttt{paper\_1/transfer/}. Posterior samples of all fits are archived at Zenodo (\url{https://doi.org/10.5281/zenodo.24498271}). Derived data are released under CC BY 4.0. The USGS occurrence compilation, the WGM2012 gravity grid and the Africa surficial lithology raster are cited in the text and are not redistributed.
 \item \textbf{Materials availability} Not applicable.
-\item \textbf{Code availability} The code that produces the analysis, the figures and the supplementary tables is in \texttt{src/transfer/} of the same repository, released under the MIT licence.
+\item \textbf{Code availability} The code that produces the analysis, the figures and the supplementary tables is in \texttt{src/transfer/} of the same repository, released under the MIT licence; a snapshot of the repository at submission is archived in the same Zenodo record.
 \item \textbf{Author contribution} V.M.T. conceived the study, prepared the data, carried out the analyses and wrote the manuscript.
 \end{itemize}
 
