@@ -1,0 +1,14 @@
+estimation,term,sign,fits
+MCMC leave-one-sector-out,beta_contact_z,-1,4
+MCMC leave-one-sector-out,beta_contact_z2,1,4
+MCMC leave-one-sector-out,beta_fault_z,-1,4
+MCMC leave-one-sector-out,beta_fault_z2,1,4
+MCMC leave-one-sector-out,beta_gravity_z,-1,4
+MCMC single-sector,beta_contact_z,-1,4
+MCMC single-sector,beta_contact_z2,-1,1
+MCMC single-sector,beta_contact_z2,1,3
+MCMC single-sector,beta_fault_z,-1,2
+MCMC single-sector,beta_fault_z,1,2
+MCMC single-sector,beta_fault_z2,-1,1
+MCMC single-sector,beta_fault_z2,1,3
+MCMC single-sector,beta_gravity_z,-1,4

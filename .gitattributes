@@ -7,3 +7,4 @@ data/derived/*.json -text
 figures/** -text
 paper_1/benchmark/SHA256SUMS* -text
 paper_1/v15/** -text
+paper_1/transfer/** -text

@@ -1,0 +1,5 @@
+model,scenario,optimization_success,optimization_message,n_train,positive_train,n_test,positive_test,fold
+T0,loo_fold_1,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,1404,129,468,9,1
+T0,loo_fold_2,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,1404,107,468,31,2
+T0,loo_fold_3,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,1404,101,468,37,3
+T0,loo_fold_4,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,1404,77,468,61,4

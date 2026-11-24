@@ -1,0 +1,16 @@
+{
+  "mean_absolute_directional_log_score_difference": 0.1619188333125936,
+  "separation_vs_mean_directional_score_correlation": -0.9001506559501817,
+  "best_single_training_sector_by_target": {
+    "1": 2,
+    "2": 1,
+    "3": 4,
+    "4": 3
+  },
+  "mean_single_sector_log_score_by_training_sector": {
+    "1": -0.5985644082866091,
+    "2": -0.34194776211506084,
+    "3": -0.2636544707958882,
+    "4": -0.5382210542332356
+  }
+}

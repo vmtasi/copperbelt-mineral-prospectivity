@@ -1,0 +1,57 @@
+{
+  "fit_id": "a2_pair_1_4",
+  "batch": "a2",
+  "model": "T0",
+  "created_utc": "2026-11-23T09:06:14.110505Z",
+  "seed": 344,
+  "sampler": {
+    "chains": 2,
+    "draws": 1000,
+    "tune": 1500,
+    "cores": 2,
+    "target_accept": 0.97,
+    "random_seed": 142
+  },
+  "attempts": [
+    {
+      "diverging": 0,
+      "max_rhat": 1.0037863,
+      "min_ess_bulk": 663.99037011,
+      "min_ess_tail": 1027.60098954,
+      "converged": true,
+      "attempt": 1,
+      "tune": 1500
+    }
+  ],
+  "converged": true,
+  "diverging": 0,
+  "max_rhat": 1.0037863,
+  "min_ess_bulk": 663.99037011,
+  "min_ess_tail": 1027.60098954,
+  "final": {
+    "diverging": 0,
+    "max_rhat": 1.0037863,
+    "min_ess_bulk": 663.99037011,
+    "min_ess_tail": 1027.60098954,
+    "converged": true
+  },
+  "elapsed_seconds": 32.97328259999995,
+  "n_train": 936,
+  "positive_train": 70,
+  "n_test": 936,
+  "positive_test": 68,
+  "environment": {
+    "interpreter": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv-pymc-full\\Scripts\\python.exe",
+    "python": "3.12.15 (main, Oct  9 2026, 15:21:55) [MSC v.1944 64 bit (AMD64)]",
+    "packages": {
+      "numpy": "2.2.6",
+      "scipy": "1.15.3",
+      "pandas": "2.3.3",
+      "pymc": "5.25.1",
+      "arviz": "0.23.4",
+      "pytensor": "2.31.7"
+    }
+  },
+  "source_sector_a": 1,
+  "source_sector_b": 4
+}

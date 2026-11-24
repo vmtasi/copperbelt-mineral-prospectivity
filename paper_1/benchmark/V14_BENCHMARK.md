@@ -78,3 +78,19 @@ traces (`*.nc`, about 84 MB). These go to the same external deposit as the
 sensitivity traces. `paper_1/v15/checksums/SHA256SUMS_v15` covers all 270
 V15 files, traces included. `python -m src.v15.checksums --verify` therefore
 passes only once the traces have been restored.
+
+## Geographic transfer analysis
+
+The transfer analysis (`paper_1/transfer/`; code in `src/transfer/`) is
+tracked in Git with two exceptions:
+
+- the 106 posterior traces (`*.nc`, about 32 MB), which go to the same
+  external deposit;
+- `predictions/all_amendment1.csv` (11.6 MB), a concatenation of the
+  per-fit prediction files that `python -m src.transfer analyze-mcmc`
+  regenerates without refitting.
+
+`paper_1/transfer/checksums/SHA256SUMS` covers all 468 files, these
+included. Verify from inside `paper_1/transfer/` with
+`sha256sum -c checksums/SHA256SUMS`. Every tracked file verifies after a
+fresh clone; the excluded ones verify once they are restored.

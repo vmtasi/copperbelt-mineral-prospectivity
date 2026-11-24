@@ -1,0 +1,6 @@
+{
+  "all_predictor_verdicts_match": false,
+  "main_sector_direction_consistent": true,
+  "partition_robust": false,
+  "oracle_decomposition": "primary partition only"
+}

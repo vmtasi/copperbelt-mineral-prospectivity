@@ -1,0 +1,13 @@
+partition,sector,predictor,orientation,n,positives,auc,auc_ci_lower,auc_ci_upper
+primary,1,fault,negative distance: closer scores higher,468,9,0.24279835390946503,0.16194020818203825,0.33042846768336964
+primary,1,contact,negative distance: closer scores higher,468,9,0.8358750907770516,0.7181796175260228,0.9382776567417089
+primary,1,gravity,negative gravity: lower gravity scores higher,468,9,0.8502783829581215,0.7811667877027354,0.914076494795449
+primary,2,fault,negative distance: closer scores higher,468,31,0.5489776334243744,0.457128884623902,0.6408097733815604
+primary,2,contact,negative distance: closer scores higher,468,31,0.7907285745921606,0.7124806230161659,0.8594559681110209
+primary,2,gravity,negative gravity: lower gravity scores higher,468,31,0.7831992323023548,0.7082527496862774,0.8555787259171773
+primary,3,fault,negative distance: closer scores higher,468,37,0.7312347149934156,0.6489621872452499,0.8062425534583307
+primary,3,contact,negative distance: closer scores higher,468,37,0.5415438640496645,0.43373361760832757,0.642716498400953
+primary,3,gravity,negative gravity: lower gravity scores higher,468,37,0.5656863359879601,0.4737184109863924,0.6600348027842227
+primary,4,fault,negative distance: closer scores higher,468,61,0.5514157973174366,0.47684476577919205,0.6279876747089862
+primary,4,contact,negative distance: closer scores higher,468,61,0.5988641398477464,0.5221210778587827,0.6772505739718855
+primary,4,gravity,negative gravity: lower gravity scores higher,468,61,0.5093043863535667,0.43754178918113346,0.5833392073146172

@@ -1,0 +1,459 @@
+{
+  "schema_version": "2.0.0",
+  "created_utc": "2026-11-23T08:44:48.939144Z",
+  "status": "frozen_before_amendment_1_fits",
+  "supersedes": {
+    "path": "specification.json",
+    "sha256": "e9fcec158a2d9e39514dafe1341fea6f34cfafcdb4a1929fbe4aa69c8bba7e3f",
+    "immutable": true
+  },
+  "reason_for_version": "The pre-registered MAP-MCMC agreement gate failed. MAP-minus-MCMC mean held-out log score was -0.004555 per cell, exceeding the 0.002 tolerance. Amendment 1 retires MAP and replaces every remaining fit with full MCMC.",
+  "gate_result": {
+    "n": 1872,
+    "pooled_log_score_mcmc": -0.26306264797525997,
+    "pooled_log_score_map": -0.2676174071112147,
+    "mean_log_score_difference_map_minus_mcmc": -0.004554759135954711,
+    "absolute_mean_log_score_difference": 0.004554759135954711,
+    "tolerance": 0.002,
+    "pass": false,
+    "pooled_probability_correlation": 0.9984891700089327,
+    "max_abs_probability_difference": 0.051767310034900316,
+    "mean_abs_probability_difference": 0.005308076871573537,
+    "fold_comparison": [
+      {
+        "fold": 1,
+        "correlation": 0.9984127538453059,
+        "max_abs_probability_difference": 0.051767310034900316,
+        "mean_log_score_difference": -0.01769883009257104
+      },
+      {
+        "fold": 2,
+        "correlation": 0.9999739361179659,
+        "max_abs_probability_difference": 0.010833310109762628,
+        "mean_log_score_difference": 0.00023743220375828153
+      },
+      {
+        "fold": 3,
+        "correlation": 0.999467955432965,
+        "max_abs_probability_difference": 0.04308311887781746,
+        "mean_log_score_difference": -0.0024868840857602656
+      },
+      {
+        "fold": 4,
+        "correlation": 0.999960074048322,
+        "max_abs_probability_difference": 0.012186953386371796,
+        "mean_log_score_difference": 0.0017292454307542531
+      }
+    ]
+  },
+  "unchanged_analysis_plan": {
+    "schema_version": "1.0.0",
+    "created_utc": "2026-11-23T07:13:06.022706Z",
+    "status": "frozen_before_any_transfer_model_fit",
+    "research_question": "How well does a global prospectivity model trained on along-belt sectors predict unseen sectors, and what contributes to failure?",
+    "frame": {
+      "cells": 1872,
+      "positives": 138,
+      "outcome": "at least one compiled USGS occurrence in the cell",
+      "folds": {
+        "1": {
+          "cells": 468,
+          "positives": 9
+        },
+        "2": {
+          "cells": 468,
+          "positives": 31
+        },
+        "3": {
+          "cells": 468,
+          "positives": 37
+        },
+        "4": {
+          "cells": 468,
+          "positives": 61
+        }
+      }
+    },
+    "fault_versions": {
+      "stored": {
+        "source": "distance_to_fault in v15_model_frame.csv, converted metres to km",
+        "role": "primary T0 and V15 reference rows"
+      },
+      "rebuilt": {
+        "source": "distance_to_fault_km in Phase 2b primary_frame.csv",
+        "role": "pre-specified sensitivity"
+      },
+      "provenance_note": "The 126-line layer is attributed to Selley et al. (2005) Fig. 1b. Features 120-125 were added later in the Zambian Copperbelt core, are classified AMBIGUOUS, and cannot be verified in the source. A leakage test was negative. Neither version is privileged."
+    },
+    "models": {
+      "T0": {
+        "role": "primary",
+        "fault": "stored",
+        "predictors": [
+          "fault",
+          "fault_sq",
+          "contact",
+          "contact_sq",
+          "gravity"
+        ],
+        "lithology": "excluded",
+        "link": "complementary log-log",
+        "offset": "log_area_km2, coefficient fixed to 1"
+      },
+      "T0_rebuilt": {
+        "role": "sensitivity",
+        "change_from_T0": "rebuilt fault distance only"
+      },
+      "T0_linear": {
+        "role": "sensitivity",
+        "change_from_T0": "remove fault_sq and contact_sq"
+      },
+      "T0_nrb": {
+        "role": "sensitivity",
+        "change_from_T0": "add fixed outside-NRB indicator"
+      }
+    },
+    "preprocessing": {
+      "standardization": "Fault, contact and gravity are standardized with means and population standard deviations from each training partition. Squared terms are formed after standardization.",
+      "fault_units": "km",
+      "contact_units": "km",
+      "gravity_units": "mGal"
+    },
+    "priors": {
+      "intercept": "Normal(log((sum training y + 0.5)/(sum training area km2 + 0.5)), 1)",
+      "coefficients": "independent Normal(0, 1)",
+      "hierarchical_terms": "none"
+    },
+    "estimation": {
+      "mcmc": {
+        "models": [
+          "T0"
+        ],
+        "partitions": [
+          "primary"
+        ],
+        "chains": 4,
+        "draws": 1200,
+        "tune": 1800,
+        "target_accept": 0.97,
+        "seed": 42,
+        "convergence": {
+          "max_rhat": 1.05,
+          "min_ess_bulk": 200,
+          "min_ess_tail": 200,
+          "max_divergences": 0
+        }
+      },
+      "map": {
+        "models": [
+          "T0",
+          "T0_rebuilt",
+          "T0_linear",
+          "T0_nrb"
+        ],
+        "uses": [
+          "MAP-MCMC validation",
+          "single-sector and sector-pair transfer matrices",
+          "inner spatial cross-validation for local decomposition",
+          "random cross-validation",
+          "P-GAP and P-POS sensitivities"
+        ],
+        "interval": "Laplace approximation from the numerical Hessian",
+        "stop_rule": "MAP may support other analyses only if pooled held-out mean log score differs from T0 MCMC by no more than 0.002"
+      }
+    },
+    "metrics": {
+      "main": [
+        "mean log score",
+        "ROC-AUC with class-stratified bootstrap interval",
+        "average precision and prevalence baseline",
+        "Brier skill against training prevalence",
+        "calibration-in-the-large",
+        "calibration slope"
+      ],
+      "bootstrap_replicates": 2000,
+      "spatial_block_size_km": 25.0,
+      "bootstrap_seed": 42
+    },
+    "analyses": {
+      "A1": "Leave-one-sector-out T0 MCMC transfer; report sector and pooled metrics with V14 benchmark AUC references.",
+      "A2": "MAP predicts each target sector from each single source sector and each source pair; compare with three-sector leave-one-out. Single-sector fits with fewer than 15 training positives are flagged and not interpreted alone.",
+      "A3": {
+        "transfer": "T0 trained on the other sectors",
+        "base": "transfer slopes fixed; intercept re-estimated on target labels",
+        "recal": "intercept and one multiplier on the non-intercept linear predictor re-estimated on target labels; multiplier prior Normal(1,1)",
+        "local": "T0 fitted within the target sector using four inner folds formed from intact 25-km blocks and cross-fitted",
+        "oracle_note": "base, recalibration and local use held-out labels and are diagnostic oracles, not deployable models"
+      },
+      "A4": {
+        "univariate": "share outside the training 1st-99th percentile for each of the five T0 predictor variables",
+        "aoa": "Meyer-Pebesma dissimilarity index with equal predictor weights after training-derived z standardization; training DI normalized by mean nearest-neighbour distance; threshold is maximum 5-fold cross-validated training DI after removing Tukey upper-fence outliers"
+      },
+      "A5": {
+        "requirement": "transfers only when every relevant coefficient retains the same sign in at least 3 of 4 leave-one-sector-out fits and the oriented within-sector AUC 95% interval lower bound exceeds 0.5 in at least 3 of 4 sectors; partly transfers when exactly one condition holds; otherwise does not transfer",
+        "marginal_predictors": [
+          "fault",
+          "contact",
+          "gravity"
+        ]
+      },
+      "A6": {
+        "random_cv": "20 stratified random four-fold repeats using MAP",
+        "comparison": "random CV versus leave-one-sector-out",
+        "buffered_reference": "existing V15 M0 5-km and 10-km buffered results, labelled as a different model containing lithology"
+      },
+      "A7": "Assemble existing V15, Phase 2b and Phase 2c summaries; no new domain-model fits.",
+      "A8": {
+        "rules": {
+          "axis": "first principal component of all complete-case centroid coordinates, oriented so the minimum projection is 0 km at the south-eastern end",
+          "P_GAP": "K=4 contiguous sectors cut at midpoints of the three largest eligible gaps between consecutive positive-cell projections; every sector must be at least 100 km long; ties are resolved by feasibility",
+          "P_POS": "K=4 contiguous sectors cut between positive-cell projections so each sector contains 34 or 35 positives, with earlier full groups receiving 35 when the remainder is two"
+        },
+        "computed": {
+          "axis_km_min": 0.0,
+          "axis_km_max": 562.0883229052217,
+          "p_gap_cuts": [
+            172.2091080459546,
+            300.0220944062411,
+            423.4675514405727
+          ],
+          "p_pos_cuts": [
+            248.38854666482626,
+            441.3300826224843,
+            490.61474092632346
+          ]
+        },
+        "details": {
+          "primary": [
+            {
+              "sector": 1,
+              "start_km": 0.0,
+              "end_km": 157.4043509297726,
+              "length_km": 157.4043509297726,
+              "cells": 468,
+              "positives": 9,
+              "prevalence": 0.019230769230769232,
+              "positives_within_10km_boundaries": 3,
+              "domain_composition": "NRB_3b:310; CRZ:146; NKB:12"
+            },
+            {
+              "sector": 2,
+              "start_km": 157.4043509297726,
+              "end_km": 308.9582640721378,
+              "length_km": 151.55391314236522,
+              "cells": 468,
+              "positives": 31,
+              "prevalence": 0.06623931623931624,
+              "positives_within_10km_boundaries": 1,
+              "domain_composition": "NRB_3b:240; NRB_3a:207; NKB:12; CRZ:8; SRB:1"
+            },
+            {
+              "sector": 3,
+              "start_km": 308.9582640721378,
+              "end_km": 456.31435097559097,
+              "length_km": 147.35608690345316,
+              "cells": 468,
+              "positives": 37,
+              "prevalence": 0.07905982905982906,
+              "positives_within_10km_boundaries": 4,
+              "domain_composition": "NRB_3a:468"
+            },
+            {
+              "sector": 4,
+              "start_km": 456.31435097559097,
+              "end_km": 562.0883229052217,
+              "length_km": 105.77397192963076,
+              "cells": 468,
+              "positives": 61,
+              "prevalence": 0.13034188034188035,
+              "positives_within_10km_boundaries": 15,
+              "domain_composition": "NRB_3a:452; MMSB:16"
+            }
+          ],
+          "p_gap": [
+            {
+              "sector": 1,
+              "start_km": 0.0,
+              "end_km": 172.2091080459546,
+              "length_km": 172.2091080459546,
+              "cells": 531,
+              "positives": 10,
+              "prevalence": 0.018832391713747645,
+              "positives_within_10km_boundaries": 1,
+              "domain_composition": "NRB_3b:358; CRZ:154; NKB:15; NRB_3a:3; SRB:1"
+            },
+            {
+              "sector": 2,
+              "start_km": 172.2091080459546,
+              "end_km": 300.0220944062411,
+              "length_km": 127.81298636028649,
+              "cells": 386,
+              "positives": 30,
+              "prevalence": 0.07772020725388601,
+              "positives_within_10km_boundaries": 2,
+              "domain_composition": "NRB_3b:192; NRB_3a:186; NKB:8"
+            },
+            {
+              "sector": 3,
+              "start_km": 300.0220944062411,
+              "end_km": 423.4675514405727,
+              "length_km": 123.44545703433164,
+              "cells": 351,
+              "positives": 25,
+              "prevalence": 0.07122507122507123,
+              "positives_within_10km_boundaries": 0,
+              "domain_composition": "NRB_3a:350; NKB:1"
+            },
+            {
+              "sector": 4,
+              "start_km": 423.4675514405727,
+              "end_km": 562.0883229052217,
+              "length_km": 138.620771464649,
+              "cells": 604,
+              "positives": 73,
+              "prevalence": 0.12086092715231789,
+              "positives_within_10km_boundaries": 0,
+              "domain_composition": "NRB_3a:588; MMSB:16"
+            }
+          ],
+          "p_pos": [
+            {
+              "sector": 1,
+              "start_km": 0.0,
+              "end_km": 248.38854666482626,
+              "length_km": 248.38854666482626,
+              "cells": 787,
+              "positives": 35,
+              "prevalence": 0.044472681067344345,
+              "positives_within_10km_boundaries": 2,
+              "domain_composition": "NRB_3b:550; CRZ:154; NRB_3a:63; NKB:19; SRB:1"
+            },
+            {
+              "sector": 2,
+              "start_km": 248.38854666482626,
+              "end_km": 441.3300826224843,
+              "length_km": 192.94153595765806,
+              "cells": 550,
+              "positives": 35,
+              "prevalence": 0.06363636363636363,
+              "positives_within_10km_boundaries": 7,
+              "domain_composition": "NRB_3a:545; NKB:5"
+            },
+            {
+              "sector": 3,
+              "start_km": 441.3300826224843,
+              "end_km": 490.61474092632346,
+              "length_km": 49.28465830383914,
+              "cells": 236,
+              "positives": 34,
+              "prevalence": 0.1440677966101695,
+              "positives_within_10km_boundaries": 13,
+              "domain_composition": "NRB_3a:236"
+            },
+            {
+              "sector": 4,
+              "start_km": 490.61474092632346,
+              "end_km": 562.0883229052217,
+              "length_km": 71.47358197889827,
+              "cells": 299,
+              "positives": 34,
+              "prevalence": 0.11371237458193979,
+              "positives_within_10km_boundaries": 4,
+              "domain_composition": "NRB_3a:283; MMSB:16"
+            }
+          ]
+        },
+        "primary_partition": "canonical V15 equal-cell folds",
+        "robustness_rule": "transfer conclusions are robust only if A5 verdicts and the direction of main A1 findings agree under all three partitions"
+      }
+    },
+    "primary_results": {
+      "model": "T0",
+      "fault": "stored",
+      "partition": "canonical V15 folds",
+      "analysis": "A1-A7; sensitivities do not change conclusions"
+    },
+    "software": {
+      "requested_python": ".venv\\Scripts\\python.exe",
+      "executed_python": ".venv-pymc-full\\Scripts\\python.exe",
+      "reason": "The repository .venv points to a missing Python 3.10 base interpreter; the isolated 3.12 environment supplies PyMC, SciPy, pandas and geopandas."
+    },
+    "frozen_inputs": {
+      "v14_manifest_sha256": "3f1ae3fa51e099249b400d2e132f0955afc923cb39b17988d8f0ae1c189575d3",
+      "v14_external_manifest_sha256": "8467e98a68e4467200038637606f6b6c210a7fe53266094010b820f6954739d9",
+      "v15_manifest_sha256": "f1c5f4ff6484cfe86879d883639138549575bebeb115827c5966d28caaecfa5e",
+      "phase2b_manifest_sha256": "24b6ef4acf3b4079dc7ae1492bf6387bec8ea1a9004574d2484f4ddc9738accc"
+    }
+  },
+  "amendment_changes": {
+    "estimation": {
+      "primary_leave_one_sector_out": "retain the existing four-chain T0 fits without refitting",
+      "all_other_fits": "full MCMC with 2 chains, 1,000 retained draws, 1,500 tuning steps, target acceptance 0.97, recorded seeds, and the same convergence criteria",
+      "failed_fit_rule": "refit with doubled tuning, up to three attempts; never drop a fit",
+      "retired": "MAP point estimates and Laplace predictive approximation"
+    },
+    "A6": {
+      "repeats": 10,
+      "reason": "compute-budget-only reduction from 20 to 10 repeats"
+    },
+    "A1_reporting": "add log-score skill against training-partition prevalence and mean predicted probability minus observed rate; rank sectors by skill rather than raw log score",
+    "A5_interpretation": "Sector 1 fault AUC 0.24 is treated primarily as a likely map-coverage effect because the regional fault digitization is dense in DRC and sparse in the Zambian Copperbelt"
+  },
+  "fit_plan": {
+    "existing_primary_fits_reused": 4,
+    "A2_single_source_fits": 4,
+    "A2_source_pair_fits": 6,
+    "A3_inner_local_fits": 16,
+    "A3_oracle_correction_fits": 8,
+    "A6_random_fits": 40,
+    "A8_loo_and_single_source_fits": 16,
+    "sensitivity_fits": 12,
+    "total_new_fits": 102,
+    "estimated_runtime_hours": {
+      "lower": 1.2,
+      "upper": 3.8,
+      "basis": "Existing four-chain full-frame fits required 68-228 seconds; two-chain Amendment 1 fits were bounded using slower and previously uncompiled model startups."
+    }
+  },
+  "environment": {
+    "interpreter": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv-pymc-full\\Scripts\\python.exe",
+    "python": "3.12.15 (main, Oct  9 2026, 15:21:55) [MSC v.1944 64 bit (AMD64)]",
+    "packages": {
+      "numpy": "2.2.6",
+      "scipy": "1.15.3",
+      "pandas": "2.3.3",
+      "pymc": "5.25.1",
+      "arviz": "0.23.4",
+      "pytensor": "2.31.7",
+      "geopandas": "1.2.0"
+    },
+    "existing_mcmc_probability_reproduction": {
+      "interpreter": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv-pymc-full\\Scripts\\python.exe",
+      "max_abs_delta": 9.8879238130678e-17,
+      "threshold": 0.01,
+      "pass": true,
+      "folds": [
+        {
+          "fold": 1,
+          "max_abs_delta": 9.71445146547012e-17,
+          "correlation": 1.0
+        },
+        {
+          "fold": 2,
+          "max_abs_delta": 9.8879238130678e-17,
+          "correlation": 0.9999999999999998
+        },
+        {
+          "fold": 3,
+          "max_abs_delta": 9.8879238130678e-17,
+          "correlation": 0.9999999999999999
+        },
+        {
+          "fold": 4,
+          "max_abs_delta": 9.71445146547012e-17,
+          "correlation": 1.0
+        }
+      ]
+    }
+  }
+}

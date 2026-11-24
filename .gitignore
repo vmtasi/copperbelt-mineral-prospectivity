@@ -104,3 +104,7 @@ literature/
 
 # V15 ablation ladder: posterior traces (~84 MB) go to the external archive
 /paper_1/v15/**/*.nc
+/paper_1/transfer/**/*.nc
+# 11.6 MB concatenation of the per-fit prediction files; regenerate with
+# `python -m src.transfer analyze-mcmc`
+/paper_1/transfer/predictions/all_amendment1.csv

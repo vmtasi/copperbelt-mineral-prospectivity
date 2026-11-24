@@ -1,0 +1,56 @@
+{
+  "fit_id": "a3_oracle_recal_sector_4",
+  "batch": "a3_oracle",
+  "model": "T0",
+  "created_utc": "2026-11-23T11:43:44.969455Z",
+  "seed": 1349,
+  "sampler": {
+    "chains": 2,
+    "draws": 1000,
+    "tune": 1500,
+    "cores": 2,
+    "target_accept": 0.97,
+    "random_seed": 142
+  },
+  "attempts": [
+    {
+      "diverging": 0,
+      "max_rhat": 1.00791618,
+      "min_ess_bulk": 284.07292372,
+      "min_ess_tail": 203.67204643,
+      "converged": true,
+      "attempt": 1,
+      "tune": 1500
+    }
+  ],
+  "converged": true,
+  "diverging": 0,
+  "max_rhat": 1.00791618,
+  "min_ess_bulk": 284.07292372,
+  "min_ess_tail": 203.67204643,
+  "final": {
+    "diverging": 0,
+    "max_rhat": 1.00791618,
+    "min_ess_bulk": 284.07292372,
+    "min_ess_tail": 203.67204643,
+    "converged": true
+  },
+  "n_train": 0,
+  "positive_train": 61,
+  "n_test": 468,
+  "positive_test": 61,
+  "target_sector": 4,
+  "correction": "recal",
+  "environment": {
+    "interpreter": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv-pymc-full\\Scripts\\python.exe",
+    "python": "3.12.15 (main, Oct  9 2026, 15:21:55) [MSC v.1944 64 bit (AMD64)]",
+    "packages": {
+      "numpy": "2.2.6",
+      "scipy": "1.15.3",
+      "pandas": "2.3.3",
+      "pymc": "5.25.1",
+      "arviz": "0.23.4",
+      "pytensor": "2.31.7"
+    }
+  }
+}

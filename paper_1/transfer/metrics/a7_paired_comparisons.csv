@@ -1,0 +1,5 @@
+source,comparison,mean_delta_log_score,ci_lower,ci_upper,verdict
+"Phase2b fixed, rebuilt",gravity extension,0.0020901072040911,-0.0107502356406198,0.0157083187834938,not supported
+"Phase2c fixed, stored",gravity extension,0.0135943936793478,-0.0026986506016227,0.031002768259577,not supported
+"V15 hierarchical, stored",distance heterogeneity,0.0062174134708292,-0.0159838920143686,0.0290515177265855,not supported
+"V15 hierarchical, stored",gravity extension,0.0303835195243414,0.0109958071571441,0.053001075924479,supported but prior-dependent

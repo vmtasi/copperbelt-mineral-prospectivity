@@ -1,0 +1,28 @@
+{
+  "interpreter": "C:\\Users\\vanmu\\copperbelt-mineral-prospectivity\\.venv-pymc-full\\Scripts\\python.exe",
+  "max_abs_delta": 9.8879238130678e-17,
+  "threshold": 0.01,
+  "pass": true,
+  "folds": [
+    {
+      "fold": 1,
+      "max_abs_delta": 9.71445146547012e-17,
+      "correlation": 1.0
+    },
+    {
+      "fold": 2,
+      "max_abs_delta": 9.8879238130678e-17,
+      "correlation": 0.9999999999999998
+    },
+    {
+      "fold": 3,
+      "max_abs_delta": 9.8879238130678e-17,
+      "correlation": 0.9999999999999999
+    },
+    {
+      "fold": 4,
+      "max_abs_delta": 9.71445146547012e-17,
+      "correlation": 1.0
+    }
+  ]
+}

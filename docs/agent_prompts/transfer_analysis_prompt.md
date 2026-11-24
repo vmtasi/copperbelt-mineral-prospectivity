@@ -252,3 +252,48 @@ prior-dependent and data-suggested.
   - the size of the decomposition gaps per sector;
   - anything skipped or failed;
   - confirmation that all frozen checksums still verify.
+
+---
+
+## Amendment 1 (after the MAP–MCMC gate failed) — resume from here
+
+The pre-registered gate failed: MAP minus MCMC was −0.00456 per cell against a
+0.002 tolerance, driven by Sector 1 (−0.0177; 9 positives). The cause is the
+plug-in MAP prediction, which ignores posterior uncertainty and is
+overconfident where training support is thin. MAP is therefore retired.
+Do not attempt another approximation, such as Laplace predictive draws.
+
+1. **Version the specification.** Write `specification_v2.json` with its
+   SHA-256. Record the gate result and this amendment as the reason, and do
+   not change anything else in the analysis plan. Keep `specification.json`
+   unchanged.
+2. **Use full MCMC for every fit.** The four leave-one-sector-out fits keep
+   their existing settings and results; do not refit them. All other fits
+   (A2, A3, A6, A8, sensitivities and single-sector coefficients) use
+   2 chains, 1,000 draws, 1,500 tuning steps, target acceptance 0.97,
+   recorded seeds, and the same convergence criteria. Refit any failure with
+   more tuning; never drop a fit.
+3. **Compute budget.** Each global fit takes about 1–4 min. Reduce A6 to
+   **10** repeats of random 4-fold CV (40 fits); this changes compute only.
+   Run fits in a visible terminal in resumable batches, skipping completed
+   fits, and estimate the total runtime before starting.
+4. **Add to A1 (reporting only, no new fits).** Raw log scores cannot be
+   compared across sectors with different prevalence. For each sector report:
+   - log-score skill against the training-partition prevalence baseline
+     (difference per cell and relative skill);
+   - mean predicted probability against the observed rate, which is the
+     base-rate transfer error.
+   Rank sectors by skill, not by raw log score.
+5. **Add to A5 (interpretation note).** In Sector 1, positive cells lie far
+   from mapped faults (oriented AUC 0.24). The fault layer is a regional
+   digitization that is dense in the DRC and sparse in the Zambian
+   Copperbelt, so treat this as a likely map-coverage effect and report it as
+   such, not as a geological relationship.
+6. **Environment.** Record the interpreter and package versions used for every
+   fit. `.venv` (Python 3.10.11) works in the user's shell. If
+   `.venv-pymc-full` (Python 3.12) is used instead, use it consistently for
+   all new fits, and verify that it reproduces the four existing
+   leave-one-sector-out held-out probabilities (max |Δp| < 0.01) before
+   proceeding. If it does not, stop and report.
+
+Everything else in the hard rules and deliverables still applies.

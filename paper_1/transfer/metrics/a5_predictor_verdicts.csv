@@ -1,0 +1,4 @@
+predictor,coefficient_sign_stable,useful_auc_sectors,auc_condition,verdict
+fault,True,1,False,partly transfers
+contact,True,3,True,transfers
+gravity,True,2,False,partly transfers

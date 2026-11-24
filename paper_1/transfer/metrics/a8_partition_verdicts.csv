@@ -1,0 +1,10 @@
+predictor,coefficient_sign_stable,useful_auc_sectors,auc_condition,verdict,partition
+fault,True,1,False,partly transfers,primary
+contact,True,3,True,transfers,primary
+gravity,True,2,False,partly transfers,primary
+fault,True,2,False,partly transfers,P_GAP
+contact,True,3,True,transfers,P_GAP
+gravity,True,2,False,partly transfers,P_GAP
+fault,True,2,False,partly transfers,P_POS
+contact,True,1,False,partly transfers,P_POS
+gravity,True,1,False,partly transfers,P_POS
