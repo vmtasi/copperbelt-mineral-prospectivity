@@ -49,9 +49,23 @@ def latex_to_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def braced_argument(tex: str, command: str) -> str:
+    """Contents of the first ``\\command{...}``, matching nested braces."""
+    start = tex.index(command + "{") + len(command) + 1
+    depth = 1
+    for position in range(start, len(tex)):
+        if tex[position] == "{" and tex[position - 1] != "\\":
+            depth += 1
+        elif tex[position] == "}" and tex[position - 1] != "\\":
+            depth -= 1
+            if depth == 0:
+                return tex[start:position]
+    raise ValueError(f"Unbalanced braces after {command}")
+
+
 def form_text(tex: str, doi: str | None) -> str:
     title = re.search(r"\\title\[[^\]]*\]\{(.*?)\}\n", tex, re.S).group(1)
-    abstract = tex[tex.index("\\abstract{") + len("\\abstract{"): tex.index("}\n\n\\keywords")]
+    abstract = braced_argument(tex, "\\abstract")
     keywords = re.search(r"\\keywords\{(.*?)\}", tex, re.S).group(1)
     data_link = f"https://doi.org/{doi}" if doi else "(Zenodo DOI to be added)"
     return f"""# EarthArXiv submission: Paper 1
@@ -67,14 +81,14 @@ Paste these into the EarthArXiv submission form, and upload `{PDF_NAME}`.
 **Keywords**
 {latex_to_text(keywords)}
 
-**Author**
-Van Mutundo Tasi, Independent researcher, Kenya; ORCID 0009-0001-8512-6950;
-vanmutundo@gmail.com
+**Author** (as on the preprint title page)
+Van Mutundo Tasi, Independent researcher. Correspondence: vanmutundo@gmail.com
+(ORCID 0009-0001-8512-6950, if you choose to add it to your EarthArXiv profile)
 
 **Licence**
 CC BY 4.0
 
-**Subject areas (suggested)**
+**Subject areas (suggested; pick the closest options the form offers)**
 Earth Sciences: Geology (Economic Geology); Earth Sciences: Geophysics and
 Seismology; Statistics and Probability (Applied Statistics)
 
@@ -86,9 +100,10 @@ Seismology; Statistics and Probability (Applied Statistics)
 Submitted to Natural Resources Research. Supplementary material is appended
 to the PDF.
 
-After acceptance: add the journal DOI to the preprint record (Springer Nature
-requires this), and give the EarthArXiv DOI and licence (CC BY 4.0) in the
-journal submission form.
+**Later steps (Springer Nature preprint policy)**
+- When you submit to the journal: give the EarthArXiv DOI and its licence
+  (CC BY 4.0) in the submission form.
+- After the article is published: add the journal DOI to the preprint record.
 """
 
 
