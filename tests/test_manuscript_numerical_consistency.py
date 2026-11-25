@@ -133,7 +133,7 @@ def test_abstract_and_results_sentences_match_metrics():
         f"in Sector~1 and ${sectors.loc['sector_4', 'calibration_in_the_large']:+.2f}$ in Sector~4",
         f"mean log score of ${random_cv.mean_log_score:+.3f}$",
         f"ROC-AUC of {random_cv.auc:.3f} ({random_cv.auc_q2_5:.3f}--{random_cv.auc_q97_5:.3f})",
-        f"The optimism of {random_cv.mean_log_score - pooled.mean_log_score:.3f} per cell",
+        f"The pooled optimism of {random_cv.mean_log_score - pooled.mean_log_score:.3f} per cell",
     ]
     for text in expected:
         assert text in tex, text
