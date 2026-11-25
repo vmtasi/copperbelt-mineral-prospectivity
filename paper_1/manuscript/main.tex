@@ -40,6 +40,13 @@
 
 \maketitle
 
+\section*{Key points}
+\begin{itemize}
+\item A prospectivity model trained on three Copperbelt sectors ranked cells in the fourth better than chance (pooled ROC-AUC 0.721).
+\item Its probabilities did not transfer: occurrence rates were over-predicted in the south-east and under-predicted in the north-west.
+\item Random cross-validation overstated skill; transferred models should be used for ranking and recalibrated before probabilities are compared.
+\end{itemize}
+
 \section{Introduction}
 
 Regional mineral prospectivity mapping combines geological, geochemical and geophysical evidence to rank ground by its association with known mineralization. Approaches range from knowledge-driven evidence integration \citep{BonhamCarter1994, Carranza2009} to weights of evidence \citep{BonhamCarter1989}, logistic regression and machine-learning classifiers \citep{Porwal2006, Carranza2015, Ford2019, Yousefi2021, Lawley2022}. Whatever the method, a data-driven model is trained where occurrences are known and is then used to rank ground where they are not. Its value therefore depends on transfer: whether relationships learned in explored districts still rank cells correctly, and still give meaningful probabilities, in districts the model has not seen.
